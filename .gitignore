@@ -1,0 +1,72 @@
+# Clojure/Java
+.cpcache/
+.nrepl-port
+*.class
+*.jar
+target/
+pom.xml
+pom.xml.asc
+*.pom
+.lein-*
+checkouts/
+
+# Clojure tooling
+.clj-kondo/
+.lsp/
+
+# Node/npm
+node_modules/
+package-lock.json
+yarn.lock
+
+# shadow-cljs
+.shadow-cljs/
+resources/public/js/
+out/
+report.html
+
+# Data files (personal data)
+data/
+
+# Plans (local planning docs)
+plans/
+personal-finance-tracker-plan.md
+
+# AI assistant docs (local only)
+CLAUDE.md
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.calva/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Environment
+.env
+.env.*
+*.local
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Testing/Coverage
+coverage/
+.coverage

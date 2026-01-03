@@ -1,0 +1,26 @@
+{:paths ["src/clj" "resources"]
+
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}
+
+        ;; Web server
+        ring/ring-core {:mvn/version "1.10.0"}
+        ring/ring-jetty-adapter {:mvn/version "1.10.0"}
+        ring/ring-json {:mvn/version "0.5.1"}
+        ring-cors/ring-cors {:mvn/version "0.1.13"}
+
+        ;; Routing
+        compojure/compojure {:mvn/version "1.7.0"}
+
+        ;; JSON
+        cheshire/cheshire {:mvn/version "5.12.0"}}
+
+ :aliases
+ {:dev {:extra-paths ["test/clj"]
+        :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}}}
+
+  :test {:extra-paths ["test/clj"]
+         :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}
+
+  :run {:main-opts ["-m" "finance.core"]}}}
