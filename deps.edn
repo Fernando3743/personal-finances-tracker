@@ -12,7 +12,10 @@
         compojure/compojure {:mvn/version "1.7.0"}
 
         ;; JSON
-        cheshire/cheshire {:mvn/version "5.12.0"}}
+        cheshire/cheshire {:mvn/version "5.12.0"}
+
+        ;; Database
+        com.datomic/datomic-free {:mvn/version "0.9.5697"}}
 
  :aliases
  {:dev {:extra-paths ["test/clj"]

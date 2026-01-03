@@ -3,7 +3,7 @@
    Thin layer that coordinates between HTTP and domain logic."
   (:require [finance.domain.transaction :as tx]
             [finance.domain.reports :as reports]
-            [finance.storage.protocol :as store]
+            [finance.storage.datomic :as db]
             [ring.util.response :as response]))
 
 (defn- json-response
@@ -25,21 +25,21 @@
 
 (defn list-transactions
   "GET /api/transactions - Returns all transactions."
-  [store _request]
-  (let [transactions (store/load-transactions store)]
+  [conn _request]
+  (let [transactions (db/load-transactions conn)]
     (json-response {:transactions (tx/sort-by-date transactions)
                     :count (count transactions)})))
 
 (defn get-transaction
   "GET /api/transactions/:id - Returns a single transaction."
-  [store id _request]
-  (if-let [transaction (store/load-transaction store (parse-uuid id))]
+  [conn id _request]
+  (if-let [transaction (db/load-transaction conn (parse-uuid id))]
     (json-response transaction)
     (error-response "Transaction not found" 404)))
 
 (defn create-transaction
   "POST /api/transactions - Creates a new transaction."
-  [store request]
+  [conn request]
   (let [{:keys [amount type category description tags]} (:body request)]
     (if (and amount type category)
       (let [transaction (tx/create-transaction
@@ -50,17 +50,17 @@
                           :tags (set (map keyword (or tags [])))})]
         (if (tx/valid? transaction)
           (do
-            (store/save-transaction! store transaction)
+            (db/save-transaction! conn transaction)
             (json-response transaction 201))
           (error-response (tx/explain-invalid transaction) 400)))
       (error-response "Missing required fields: amount, type, category" 400))))
 
 (defn update-transaction
   "PUT /api/transactions/:id - Updates a transaction."
-  [store id request]
+  [conn id request]
   (let [uuid (parse-uuid id)
         updates (:body request)]
-    (if-let [_existing (store/load-transaction store uuid)]
+    (if-let [_existing (db/load-transaction conn uuid)]
       (let [;; Convert string keys to namespaced keywords
             converted-updates
             (reduce-kv
@@ -76,15 +76,15 @@
                           v))))
              {}
              updates)]
-        (if-let [updated (store/update-transaction! store uuid converted-updates)]
+        (if-let [updated (db/update-transaction! conn uuid converted-updates)]
           (json-response updated)
           (error-response "Update failed" 500)))
       (error-response "Transaction not found" 404))))
 
 (defn delete-transaction
   "DELETE /api/transactions/:id - Deletes a transaction."
-  [store id _request]
-  (if (store/delete-transaction! store (parse-uuid id))
+  [conn id _request]
+  (if (db/delete-transaction! conn (parse-uuid id))
     (json-response {:deleted true})
     (error-response "Transaction not found" 404)))
 
@@ -94,24 +94,24 @@
 
 (defn get-summary
   "GET /api/summary - Returns balance and category breakdown."
-  [store _request]
-  (let [transactions (store/load-transactions store)]
+  [conn _request]
+  (let [transactions (db/load-transactions conn)]
     (json-response (reports/balance-report transactions))))
 
 (defn get-category-breakdown
   "GET /api/summary/categories - Returns category breakdown."
-  [store _request]
-  (let [transactions (store/load-transactions store)]
+  [conn _request]
+  (let [transactions (db/load-transactions conn)]
     (json-response (reports/category-breakdown transactions))))
 
 (defn get-monthly-report
   "GET /api/summary/monthly - Returns monthly trend data."
-  [store _request]
-  (let [transactions (store/load-transactions store)]
+  [conn _request]
+  (let [transactions (db/load-transactions conn)]
     (json-response (reports/monthly-report transactions))))
 
 (defn get-dashboard
   "GET /api/dashboard - Returns all dashboard data."
-  [store _request]
-  (let [transactions (store/load-transactions store)]
+  [conn _request]
+  (let [transactions (db/load-transactions conn)]
     (json-response (reports/dashboard-data transactions))))

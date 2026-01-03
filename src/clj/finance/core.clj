@@ -7,15 +7,15 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [finance.api.routes :as routes]
-            [finance.storage.edn :as edn-storage])
+            [finance.storage.datomic :as db])
   (:gen-class))
 
-(def ^:private data-file "data/transactions.edn")
+(def ^:private db-uri "datomic:mem://finance")
 
 (defn create-app
   "Creates the Ring application with all middleware."
-  [store]
-  (-> (routes/app-routes store)
+  [conn]
+  (-> (routes/app-routes conn)
       (wrap-json-body {:keywords? true})
       wrap-json-response
       (wrap-cors :access-control-allow-origin [#".*"]
@@ -26,10 +26,10 @@
 (defn start-server
   "Starts the Jetty server."
   [port]
-  (let [store (edn-storage/create-store data-file)
-        app (create-app store)]
+  (let [conn (db/create-conn db-uri)
+        app (create-app conn)]
     (println (str "Starting server on http://localhost:" port))
-    (println (str "Data file: " data-file))
+    (println (str "Database: " db-uri))
     (jetty/run-jetty app {:port port :join? false})))
 
 (defn -main

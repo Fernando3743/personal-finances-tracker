@@ -6,43 +6,43 @@
             [finance.api.handlers :as handlers]))
 
 (defn api-routes
-  "Creates API routes with the given store dependency."
-  [store]
+  "Creates API routes with the given Datomic connection."
+  [conn]
   (context "/api" []
     ;; Transactions CRUD
     (GET "/transactions" request
-      (handlers/list-transactions store request))
+      (handlers/list-transactions conn request))
 
     (POST "/transactions" request
-      (handlers/create-transaction store request))
+      (handlers/create-transaction conn request))
 
     (GET "/transactions/:id" [id :as request]
-      (handlers/get-transaction store id request))
+      (handlers/get-transaction conn id request))
 
     (PUT "/transactions/:id" [id :as request]
-      (handlers/update-transaction store id request))
+      (handlers/update-transaction conn id request))
 
     (DELETE "/transactions/:id" [id :as request]
-      (handlers/delete-transaction store id request))
+      (handlers/delete-transaction conn id request))
 
     ;; Summary & Reports
     (GET "/summary" request
-      (handlers/get-summary store request))
+      (handlers/get-summary conn request))
 
     (GET "/summary/categories" request
-      (handlers/get-category-breakdown store request))
+      (handlers/get-category-breakdown conn request))
 
     (GET "/summary/monthly" request
-      (handlers/get-monthly-report store request))
+      (handlers/get-monthly-report conn request))
 
     (GET "/dashboard" request
-      (handlers/get-dashboard store request))))
+      (handlers/get-dashboard conn request))))
 
 (defn app-routes
   "Creates the full application routes."
-  [store]
+  [conn]
   (compojure.core/routes
-   (api-routes store)
+   (api-routes conn)
    (GET "/" [] (-> (response/resource-response "index.html" {:root "public"})
                     (response/content-type "text/html")))
    (route/resources "/")
