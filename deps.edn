@@ -15,7 +15,11 @@
         cheshire/cheshire {:mvn/version "6.1.0"}
 
         ;; Database
-        com.datomic/datomic-free {:mvn/version "0.9.5697"}}
+        com.datomic/datomic-free {:mvn/version "0.9.5697"}
+
+        ;; nREPL
+        nrepl/nrepl {:mvn/version "1.5.2"}
+        cider/cider-nrepl {:mvn/version "0.58.0"}}
 
  :aliases
  {:cljs {:extra-paths ["src/cljs"]
@@ -33,4 +37,5 @@
          :main-opts   ["-m" "cognitect.test-runner"]
          :exec-fn     cognitect.test-runner.api/test}
 
-  :run  {:main-opts ["-m" "finance.core"]}}}
+  :run  {:extra-paths ["dev"]
+         :main-opts   ["-m" "finance.core"]}}}

@@ -2,11 +2,12 @@
   "Application entry point."
   (:require [reagent.dom :as rdom]
             [re-frame.core :as rf]
-            [finance.events :as events]
-            [finance.views.main :as main]))
+            [finance.views.main :as main]
+            [finance.rf-logic.app :as app]
+            [finance.rf-logic.dashboard]
+            [finance.rf-logic.transactions]))
 
 (defn ^:dev/after-load mount-root
-  "Mount the root component."
   []
   (rf/clear-subscription-cache!)
   (let [root-el (.getElementById js/document "app")]
@@ -14,8 +15,8 @@
     (rdom/render [main/main-panel] root-el)))
 
 (defn init
-  "Initialize the application."
   []
-  (rf/dispatch-sync [::events/initialize-db])
-  (rf/dispatch [::events/initialize-app])
+  (rf/dispatch-sync [:app/initialize-db])
+  (app/start-router!)
+  (rf/dispatch [:app/initialize-app])
   (mount-root))

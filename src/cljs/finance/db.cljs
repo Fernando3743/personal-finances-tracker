@@ -1,17 +1,11 @@
 (ns finance.db
-  "Initial app-db state and related constants."
-  (:require [finance.utils.currency :as currency]))
-
-;; Re-export currency constants for convenience
-(def available-currencies currency/available-currencies)
-(def currency-config currency/currency-config)
+  "Initial app-db state and related constants.")
 
 (def default-categories
   [:groceries :restaurants :transportation :utilities
    :entertainment :healthcare :shopping :salary
    :freelance :investments :gifts :other])
 
-;; Category icons (emoji) mapping
 (def category-icons
   {:groceries "🛒"
    :restaurants "🍽️"
@@ -30,7 +24,7 @@
   {:transactions []
    :loading? false
    :error nil
-   :active-view :dashboard  ; :dashboard, :transactions, :add-transaction
+   :current-route :dashboard  ; :dashboard, :transactions, :add-transaction
    :categories default-categories
 
    ;; UI State

@@ -1,21 +1,15 @@
 (ns finance.views.dashboard
   "Dashboard view with financial overview and metrics."
   (:require [re-frame.core :as rf]
-            [finance.subs :as subs]
-            [finance.events :as events]
             [finance.utils.currency :as currency]
             [finance.components.icons :refer [icon]]))
 
-(defn format-day
-  "Formats date to day number."
-  [date]
+(defn format-day [date]
   (when date
     (let [d (js/Date. date)]
       (.getDate d))))
 
-(defn format-month-year
-  "Formats date to 'Mon YYYY' format."
-  [date]
+(defn format-month-year [date]
   (when date
     (let [d (js/Date. date)]
       (.toLocaleDateString d "en-US" #js {:month "short" :year "numeric"}))))
@@ -29,8 +23,8 @@
     [:span.balance-card__amount (currency/format-currency amount (or curr :COP))]]])
 
 (defn balances-section []
-  (let [currency-balances @(rf/subscribe [::subs/all-currency-balances])
-        currencies @(rf/subscribe [::subs/available-currencies])]
+  (let [currency-balances @(rf/subscribe [:dashboard/all-currency-balances])
+        currencies @(rf/subscribe [:dashboard/available-currencies])]
     [:section.dashboard-balances
      [:h2.dashboard-section-title "Balances"]
      [:p.dashboard-section-subtitle "Your finances across all currencies"]
@@ -65,7 +59,7 @@
         curr (or currency :COP)
         display-text (or description (str (name (or category :other)) " transaction"))]
     [:div.transaction-row
-     {:on-click #(rf/dispatch [::events/set-active-view :transactions])}
+     {:on-click #(rf/dispatch [:app/navigate :transactions])}
      [:div.transaction-row__date
       [:span.date-day day]
       [:span.date-month-year month-year]]
@@ -80,27 +74,27 @@
      [:span.transaction-row__chevron ">"]]))
 
 (defn transactions-panel []
-  (let [transactions @(rf/subscribe [::subs/recent-transactions])]
+  (let [transactions @(rf/subscribe [:tx/recent-transactions])]
     [:div.transactions-panel
      [:div.transactions-panel__header
       [:div.transactions-panel__header-content
        [:h2.transactions-panel__title "Transactions"]
        [:p.transactions-panel__subtitle "Recent activity"]]
       [:a.view-all-link
-       {:on-click #(rf/dispatch [::events/set-active-view :transactions])}
+       {:on-click #(rf/dispatch [:app/navigate :transactions])}
        "View all >"]]
 
      (if (empty? transactions)
        [:div.transactions-panel__empty
         [:p "No transactions yet"]
         [:button.flow-btn.flow-btn--primary
-         {:on-click #(rf/dispatch [::events/set-active-view :add-transaction])}
+         {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
          "Add Transaction"]]
 
        [:div.transactions-table
-        (for [tx transactions]
-          ^{:key (or (:transaction/id tx) (random-uuid))}
-          [transaction-row tx])])]))
+        (for [t transactions]
+          ^{:key (or (:transaction/id t) (random-uuid))}
+          [transaction-row t])])]))
 
 (def category-colors
   {:groceries "#22C55E"
@@ -116,9 +110,7 @@
    :gifts "#F43F5E"
    :other "#6B7280"})
 
-(defn generate-path-d
-  "Generates SVG path d attribute for a line chart."
-  [points width height max-val]
+(defn generate-path-d [points width height max-val]
   (when (seq points)
     (let [n (count points)
           x-step (/ width (max 1 (dec n)))
@@ -131,7 +123,7 @@
                    (rest points)))))))
 
 (defn mini-trend-chart []
-  (let [monthly-report @(rf/subscribe [::subs/monthly-report])
+  (let [monthly-report @(rf/subscribe [:dashboard/monthly-report])
         months (or (:months monthly-report) [])
         income-data (if (seq months)
                       (mapv #(or (:income %) 0) months)
@@ -157,7 +149,7 @@
       {:d (generate-path-d expense-data width height max-val)}]]))
 
 (defn trend-chart-widget []
-  (let [time-range @(rf/subscribe [::subs/chart-time-range])]
+  (let [time-range @(rf/subscribe [:dashboard/chart-time-range])]
     [:div.sidebar-widget
      [:div.sidebar-widget__header
       [:h3.sidebar-widget__title "Monthly Trends"]
@@ -166,13 +158,13 @@
          ^{:key key}
          [:button.range-btn
           {:class (when (= time-range key) "range-btn--active")
-           :on-click #(rf/dispatch [::events/set-chart-range key])}
+           :on-click #(rf/dispatch [:dashboard/set-chart-range key])}
           label])]]
      [:div.sidebar-widget__chart
       [mini-trend-chart]]]))
 
 (defn category-summary-widget []
-  (let [{:keys [categories]} @(rf/subscribe [::subs/category-totals])
+  (let [{:keys [categories]} @(rf/subscribe [:dashboard/category-totals])
         expense-cats (->> categories
                           (filter #(= (:type %) :expense))
                           (sort-by :total >)
@@ -205,7 +197,7 @@
      [:div.skeleton-widget]]]])
 
 (defn dashboard-view []
-  (let [loading? @(rf/subscribe [::subs/loading?])]
+  (let [loading? @(rf/subscribe [:app/loading?])]
     [:div.dashboard
      [:h1.dashboard__title "Dashboard"]
      (if loading?

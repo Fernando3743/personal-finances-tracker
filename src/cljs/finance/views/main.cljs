@@ -1,23 +1,21 @@
 (ns finance.views.main
   "Main layout, navigation, and UI components."
   (:require [re-frame.core :as rf]
-            [finance.events :as events]
-            [finance.subs :as subs]
             [finance.views.dashboard :as dashboard]
             [finance.views.transactions :as transactions]
             [finance.components.icons :refer [icon]]))
 
 (defn theme-toggle []
-  (let [theme @(rf/subscribe [::subs/theme])]
+  (let [theme @(rf/subscribe [:app/theme])]
     [:button.flow-theme-toggle
-     {:on-click #(rf/dispatch [::events/toggle-theme])
+     {:on-click #(rf/dispatch [:app/toggle-theme])
       :aria-label (if (= theme :light) "Switch to dark mode" "Switch to light mode")}
      (if (= theme :light)
        [icon :moon {:width 20 :height 20 :class "flow-icon-moon"}]
        [icon :sun {:width 20 :height 20 :class "flow-icon-sun"}])]))
 
 (defn header []
-  (let [active-view @(rf/subscribe [::subs/active-view])]
+  (let [active-view @(rf/subscribe [:app/current-route])]
     [:header.flow-header
      [:div.flow-header__left
       [:div.flow-header__logo
@@ -27,62 +25,62 @@
      [:nav.flow-header__nav
       [:a.flow-header__nav-item
        {:class (when (= active-view :dashboard) "flow-header__nav-item--active")
-        :on-click #(rf/dispatch [::events/set-active-view :dashboard])}
+        :on-click #(rf/dispatch [:app/navigate :dashboard])}
        [:span.flow-header__nav-icon [icon :dashboard {:width 20 :height 20}]]
        "Dashboard"]
       [:a.flow-header__nav-item
        {:class (when (= active-view :transactions) "flow-header__nav-item--active")
-        :on-click #(rf/dispatch [::events/set-active-view :transactions])}
+        :on-click #(rf/dispatch [:app/navigate :transactions])}
        [:span.flow-header__nav-icon [icon :list {:width 20 :height 20}]]
        "Transactions"]]
 
      [:div.flow-header__actions
       [theme-toggle]
       [:button.flow-header__add-btn
-       {:on-click #(rf/dispatch [::events/set-active-view :add-transaction])}
+       {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
        [icon :plus {:width 20 :height 20}]
        [:span "Add Transaction"]]
       [:button.flow-header__add-btn-mobile
-       {:on-click #(rf/dispatch [::events/set-active-view :add-transaction])}
+       {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
        [icon :plus {:width 20 :height 20}]]]]))
 
 (defn sidebar []
-  (let [active-view @(rf/subscribe [::subs/active-view])]
+  (let [active-view @(rf/subscribe [:app/current-route])]
     [:aside.flow-sidebar
      [:nav.flow-sidebar__nav
       [:a.flow-sidebar__item
        {:class (when (= active-view :dashboard) "flow-sidebar__item--active")
-        :on-click #(rf/dispatch [::events/set-active-view :dashboard])}
+        :on-click #(rf/dispatch [:app/navigate :dashboard])}
        [:span.flow-sidebar__icon [icon :dashboard {:width 20 :height 20}]]
        [:span.flow-sidebar__label "Dashboard"]]
       [:a.flow-sidebar__item
        {:class (when (= active-view :transactions) "flow-sidebar__item--active")
-        :on-click #(rf/dispatch [::events/set-active-view :transactions])}
+        :on-click #(rf/dispatch [:app/navigate :transactions])}
        [:span.flow-sidebar__icon [icon :list {:width 20 :height 20}]]
        [:span.flow-sidebar__label "Transactions"]]
       [:a.flow-sidebar__item
        {:class (when (= active-view :add-transaction) "flow-sidebar__item--active")
-        :on-click #(rf/dispatch [::events/set-active-view :add-transaction])}
+        :on-click #(rf/dispatch [:app/navigate :add-transaction])}
        [:span.flow-sidebar__icon [icon :plus {:width 20 :height 20}]]
        [:span.flow-sidebar__label "Add New"]]]]))
 
 (defn tab-bar []
-  (let [active-view @(rf/subscribe [::subs/active-view])]
+  (let [active-view @(rf/subscribe [:app/current-route])]
     [:nav.flow-tab-bar
      [:a.flow-tab-bar__item
       {:class (when (= active-view :dashboard) "flow-tab-bar__item--active")
-       :on-click #(rf/dispatch [::events/set-active-view :dashboard])}
+       :on-click #(rf/dispatch [:app/navigate :dashboard])}
       [:span.flow-tab-bar__icon [icon :dashboard {:width 20 :height 20}]]
       [:span.flow-tab-bar__label "Dashboard"]]
 
      [:button.flow-tab-bar__fab
-      {:on-click #(rf/dispatch [::events/set-active-view :add-transaction])
+      {:on-click #(rf/dispatch [:app/navigate :add-transaction])
        :aria-label "Add Transaction"}
       [icon :plus {:width 20 :height 20}]]
 
      [:a.flow-tab-bar__item
       {:class (when (= active-view :transactions) "flow-tab-bar__item--active")
-       :on-click #(rf/dispatch [::events/set-active-view :transactions])}
+       :on-click #(rf/dispatch [:app/navigate :transactions])}
       [:span.flow-tab-bar__icon [icon :list {:width 20 :height 20}]]
       [:span.flow-tab-bar__label "Transactions"]]]))
 
@@ -104,31 +102,21 @@
     (when title [:div.flow-toast__title title])
     (when message [:div.flow-toast__message message])]
    [:button.flow-toast__dismiss
-    {:on-click #(rf/dispatch [::events/dismiss-toast id])}
+    {:on-click #(rf/dispatch [:app/dismiss-toast id])}
     [icon :x {:width 20 :height 20}]]
    [:div.flow-toast__progress
     [:div.flow-toast__progress-bar]]])
 
 (defn toast-container []
-  (let [toasts @(rf/subscribe [::subs/toast-queue])]
+  (let [toasts @(rf/subscribe [:app/toast-queue])]
     (when (seq toasts)
       [:div.flow-toast-container
        (for [t toasts]
          ^{:key (:id t)}
          [toast t])])))
 
-(defn loading-overlay []
-  (let [loading? @(rf/subscribe [::subs/loading?])]
-    (when loading?
-      [:div.flow-center {:style {:position "fixed"
-                                 :top 0 :left 0 :right 0 :bottom 0
-                                 :background "rgba(0,0,0,0.3)"
-                                 :z-index 100}}
-       [:div.flow-animate-pulse
-        [:span.flow-text-inverse.flow-body "Loading..."]]])))
-
 (defn main-content []
-  (let [active-view @(rf/subscribe [::subs/active-view])]
+  (let [active-view @(rf/subscribe [:app/current-route])]
     [:main.flow-main
      {:class "flow-animate flow-animate-fade-in"}
      (case active-view
