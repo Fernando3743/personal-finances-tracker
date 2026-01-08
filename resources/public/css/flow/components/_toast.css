@@ -1,0 +1,327 @@
+/* ==========================================================================
+   Flow Design System - Toast
+   Toast notifications and alerts
+   ========================================================================== */
+
+/* ==========================================================================
+   Toast Container
+   ========================================================================== */
+
+.flow-toast-container {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+/* Mobile: full width at bottom */
+@media (max-width: 639px) {
+  .flow-toast-container {
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: calc(var(--tab-bar-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ==========================================================================
+   Toast
+   ========================================================================== */
+
+.flow-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 400px;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform var(--duration-normal) var(--ease-out),
+              opacity var(--duration-normal) var(--ease-out);
+}
+
+@media (max-width: 639px) {
+  .flow-toast {
+    min-width: auto;
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+.flow-toast--visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.flow-toast--exiting {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+@media (max-width: 639px) {
+  .flow-toast--exiting {
+    transform: translateY(100%);
+  }
+}
+
+/* ==========================================================================
+   Toast Variants
+   ========================================================================== */
+
+.flow-toast--success {
+  background-color: var(--color-income-subtle);
+  border-color: var(--color-income);
+}
+
+.flow-toast--success .flow-toast__icon {
+  color: var(--color-income);
+}
+
+.flow-toast--error {
+  background-color: var(--color-expense-subtle);
+  border-color: var(--color-expense);
+}
+
+.flow-toast--error .flow-toast__icon {
+  color: var(--color-expense);
+}
+
+.flow-toast--warning {
+  background-color: var(--color-warning-subtle);
+  border-color: var(--color-warning);
+}
+
+.flow-toast--warning .flow-toast__icon {
+  color: var(--color-warning);
+}
+
+.flow-toast--info {
+  background-color: var(--color-info-subtle);
+  border-color: var(--color-info);
+}
+
+.flow-toast--info .flow-toast__icon {
+  color: var(--color-info);
+}
+
+/* ==========================================================================
+   Toast Icon
+   ========================================================================== */
+
+.flow-toast__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.flow-toast__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==========================================================================
+   Toast Content
+   ========================================================================== */
+
+.flow-toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.flow-toast__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-toast__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-0-5);
+}
+
+/* ==========================================================================
+   Toast Actions
+   ========================================================================== */
+
+.flow-toast__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.flow-toast__action {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent-primary);
+  text-decoration: none;
+}
+
+.flow-toast__action:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Toast Dismiss
+   ========================================================================== */
+
+.flow-toast__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-toast__dismiss:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-text-primary);
+}
+
+.flow-toast__dismiss svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==========================================================================
+   Toast Progress Bar
+   ========================================================================== */
+
+.flow-toast__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.flow-toast__progress-bar {
+  height: 100%;
+  background-color: var(--color-accent-primary);
+  animation: flow-progress var(--toast-duration, 5s) linear forwards;
+}
+
+.flow-toast--success .flow-toast__progress-bar {
+  background-color: var(--color-income);
+}
+
+.flow-toast--error .flow-toast__progress-bar {
+  background-color: var(--color-expense);
+}
+
+.flow-toast--warning .flow-toast__progress-bar {
+  background-color: var(--color-warning);
+}
+
+.flow-toast--info .flow-toast__progress-bar {
+  background-color: var(--color-info);
+}
+
+/* ==========================================================================
+   Alert (Inline Toast)
+   ========================================================================== */
+
+.flow-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--color-border-default);
+}
+
+.flow-alert--success {
+  background-color: var(--color-income-subtle);
+  border-left-color: var(--color-income);
+}
+
+.flow-alert--error {
+  background-color: var(--color-expense-subtle);
+  border-left-color: var(--color-expense);
+}
+
+.flow-alert--warning {
+  background-color: var(--color-warning-subtle);
+  border-left-color: var(--color-warning);
+}
+
+.flow-alert--info {
+  background-color: var(--color-info-subtle);
+  border-left-color: var(--color-info);
+}
+
+.flow-alert__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.flow-alert--success .flow-alert__icon {
+  color: var(--color-income);
+}
+
+.flow-alert--error .flow-alert__icon {
+  color: var(--color-expense);
+}
+
+.flow-alert--warning .flow-alert__icon {
+  color: var(--color-warning);
+}
+
+.flow-alert--info .flow-alert__icon {
+  color: var(--color-info);
+}
+
+.flow-alert__content {
+  flex: 1;
+}
+
+.flow-alert__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-alert__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-0-5);
+}
+
+.flow-alert__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  transition: var(--transition-colors);
+}
+
+.flow-alert__dismiss:hover {
+  color: var(--color-text-primary);
+}

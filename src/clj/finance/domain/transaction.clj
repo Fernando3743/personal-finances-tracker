@@ -15,15 +15,19 @@
 (s/def :transaction/date inst?)
 (s/def :transaction/description (s/and string? #(<= (count %) 500)))
 (s/def :transaction/tags (s/coll-of keyword? :kind set?))
+(s/def :transaction/currency #{:COP :USD})
+(s/def :transaction/exchange-rate (s/and number? pos?))
 
 (s/def ::transaction
   (s/keys :req [:transaction/id
                 :transaction/amount
                 :transaction/type
                 :transaction/category
-                :transaction/date]
+                :transaction/date
+                :transaction/currency]
           :opt [:transaction/description
-                :transaction/tags]))
+                :transaction/tags
+                :transaction/exchange-rate]))
 
 ;; Default categories
 (def default-categories
@@ -40,17 +44,19 @@
    amount: positive number (sign determined by type)
    type: :income or :expense
    category: keyword
-   opts: optional map with :description and :tags"
+   opts: optional map with :description, :tags, :date, :currency, :exchange-rate"
   ([amount type category]
    (create-transaction amount type category {}))
-  ([amount type category {:keys [description tags date]}]
-   {:transaction/id (random-uuid)
-    :transaction/amount (abs amount)
-    :transaction/type type
-    :transaction/category category
-    :transaction/date (or date (java.util.Date.))
-    :transaction/description (or description "")
-    :transaction/tags (or tags #{})}))
+  ([amount type category {:keys [description tags date currency exchange-rate]}]
+   (cond-> {:transaction/id (random-uuid)
+            :transaction/amount (abs amount)
+            :transaction/type type
+            :transaction/category category
+            :transaction/date (or date (java.util.Date.))
+            :transaction/currency (or currency :COP)
+            :transaction/description (or description "")
+            :transaction/tags (or tags #{})}
+     exchange-rate (assoc :transaction/exchange-rate exchange-rate))))
 
 (defn valid?
   "Validates a transaction against spec."
@@ -132,6 +138,11 @@
                   (= (dec month) (.get cal java.util.Calendar/MONTH))))
           transactions))
 
+(defn by-currency
+  "Filters transactions by currency (:COP or :USD)."
+  [transactions currency]
+  (filter #(= currency (:transaction/currency %)) transactions))
+
 ;; =============================================================================
 ;; Grouping & Aggregation Functions (Pure)
 ;; =============================================================================
@@ -156,6 +167,27 @@
        {:year (.get cal java.util.Calendar/YEAR)
         :month (inc (.get cal java.util.Calendar/MONTH))}))
    transactions))
+
+(defn group-by-currency
+  "Groups transactions by currency."
+  [transactions]
+  (group-by :transaction/currency transactions))
+
+(defn totals-by-currency
+  "Returns totals grouped by currency.
+   Result: {:COP {:balance x :income y :expenses z :count n}
+            :USD {:balance x :income y :expenses z :count n}}"
+  [transactions]
+  (let [grouped (group-by-currency transactions)]
+    (reduce-kv
+     (fn [acc currency txs]
+       (assoc acc currency
+              {:balance (total-balance txs)
+               :income (total-income txs)
+               :expenses (total-expenses txs)
+               :count (count txs)}))
+     {}
+     grouped)))
 
 (defn category-summary
   "Returns summary statistics grouped by category.

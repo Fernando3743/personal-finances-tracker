@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Flow Design System - Sidebar
+   Desktop side navigation component
+   ========================================================================== */
+
+/* ==========================================================================
+   Sidebar Container
+   ========================================================================== */
+
+.flow-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  height: 100%;
+  padding: var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border-default);
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Sidebar Navigation
+   ========================================================================== */
+
+.flow-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+/* ==========================================================================
+   Sidebar Navigation Item
+   ========================================================================== */
+
+.flow-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition-colors), background-color var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-sidebar__item:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Active state */
+.flow-sidebar__item--active {
+  color: var(--color-accent-primary);
+  background-color: var(--color-accent-subtle);
+}
+
+.flow-sidebar__item--active:hover {
+  color: var(--color-accent-primary);
+  background-color: var(--color-accent-subtle);
+}
+
+/* ==========================================================================
+   Sidebar Item Icon
+   ========================================================================== */
+
+.flow-sidebar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.flow-sidebar__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==========================================================================
+   Sidebar Item Label
+   ========================================================================== */
+
+.flow-sidebar__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ==========================================================================
+   Sidebar Sections
+   ========================================================================== */
+
+.flow-sidebar__section {
+  margin-bottom: var(--space-4);
+}
+
+.flow-sidebar__section-title {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+}
+
+/* ==========================================================================
+   Sidebar Divider
+   ========================================================================== */
+
+.flow-sidebar__divider {
+  height: 1px;
+  margin: var(--space-3) var(--space-2);
+  background-color: var(--color-border-default);
+}
+
+/* ==========================================================================
+   Sidebar Footer
+   ========================================================================== */
+
+.flow-sidebar__footer {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+}

@@ -1,0 +1,346 @@
+/* ==========================================================================
+   Flow Design System - Form
+   Form layout and section components
+   ========================================================================== */
+
+/* ==========================================================================
+   Form Container
+   ========================================================================== */
+
+.flow-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ==========================================================================
+   Form Section
+   ========================================================================== */
+
+.flow-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flow-form__section-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+}
+
+/* ==========================================================================
+   Form Row (Multiple Fields)
+   ========================================================================== */
+
+.flow-form__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .flow-form__row {
+    flex-direction: row;
+  }
+
+  .flow-form__row > * {
+    flex: 1;
+  }
+}
+
+/* ==========================================================================
+   Form Field
+   ========================================================================== */
+
+.flow-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+/* ==========================================================================
+   Form Actions
+   ========================================================================== */
+
+.flow-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .flow-form__actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .flow-form__actions--spread {
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================================================
+   Form Divider
+   ========================================================================== */
+
+.flow-form__divider {
+  height: 1px;
+  background-color: var(--color-border-default);
+  margin: var(--space-2) 0;
+}
+
+/* ==========================================================================
+   Category Picker
+   ========================================================================== */
+
+.flow-category-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.flow-category-picker__search {
+  margin-bottom: var(--space-2);
+}
+
+.flow-category-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .flow-category-picker__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.flow-category-picker__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+}
+
+.flow-category-picker__item:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-category-picker__item:active {
+  transform: scale(0.97);
+}
+
+.flow-category-picker__item--selected {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-accent-subtle);
+}
+
+.flow-category-picker__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xl);
+}
+
+.flow-category-picker__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.flow-category-picker__item--selected .flow-category-picker__label {
+  color: var(--color-accent-primary);
+}
+
+/* ==========================================================================
+   Date Picker Wrapper
+   ========================================================================== */
+
+.flow-datepicker {
+  position: relative;
+}
+
+.flow-datepicker__field {
+  width: 100%;
+  padding: var(--space-2-5) var(--space-3);
+  padding-right: var(--space-10);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color var(--duration-normal) var(--ease-in-out),
+              box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-datepicker__field:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.flow-datepicker__icon {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Tag Input
+   ========================================================================== */
+
+.flow-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  min-height: 44px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: text;
+  transition: border-color var(--duration-normal) var(--ease-in-out),
+              box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-tag-input:focus-within {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.flow-tag-input__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--color-accent-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-primary);
+}
+
+.flow-tag-input__tag-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  color: var(--color-accent-primary);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-tag-input__tag-remove:hover {
+  background-color: rgba(124, 58, 237, 0.2);
+}
+
+.flow-tag-input__field {
+  flex: 1;
+  min-width: 100px;
+  padding: var(--space-1);
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.flow-tag-input__field:focus {
+  outline: none;
+}
+
+.flow-tag-input__field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ==========================================================================
+   Form Card (Inline Form in Card)
+   ========================================================================== */
+
+.flow-form-card {
+  padding: var(--space-6);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-form-card__header {
+  margin-bottom: var(--space-6);
+}
+
+.flow-form-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-form-card__description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ==========================================================================
+   Inline Form
+   ========================================================================== */
+
+.flow-inline-form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.flow-inline-form__input {
+  flex: 1;
+}
+
+/* ==========================================================================
+   Form Progress
+   ========================================================================== */
+
+.flow-form-progress {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.flow-form-progress__dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-form-progress__dot--active {
+  background-color: var(--color-accent-primary);
+}
+
+.flow-form-progress__dot--completed {
+  background-color: var(--color-income);
+}

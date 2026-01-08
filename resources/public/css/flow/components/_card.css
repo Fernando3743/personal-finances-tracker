@@ -1,0 +1,262 @@
+/* ==========================================================================
+   Flow Design System - Card
+   Base card styles and variants
+   ========================================================================== */
+
+/* ==========================================================================
+   Base Card
+   ========================================================================== */
+
+.flow-card {
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* Card with hover effect */
+.flow-card--hoverable {
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out);
+}
+
+.flow-card--hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-hover);
+}
+
+/* Clickable card */
+.flow-card--clickable {
+  cursor: pointer;
+}
+
+.flow-card--clickable:active {
+  transform: scale(0.99);
+}
+
+/* ==========================================================================
+   Card Padding Variants
+   ========================================================================== */
+
+.flow-card--padding-none {
+  padding: 0;
+}
+
+.flow-card--padding-sm {
+  padding: var(--space-3);
+}
+
+.flow-card--padding-md {
+  padding: var(--space-4);
+}
+
+.flow-card--padding-lg {
+  padding: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .flow-card--padding-sm {
+    padding: var(--space-4);
+  }
+
+  .flow-card--padding-md {
+    padding: var(--space-5);
+  }
+
+  .flow-card--padding-lg {
+    padding: var(--space-8);
+  }
+}
+
+/* ==========================================================================
+   Card Header
+   ========================================================================== */
+
+.flow-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.flow-card__header--no-border {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.flow-card__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-card__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-0-5);
+}
+
+.flow-card__action {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.flow-card__action:hover {
+  color: var(--color-accent-primary-hover);
+}
+
+/* ==========================================================================
+   Card Body
+   ========================================================================== */
+
+.flow-card__body {
+  padding: var(--space-4);
+}
+
+.flow-card__body--no-padding {
+  padding: 0;
+}
+
+/* ==========================================================================
+   Card Footer
+   ========================================================================== */
+
+.flow-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-tertiary);
+}
+
+/* ==========================================================================
+   Card Color Variants
+   ========================================================================== */
+
+/* Gradient card (for primary balance) */
+.flow-card--gradient {
+  background: var(--color-accent-gradient);
+  border-color: transparent;
+  color: var(--color-text-on-accent);
+}
+
+.flow-card--gradient .flow-card__title,
+.flow-card--gradient .flow-card__subtitle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Income card */
+.flow-card--income {
+  background-color: var(--color-income-subtle);
+  border-color: transparent;
+}
+
+/* Expense card */
+.flow-card--expense {
+  background-color: var(--color-expense-subtle);
+  border-color: transparent;
+}
+
+/* Outlined card */
+.flow-card--outlined {
+  background-color: transparent;
+  box-shadow: none;
+  border: 1px solid var(--color-border-default);
+}
+
+/* Transparent card */
+.flow-card--transparent {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Card Loading State
+   ========================================================================== */
+
+.flow-card--loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-card--loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    var(--color-bg-tertiary) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: flow-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Card Group (for stacked cards)
+   ========================================================================== */
+
+.flow-card-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-card-group .flow-card {
+  border-radius: 0;
+  border-bottom-width: 0;
+}
+
+.flow-card-group .flow-card:first-child {
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+}
+
+.flow-card-group .flow-card:last-child {
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
+  border-bottom-width: 1px;
+}
+
+/* ==========================================================================
+   Compact Card (for lists)
+   ========================================================================== */
+
+.flow-card--compact {
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+
+.flow-card--compact .flow-card__header {
+  padding: var(--space-3);
+}
+
+.flow-card--compact .flow-card__body {
+  padding: var(--space-3);
+}
+
+/* ==========================================================================
+   Full Width Card (breaks out of container on mobile)
+   ========================================================================== */
+
+@media (max-width: 639px) {
+  .flow-card--full-mobile {
+    margin-left: calc(var(--space-4) * -1);
+    margin-right: calc(var(--space-4) * -1);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}

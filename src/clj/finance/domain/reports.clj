@@ -4,15 +4,16 @@
   (:require [finance.domain.transaction :as tx]))
 
 (defn balance-report
-  "Generates a complete balance report."
+  "Generates a complete balance report with per-currency breakdown."
   [transactions]
-  {:total-balance (tx/total-balance transactions)
+  {:by-currency (tx/totals-by-currency transactions)
+   :total-balance (tx/total-balance transactions)
    :total-income (tx/total-income transactions)
    :total-expenses (tx/total-expenses transactions)
    :transaction-count (count transactions)})
 
-(defn category-breakdown
-  "Generates category breakdown with percentages."
+(defn- category-breakdown-for-transactions
+  "Helper to generate category breakdown for a set of transactions."
   [transactions]
   (let [summary (tx/category-summary transactions)
         total-expenses (tx/total-expenses transactions)
@@ -35,8 +36,22 @@
               :expenses total-expenses
               :balance (tx/total-balance transactions)}}))
 
-(defn monthly-report
-  "Generates a monthly trend report."
+(defn category-breakdown
+  "Generates category breakdown with percentages, grouped by currency."
+  [transactions]
+  (let [by-currency (tx/group-by-currency transactions)]
+    {:by-currency
+     (reduce-kv
+      (fn [acc currency txs]
+        (assoc acc currency (category-breakdown-for-transactions txs)))
+      {}
+      by-currency)
+     ;; Legacy fields for backwards compatibility
+     :categories (:categories (category-breakdown-for-transactions transactions))
+     :totals (:totals (category-breakdown-for-transactions transactions))}))
+
+(defn- monthly-report-for-transactions
+  "Helper to generate monthly report for a set of transactions."
   [transactions]
   (let [monthly (tx/monthly-summary transactions)]
     {:months monthly
@@ -44,6 +59,21 @@
                  {:avg-income (/ (reduce + (map :income monthly)) (count monthly))
                   :avg-expenses (/ (reduce + (map :expenses monthly)) (count monthly))
                   :avg-balance (/ (reduce + (map :balance monthly)) (count monthly))})}))
+
+(defn monthly-report
+  "Generates a monthly trend report, grouped by currency."
+  [transactions]
+  (let [by-currency (tx/group-by-currency transactions)
+        overall (monthly-report-for-transactions transactions)]
+    {:by-currency
+     (reduce-kv
+      (fn [acc currency txs]
+        (assoc acc currency (monthly-report-for-transactions txs)))
+      {}
+      by-currency)
+     ;; Legacy fields for backwards compatibility
+     :months (:months overall)
+     :averages (:averages overall)}))
 
 (defn dashboard-data
   "Generates all data needed for dashboard display."

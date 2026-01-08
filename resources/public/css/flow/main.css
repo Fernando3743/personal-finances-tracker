@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Flow Design System - Main Entry Point
+   Personal Finance Tracker UI
+   ========================================================================== */
+
+/* ==========================================================================
+   External Fonts
+   ========================================================================== */
+
+/* Inter Font - Variable */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* JetBrains Mono - For numbers */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ==========================================================================
+   Foundation
+   ========================================================================== */
+
+@import '_variables.css';
+@import '_reset.css';
+@import '_typography.css';
+@import '_animations.css';
+@import '_utilities.css';
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+
+@import 'components/_shell.css';
+@import 'components/_header.css';
+@import 'components/_sidebar.css';
+@import 'components/_tab-bar.css';
+@import 'components/_card.css';
+@import 'components/_metrics.css';
+@import 'components/_charts.css';
+@import 'components/_table.css';
+@import 'components/_button.css';
+@import 'components/_input.css';
+@import 'components/_toggle.css';
+@import 'components/_form.css';
+@import 'components/_modal.css';
+@import 'components/_toast.css';
+@import 'components/_skeleton.css';
+
+/* ==========================================================================
+   Views
+   ========================================================================== */
+
+@import 'views/_dashboard.css';
+@import 'views/_transactions.css';
+@import 'views/_form.css';
+
+/* ==========================================================================
+   Icons (SVG Sprite References)
+   ========================================================================== */
+
+/* Icon utility classes */
+.flow-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.flow-icon--xs { width: 12px; height: 12px; }
+.flow-icon--sm { width: 16px; height: 16px; }
+.flow-icon--md { width: 20px; height: 20px; }
+.flow-icon--lg { width: 24px; height: 24px; }
+.flow-icon--xl { width: 32px; height: 32px; }
+.flow-icon--2xl { width: 48px; height: 48px; }
+
+/* ==========================================================================
+   Category Color Classes
+   ========================================================================== */
+
+.flow-cat-groceries { --cat-color: var(--cat-groceries); }
+.flow-cat-restaurants { --cat-color: var(--cat-restaurants); }
+.flow-cat-transportation { --cat-color: var(--cat-transportation); }
+.flow-cat-utilities { --cat-color: var(--cat-utilities); }
+.flow-cat-entertainment { --cat-color: var(--cat-entertainment); }
+.flow-cat-healthcare { --cat-color: var(--cat-healthcare); }
+.flow-cat-shopping { --cat-color: var(--cat-shopping); }
+.flow-cat-salary { --cat-color: var(--cat-salary); }
+.flow-cat-freelance { --cat-color: var(--cat-freelance); }
+.flow-cat-investments { --cat-color: var(--cat-investments); }
+.flow-cat-gifts { --cat-color: var(--cat-gifts); }
+.flow-cat-other { --cat-color: var(--cat-other); }
+
+/* Category badge using the color */
+[class*="flow-cat-"] .flow-category-badge {
+  background-color: color-mix(in srgb, var(--cat-color) 15%, transparent);
+  color: var(--cat-color);
+}
+
+[class*="flow-cat-"] .flow-category-icon-bg {
+  background-color: color-mix(in srgb, var(--cat-color) 15%, transparent);
+}
+
+[class*="flow-cat-"] .flow-category-dot {
+  background-color: var(--cat-color);
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+  /* Hide navigation and interactive elements */
+  .flow-shell__sidebar,
+  .flow-shell__tab-bar,
+  .flow-header__actions,
+  .flow-btn,
+  .flow-toast-container {
+    display: none !important;
+  }
+
+  /* Ensure content is visible */
+  .flow-shell__content {
+    padding: 0;
+  }
+
+  /* Remove shadows and borders */
+  .flow-card,
+  .flow-metrics__card {
+    box-shadow: none;
+    border: 1px solid #e5e5e5;
+  }
+
+  /* Ensure colors print */
+  .flow-text-income { color: #22C55E !important; }
+  .flow-text-expense { color: #EF4444 !important; }
+
+  /* Page breaks */
+  .flow-section {
+    page-break-inside: avoid;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode Support
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-default: #000000;
+    --color-border-hover: #000000;
+  }
+
+  [data-theme="dark"] {
+    --color-border-default: #ffffff;
+    --color-border-hover: #ffffff;
+  }
+
+  .flow-btn--secondary {
+    border-width: 2px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Data Mode
+   ========================================================================== */
+
+@media (prefers-reduced-data: reduce) {
+  /* Disable web fonts, use system fonts */
+  :root {
+    --font-family-sans: system-ui, -apple-system, sans-serif;
+    --font-family-mono: ui-monospace, monospace;
+  }
+}

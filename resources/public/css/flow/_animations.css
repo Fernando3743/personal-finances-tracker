@@ -1,0 +1,405 @@
+/* ==========================================================================
+   Flow Design System - Animations
+   Keyframes and animation utility classes
+   ========================================================================== */
+
+/* ==========================================================================
+   Keyframe Definitions
+   ========================================================================== */
+
+/* Fade animations */
+@keyframes flow-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes flow-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Slide animations */
+@keyframes flow-slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flow-slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flow-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes flow-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Panel slide (for side panel) */
+@keyframes flow-panel-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes flow-panel-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Scale animations */
+@keyframes flow-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes flow-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* Bounce animations */
+@keyframes flow-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pulse animation */
+@keyframes flow-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Shimmer animation for skeletons */
+@keyframes flow-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Spin animation */
+@keyframes flow-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Progress bar animation */
+@keyframes flow-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Chart animations */
+@keyframes flow-bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes flow-bar-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes flow-line-draw {
+  from {
+    stroke-dashoffset: var(--path-length, 1000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes flow-pie-draw {
+  from {
+    stroke-dashoffset: var(--circumference, 283);
+  }
+  to {
+    stroke-dashoffset: var(--offset, 0);
+  }
+}
+
+/* Toast slide in */
+@keyframes flow-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes flow-toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Shake animation (for errors) */
+@keyframes flow-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* ==========================================================================
+   Animation Classes
+   ========================================================================== */
+
+/* Base animation settings */
+.flow-animate {
+  animation-duration: var(--duration-normal);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: both;
+}
+
+.flow-animate-slow {
+  animation-duration: var(--duration-slow);
+}
+
+.flow-animate-fast {
+  animation-duration: var(--duration-fast);
+}
+
+/* Fade */
+.flow-animate-fade-in {
+  animation-name: flow-fade-in;
+}
+
+.flow-animate-fade-out {
+  animation-name: flow-fade-out;
+}
+
+/* Slide */
+.flow-animate-slide-in-up {
+  animation-name: flow-slide-in-up;
+}
+
+.flow-animate-slide-in-down {
+  animation-name: flow-slide-in-down;
+}
+
+.flow-animate-slide-in-left {
+  animation-name: flow-slide-in-left;
+}
+
+.flow-animate-slide-in-right {
+  animation-name: flow-slide-in-right;
+}
+
+/* Scale */
+.flow-animate-scale-in {
+  animation-name: flow-scale-in;
+}
+
+.flow-animate-scale-out {
+  animation-name: flow-scale-out;
+}
+
+/* Bounce */
+.flow-animate-bounce-in {
+  animation-name: flow-bounce-in;
+  animation-timing-function: var(--ease-bounce);
+}
+
+/* Continuous animations */
+.flow-animate-pulse {
+  animation: flow-pulse 2s var(--ease-in-out) infinite;
+}
+
+.flow-animate-spin {
+  animation: flow-spin 1s linear infinite;
+}
+
+.flow-animate-shimmer {
+  animation: flow-shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-tertiary) 25%,
+    var(--color-bg-secondary) 50%,
+    var(--color-bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Special animations */
+.flow-animate-shake {
+  animation: flow-shake 0.5s ease-in-out;
+}
+
+/* ==========================================================================
+   Transition Classes
+   ========================================================================== */
+
+.flow-transition-none {
+  transition: none;
+}
+
+.flow-transition-all {
+  transition: var(--transition-all);
+}
+
+.flow-transition-colors {
+  transition: var(--transition-colors);
+}
+
+.flow-transition-transform {
+  transition: var(--transition-transform);
+}
+
+.flow-transition-opacity {
+  transition: var(--transition-opacity);
+}
+
+.flow-transition-shadow {
+  transition: var(--transition-shadow);
+}
+
+/* ==========================================================================
+   Hover/Active State Transforms
+   ========================================================================== */
+
+.flow-hover-lift {
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.flow-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.flow-hover-lift:active {
+  transform: translateY(0);
+}
+
+.flow-hover-scale {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.flow-hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.flow-hover-scale:active {
+  transform: scale(0.98);
+}
+
+.flow-active-press:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   Stagger animation delay utilities
+   ========================================================================== */
+
+.flow-delay-1 { animation-delay: 50ms; }
+.flow-delay-2 { animation-delay: 100ms; }
+.flow-delay-3 { animation-delay: 150ms; }
+.flow-delay-4 { animation-delay: 200ms; }
+.flow-delay-5 { animation-delay: 250ms; }
+.flow-delay-6 { animation-delay: 300ms; }
+.flow-delay-7 { animation-delay: 350ms; }
+.flow-delay-8 { animation-delay: 400ms; }

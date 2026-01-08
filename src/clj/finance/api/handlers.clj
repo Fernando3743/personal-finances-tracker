@@ -40,14 +40,16 @@
 (defn create-transaction
   "POST /api/transactions - Creates a new transaction."
   [conn request]
-  (let [{:keys [amount type category description tags]} (:body request)]
+  (let [{:keys [amount type category description tags currency exchange-rate]} (:body request)]
     (if (and amount type category)
       (let [transaction (tx/create-transaction
                          (bigdec amount)
                          (keyword type)
                          (keyword category)
                          {:description (or description "")
-                          :tags (set (map keyword (or tags [])))})]
+                          :tags (set (map keyword (or tags [])))
+                          :currency (keyword (or currency "COP"))
+                          :exchange-rate (when exchange-rate (bigdec exchange-rate))})]
         (if (tx/valid? transaction)
           (do
             (db/save-transaction! conn transaction)
@@ -71,8 +73,10 @@
                         (case key-name
                           "type" (keyword v)
                           "category" (keyword v)
+                          "currency" (keyword v)
                           "tags" (set (map keyword v))
                           "amount" (bigdec v)
+                          "exchange-rate" (when v (bigdec v))
                           v))))
              {}
              updates)]

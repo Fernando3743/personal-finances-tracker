@@ -1,0 +1,446 @@
+/* ==========================================================================
+   Flow Design System - Table
+   Data table and transaction list components
+   ========================================================================== */
+
+/* ==========================================================================
+   Table Container
+   ========================================================================== */
+
+.flow-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ==========================================================================
+   Table Header
+   ========================================================================== */
+
+.flow-table__head {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .flow-table__head {
+    display: table-header-group;
+  }
+}
+
+.flow-table__header-row {
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.flow-table__header-cell {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  white-space: nowrap;
+}
+
+.flow-table__header-cell--sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition-colors);
+}
+
+.flow-table__header-cell--sortable:hover {
+  color: var(--color-text-primary);
+}
+
+.flow-table__header-cell--sorted {
+  color: var(--color-accent-primary);
+}
+
+.flow-table__sort-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: var(--space-1);
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Table Body
+   ========================================================================== */
+
+.flow-table__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .flow-table__body {
+    display: table-row-group;
+  }
+}
+
+/* ==========================================================================
+   Table Row
+   ========================================================================== */
+
+.flow-table__row {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+@media (min-width: 768px) {
+  .flow-table__row {
+    display: table-row;
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  .flow-table__row:hover {
+    background-color: var(--color-bg-tertiary);
+  }
+}
+
+.flow-table__row--clickable {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Table Cell
+   ========================================================================== */
+
+.flow-table__cell {
+  padding: var(--space-1) 0;
+}
+
+@media (min-width: 768px) {
+  .flow-table__cell {
+    display: table-cell;
+    padding: var(--space-4);
+    vertical-align: middle;
+  }
+}
+
+/* Specific cell types */
+.flow-table__cell--date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.flow-table__cell--description {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.flow-table__cell--category {
+  /* Category badge styling handled by badge component */
+}
+
+.flow-table__cell--amount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+  text-align: right;
+}
+
+.flow-table__cell--actions {
+  text-align: right;
+}
+
+/* ==========================================================================
+   Transaction List (Mobile-Optimized)
+   ========================================================================== */
+
+.flow-tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-tx-list__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-tx-list__group-header {
+  position: sticky;
+  top: var(--header-height);
+  padding: var(--space-2) 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  background-color: var(--color-bg-primary);
+  z-index: var(--z-sticky);
+}
+
+/* ==========================================================================
+   Transaction Item
+   ========================================================================== */
+
+.flow-tx-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+}
+
+.flow-tx-item:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-tx-item--clickable {
+  cursor: pointer;
+}
+
+.flow-tx-item--clickable:active {
+  transform: scale(0.99);
+}
+
+/* Transaction icon */
+.flow-tx-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-tertiary);
+  flex-shrink: 0;
+}
+
+.flow-tx-item__icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-secondary);
+}
+
+.flow-tx-item--income .flow-tx-item__icon {
+  background-color: var(--color-income-subtle);
+}
+
+.flow-tx-item--income .flow-tx-item__icon svg {
+  color: var(--color-income);
+}
+
+.flow-tx-item--expense .flow-tx-item__icon {
+  background-color: var(--color-expense-subtle);
+}
+
+.flow-tx-item--expense .flow-tx-item__icon svg {
+  color: var(--color-expense);
+}
+
+/* Transaction content */
+.flow-tx-item__content {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.flow-tx-item__description {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-tx-item__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-0-5);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-tx-item__category {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-5) var(--space-2);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.flow-tx-item__date {
+  color: var(--color-text-tertiary);
+}
+
+/* Transaction amount */
+.flow-tx-item__amount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.flow-tx-item__amount--income {
+  color: var(--color-income-text);
+}
+
+.flow-tx-item__amount--expense {
+  color: var(--color-expense-text);
+}
+
+/* Transaction actions */
+.flow-tx-item__actions {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.flow-tx-item:hover .flow-tx-item__actions {
+  opacity: 1;
+}
+
+.flow-tx-item__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-tx-item__action:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.flow-tx-item__action--danger:hover {
+  background-color: var(--color-expense-subtle);
+  color: var(--color-expense);
+}
+
+/* ==========================================================================
+   Filter Bar
+   ========================================================================== */
+
+.flow-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .flow-filter-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.flow-filter-bar__search {
+  flex: 1;
+}
+
+.flow-filter-bar__filters {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+}
+
+/* ==========================================================================
+   Filter Chip
+   ========================================================================== */
+
+.flow-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition: var(--transition-colors), border-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-filter-chip:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
+.flow-filter-chip--active {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
+.flow-filter-chip__icon {
+  width: 14px;
+  height: 14px;
+}
+
+.flow-filter-chip__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: var(--space-1);
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-filter-chip__clear:hover {
+  background-color: var(--color-border-default);
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.flow-tx-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.flow-tx-empty__icon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-text-tertiary);
+}
+
+.flow-tx-empty__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-tx-empty__description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 300px;
+}

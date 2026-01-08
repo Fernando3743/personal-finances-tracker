@@ -1,0 +1,180 @@
+/* ==========================================================================
+   Flow Design System - Tab Bar
+   Mobile bottom navigation component
+   ========================================================================== */
+
+/* ==========================================================================
+   Tab Bar Container
+   ========================================================================== */
+
+.flow-tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: var(--tab-bar-height);
+  padding: 0 var(--space-4);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: var(--color-surface-overlay);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* Glass effect enhancement for dark mode */
+[data-theme="dark"] .flow-tab-bar {
+  background-color: rgba(23, 23, 23, 0.9);
+}
+
+/* ==========================================================================
+   Tab Bar Item
+   ========================================================================== */
+
+.flow-tab-bar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 64px;
+  height: 48px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  transition: var(--transition-colors);
+  position: relative;
+}
+
+.flow-tab-bar__item:active {
+  transform: scale(0.95);
+}
+
+/* Active state */
+.flow-tab-bar__item--active {
+  color: var(--color-accent-primary);
+}
+
+/* Active indicator bar */
+.flow-tab-bar__item--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--color-accent-gradient);
+  border-radius: 0 0 var(--radius-full) var(--radius-full);
+}
+
+/* ==========================================================================
+   Tab Bar Icon
+   ========================================================================== */
+
+.flow-tab-bar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.flow-tab-bar__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ==========================================================================
+   Tab Bar Label
+   ========================================================================== */
+
+.flow-tab-bar__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+/* Hide labels on very small screens */
+@media (max-width: 360px) {
+  .flow-tab-bar__label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Tab Bar FAB (Floating Action Button for Add)
+   ========================================================================== */
+
+.flow-tab-bar__fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-top: -16px;
+  background: var(--color-accent-gradient);
+  border-radius: var(--radius-full);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.flow-tab-bar__fab:active {
+  transform: scale(0.95);
+}
+
+.flow-tab-bar__fab svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* FAB without labels variant */
+.flow-tab-bar__fab--no-label {
+  margin-top: 0;
+}
+
+/* ==========================================================================
+   Tab Bar with 4 items variant
+   ========================================================================== */
+
+.flow-tab-bar--four-items {
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+}
+
+.flow-tab-bar--four-items .flow-tab-bar__item {
+  min-width: 56px;
+}
+
+/* ==========================================================================
+   Tab Bar Badge (for notifications)
+   ========================================================================== */
+
+.flow-tab-bar__badge {
+  position: absolute;
+  top: 2px;
+  right: 50%;
+  transform: translateX(12px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 var(--space-1);
+  background-color: var(--color-expense);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dot badge variant */
+.flow-tab-bar__badge--dot {
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  top: 4px;
+  transform: translateX(8px);
+}

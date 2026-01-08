@@ -1,0 +1,403 @@
+/* ==========================================================================
+   Flow Design System - Modal & Panel
+   Modal dialogs and slide-in panels
+   ========================================================================== */
+
+/* ==========================================================================
+   Modal Backdrop
+   ========================================================================== */
+
+.flow-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--backdrop-overlay);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  z-index: var(--z-modal-backdrop);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.flow-modal-backdrop--visible {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Modal Container
+   ========================================================================== */
+
+.flow-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: calc(100% - var(--space-8));
+  max-width: 480px;
+  max-height: calc(100vh - var(--space-16));
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out),
+              transform var(--duration-normal) var(--ease-out);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-modal--visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Modal sizes */
+.flow-modal--sm {
+  max-width: 360px;
+}
+
+.flow-modal--lg {
+  max-width: 640px;
+}
+
+.flow-modal--xl {
+  max-width: 800px;
+}
+
+.flow-modal--full {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+}
+
+/* ==========================================================================
+   Modal Header
+   ========================================================================== */
+
+.flow-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.flow-modal__title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-modal__close:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.flow-modal__close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==========================================================================
+   Modal Body
+   ========================================================================== */
+
+.flow-modal__body {
+  flex: 1;
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   Modal Footer
+   ========================================================================== */
+
+.flow-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-tertiary);
+  flex-shrink: 0;
+}
+
+.flow-modal__footer--spread {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Side Panel
+   ========================================================================== */
+
+.flow-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: var(--panel-width);
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal);
+  transform: translateX(100%);
+  transition: transform var(--duration-slow) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-panel--visible {
+  transform: translateX(0);
+}
+
+/* Panel on mobile - full screen */
+@media (max-width: 639px) {
+  .flow-panel {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Panel Header
+   ========================================================================== */
+
+.flow-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .flow-panel__header {
+    padding: var(--space-5);
+  }
+}
+
+.flow-panel__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+@media (min-width: 640px) {
+  .flow-panel__back {
+    display: none;
+  }
+}
+
+.flow-panel__back:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.flow-panel__back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.flow-panel__title {
+  flex: 1;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-panel__close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+@media (min-width: 640px) {
+  .flow-panel__close {
+    display: flex;
+  }
+}
+
+.flow-panel__close:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.flow-panel__close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==========================================================================
+   Panel Body
+   ========================================================================== */
+
+.flow-panel__body {
+  flex: 1;
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+@media (min-width: 640px) {
+  .flow-panel__body {
+    padding: var(--space-5);
+  }
+}
+
+/* ==========================================================================
+   Panel Footer
+   ========================================================================== */
+
+.flow-panel__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-secondary);
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .flow-panel__footer {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: var(--space-4) var(--space-5);
+  }
+}
+
+.flow-panel__footer .flow-btn {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .flow-panel__footer .flow-btn {
+    width: auto;
+  }
+}
+
+/* ==========================================================================
+   Confirmation Dialog
+   ========================================================================== */
+
+.flow-confirm {
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.flow-confirm__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  border-radius: var(--radius-full);
+  background-color: var(--color-expense-subtle);
+}
+
+.flow-confirm__icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-expense);
+}
+
+.flow-confirm__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.flow-confirm__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.flow-confirm__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 480px) {
+  .flow-confirm__actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   Drawer (Bottom Sheet on Mobile)
+   ========================================================================== */
+
+.flow-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-surface-elevated);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal);
+  transform: translateY(100%);
+  transition: transform var(--duration-slow) var(--ease-out);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-drawer--visible {
+  transform: translateY(0);
+}
+
+.flow-drawer__handle {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3);
+  flex-shrink: 0;
+}
+
+.flow-drawer__handle-bar {
+  width: 36px;
+  height: 4px;
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+.flow-drawer__content {
+  flex: 1;
+  padding: 0 var(--space-4) var(--space-4);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+}

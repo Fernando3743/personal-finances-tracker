@@ -3,7 +3,6 @@
   (:require [reagent.dom :as rdom]
             [re-frame.core :as rf]
             [finance.events :as events]
-            [finance.subs :as subs]
             [finance.views.main :as main]))
 
 (defn ^:dev/after-load mount-root

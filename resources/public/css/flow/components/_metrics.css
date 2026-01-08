@@ -1,0 +1,353 @@
+/* ==========================================================================
+   Flow Design System - Metrics
+   Balance and statistics card components
+   ========================================================================== */
+
+/* ==========================================================================
+   Metrics Container
+   ========================================================================== */
+
+.flow-metrics {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .flow-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Metric Card
+   ========================================================================== */
+
+.flow-metrics__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Primary metric card (Balance) */
+.flow-metrics__card--primary {
+  background: var(--color-accent-gradient);
+  border-color: transparent;
+  color: var(--color-text-on-accent);
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .flow-metrics__card--primary {
+    grid-column: auto;
+  }
+}
+
+/* Income card */
+.flow-metrics__card--income {
+  background-color: var(--color-income-subtle);
+  border-color: transparent;
+}
+
+/* Expense card */
+.flow-metrics__card--expense {
+  background-color: var(--color-expense-subtle);
+  border-color: transparent;
+}
+
+/* ==========================================================================
+   Metric Card Header
+   ========================================================================== */
+
+.flow-metrics__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flow-metrics__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.flow-metrics__card--primary .flow-metrics__label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.flow-metrics__card--income .flow-metrics__label {
+  color: var(--color-income-text);
+}
+
+.flow-metrics__card--expense .flow-metrics__label {
+  color: var(--color-expense-text);
+}
+
+/* ==========================================================================
+   Metric Card Icon
+   ========================================================================== */
+
+.flow-metrics__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-metrics__icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-secondary);
+}
+
+.flow-metrics__card--primary .flow-metrics__icon {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.flow-metrics__card--primary .flow-metrics__icon svg {
+  color: white;
+}
+
+.flow-metrics__card--income .flow-metrics__icon {
+  background-color: var(--color-income);
+}
+
+.flow-metrics__card--income .flow-metrics__icon svg {
+  color: white;
+}
+
+.flow-metrics__card--expense .flow-metrics__icon {
+  background-color: var(--color-expense);
+}
+
+.flow-metrics__card--expense .flow-metrics__icon svg {
+  color: white;
+}
+
+/* ==========================================================================
+   Metric Card Value
+   ========================================================================== */
+
+.flow-metrics__value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+@media (min-width: 768px) {
+  .flow-metrics__value {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+.flow-metrics__card--primary .flow-metrics__value {
+  color: white;
+  font-size: var(--font-size-3xl);
+}
+
+@media (min-width: 768px) {
+  .flow-metrics__card--primary .flow-metrics__value {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+.flow-metrics__card--income .flow-metrics__value {
+  color: var(--color-income-text);
+}
+
+.flow-metrics__card--expense .flow-metrics__value {
+  color: var(--color-expense-text);
+}
+
+/* Positive/Negative value colors */
+.flow-metrics__value--positive {
+  color: var(--color-income-text);
+}
+
+.flow-metrics__value--negative {
+  color: var(--color-expense-text);
+}
+
+.flow-metrics__card--primary .flow-metrics__value--positive,
+.flow-metrics__card--primary .flow-metrics__value--negative {
+  color: white;
+}
+
+/* ==========================================================================
+   Metric Card Description
+   ========================================================================== */
+
+.flow-metrics__description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-metrics__card--primary .flow-metrics__description {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ==========================================================================
+   Metric Card Trend Indicator
+   ========================================================================== */
+
+.flow-metrics__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.flow-metrics__trend--up {
+  background-color: var(--color-income-subtle);
+  color: var(--color-income-text);
+}
+
+.flow-metrics__trend--down {
+  background-color: var(--color-expense-subtle);
+  color: var(--color-expense-text);
+}
+
+.flow-metrics__trend svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ==========================================================================
+   Balance Overview (Horizontal Layout)
+   ========================================================================== */
+
+.flow-balance-overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-accent-gradient);
+  border-radius: var(--radius-xl);
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .flow-balance-overview {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.flow-balance-overview__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-balance-overview__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.flow-balance-overview__value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.flow-balance-overview__stats {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.flow-balance-overview__stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+}
+
+.flow-balance-overview__stat-label {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.flow-balance-overview__stat-value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ==========================================================================
+   Quick Stats Row
+   ========================================================================== */
+
+.flow-quick-stats {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.flow-quick-stats__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: fit-content;
+}
+
+.flow-quick-stats__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.flow-quick-stats__icon--income {
+  background-color: var(--color-income-subtle);
+  color: var(--color-income);
+}
+
+.flow-quick-stats__icon--expense {
+  background-color: var(--color-expense-subtle);
+  color: var(--color-expense);
+}
+
+.flow-quick-stats__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.flow-quick-stats__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-quick-stats__value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}

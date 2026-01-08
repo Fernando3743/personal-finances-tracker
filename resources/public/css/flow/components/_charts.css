@@ -1,0 +1,632 @@
+/* ==========================================================================
+   Flow Design System - Charts
+   SVG-based chart components for data visualization
+   ========================================================================== */
+
+/* ==========================================================================
+   Chart Container
+   ========================================================================== */
+
+.flow-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flow-chart__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flow-chart__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-chart__controls {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* ==========================================================================
+   Category Breakdown (Horizontal Bar Chart)
+   ========================================================================== */
+
+.flow-category-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Stacked bar at top */
+.flow-category-chart__bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-category-chart__segment {
+  height: 100%;
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+/* Category list */
+.flow-category-chart__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-category-chart__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-category-chart__row:hover {
+  background-color: var(--color-bg-tertiary);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+}
+
+.flow-category-chart__color {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.flow-category-chart__label {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.flow-category-chart__value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.flow-category-chart__percent {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Progress bar variant */
+.flow-category-chart__row--progress {
+  flex-wrap: wrap;
+}
+
+.flow-category-chart__progress {
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+
+.flow-category-chart__progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transform-origin: left;
+  animation: flow-bar-grow var(--duration-slow) var(--ease-out) forwards;
+}
+
+/* ==========================================================================
+   Donut/Pie Chart
+   ========================================================================== */
+
+.flow-pie-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .flow-pie-chart {
+    flex-direction: row;
+    gap: var(--space-8);
+  }
+}
+
+.flow-pie-chart__container {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .flow-pie-chart__container {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+.flow-pie-chart__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.flow-pie-chart__segment {
+  fill: none;
+  stroke-width: 32;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--duration-slow) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
+  cursor: pointer;
+}
+
+.flow-pie-chart__segment:hover {
+  opacity: 0.8;
+}
+
+.flow-pie-chart__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.flow-pie-chart__center-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-pie-chart__center-value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+/* Legend */
+.flow-pie-chart__legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.flow-pie-chart__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.flow-pie-chart__legend-item:hover {
+  opacity: 0.7;
+}
+
+.flow-pie-chart__legend-item--inactive {
+  opacity: 0.4;
+}
+
+.flow-pie-chart__legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.flow-pie-chart__legend-label {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.flow-pie-chart__legend-value {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   Line/Area Chart (Monthly Trends)
+   ========================================================================== */
+
+.flow-trend-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flow-trend-chart__container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+
+@media (min-width: 768px) {
+  .flow-trend-chart__container {
+    height: 240px;
+  }
+}
+
+.flow-trend-chart__svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Grid lines */
+.flow-trend-chart__grid-line {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+/* Axis labels */
+.flow-trend-chart__axis-label {
+  font-size: var(--font-size-xs);
+  fill: var(--color-text-tertiary);
+}
+
+/* Lines */
+.flow-trend-chart__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.flow-trend-chart__line--income {
+  stroke: var(--color-income);
+}
+
+.flow-trend-chart__line--expense {
+  stroke: var(--color-expense);
+}
+
+/* Area fill */
+.flow-trend-chart__area {
+  opacity: 0.1;
+}
+
+.flow-trend-chart__area--income {
+  fill: var(--color-income);
+}
+
+.flow-trend-chart__area--expense {
+  fill: var(--color-expense);
+}
+
+/* Data points */
+.flow-trend-chart__point {
+  r: 4;
+  stroke-width: 2;
+  stroke: var(--color-bg-secondary);
+  cursor: pointer;
+  transition: r var(--duration-fast) var(--ease-out);
+}
+
+.flow-trend-chart__point:hover {
+  r: 6;
+}
+
+.flow-trend-chart__point--income {
+  fill: var(--color-income);
+}
+
+.flow-trend-chart__point--expense {
+  fill: var(--color-expense);
+}
+
+/* Tooltip */
+.flow-trend-chart__tooltip {
+  position: absolute;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--font-size-sm);
+  pointer-events: none;
+  z-index: var(--z-tooltip);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.flow-trend-chart__tooltip--visible {
+  opacity: 1;
+}
+
+.flow-trend-chart__tooltip-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.flow-trend-chart__tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.flow-trend-chart__tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.flow-trend-chart__tooltip-label {
+  color: var(--color-text-secondary);
+}
+
+.flow-trend-chart__tooltip-value {
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-medium);
+  margin-left: auto;
+}
+
+/* Legend */
+.flow-trend-chart__legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.flow-trend-chart__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.flow-trend-chart__legend-line {
+  width: 16px;
+  height: 3px;
+  border-radius: var(--radius-full);
+}
+
+.flow-trend-chart__legend-line--income {
+  background-color: var(--color-income);
+}
+
+.flow-trend-chart__legend-line--expense {
+  background-color: var(--color-expense);
+}
+
+/* ==========================================================================
+   Chart Range Selector
+   ========================================================================== */
+
+.flow-chart-range {
+  display: inline-flex;
+  padding: var(--space-0-5);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.flow-chart-range__option {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-chart-range__option:hover {
+  color: var(--color-text-primary);
+}
+
+.flow-chart-range__option--active {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Empty Chart State
+   ========================================================================== */
+
+.flow-chart__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.flow-chart__empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-text-tertiary);
+}
+
+.flow-chart__empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   Category Chart - Additional Styles
+   ========================================================================== */
+
+.flow-category-chart__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.flow-category-chart__stacked-bar {
+  display: flex;
+  height: 8px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-category-chart__bar-segment {
+  height: 100%;
+  min-width: 4px;
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.flow-category-chart__category {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+@media (min-width: 640px) {
+  .flow-category-chart__category {
+    min-width: 100px;
+  }
+}
+
+.flow-category-chart__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.flow-category-chart__name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flow-category-chart__bar-container {
+  flex: 1;
+  min-width: 40px;
+  height: 8px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.flow-category-chart__bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.flow-category-chart__values {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+@media (min-width: 640px) {
+  .flow-category-chart__values {
+    min-width: 100px;
+    gap: var(--space-2);
+  }
+}
+
+.flow-category-chart__amount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.flow-category-chart__amount--income {
+  color: var(--color-income-text);
+}
+
+.flow-category-chart__amount--expense {
+  color: var(--color-expense-text);
+}
+
+.flow-category-chart__percentage {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ==========================================================================
+   Trend Chart - Additional Styles
+   ========================================================================== */
+
+.flow-trend-chart__controls {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-0-5);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.flow-trend-chart__range-btn {
+  padding: var(--space-1) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors),
+              background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-trend-chart__range-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.flow-trend-chart__range-btn--active {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-trend-chart__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.flow-trend-chart__svg {
+  width: 100%;
+  height: 120px;
+}
+
+.flow-trend-chart__legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+
+.flow-trend-chart__legend-dot--income {
+  background-color: var(--color-income);
+}
+
+.flow-trend-chart__legend-dot--expense {
+  background-color: var(--color-expense);
+}

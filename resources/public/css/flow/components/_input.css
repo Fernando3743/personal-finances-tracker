@@ -1,0 +1,335 @@
+/* ==========================================================================
+   Flow Design System - Input
+   Form input components
+   ========================================================================== */
+
+/* ==========================================================================
+   Input Wrapper
+   ========================================================================== */
+
+.flow-input {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+/* ==========================================================================
+   Input Label
+   ========================================================================== */
+
+.flow-input__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.flow-input__label--required::after {
+  content: ' *';
+  color: var(--color-expense);
+}
+
+/* ==========================================================================
+   Input Field
+   ========================================================================== */
+
+.flow-input__field {
+  width: 100%;
+  padding: var(--space-2-5) var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-normal) var(--ease-in-out),
+              box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-input__field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.flow-input__field:hover {
+  border-color: var(--color-border-hover);
+}
+
+.flow-input__field:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+/* Disabled state */
+.flow-input__field:disabled {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+/* Error state */
+.flow-input--error .flow-input__field {
+  border-color: var(--color-expense);
+}
+
+.flow-input--error .flow-input__field:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+/* ==========================================================================
+   Input with Icon
+   ========================================================================== */
+
+.flow-input--with-icon .flow-input__field {
+  padding-left: var(--space-10);
+}
+
+.flow-input__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.flow-input--with-label .flow-input__icon {
+  top: calc(50% + 12px);
+}
+
+/* ==========================================================================
+   Input Helper Text
+   ========================================================================== */
+
+.flow-input__helper {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-input__error {
+  font-size: var(--font-size-xs);
+  color: var(--color-expense);
+}
+
+/* ==========================================================================
+   Input Sizes
+   ========================================================================== */
+
+.flow-input--sm .flow-input__field {
+  padding: var(--space-1-5) var(--space-2-5);
+  font-size: var(--font-size-sm);
+}
+
+.flow-input--lg .flow-input__field {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-md);
+}
+
+/* ==========================================================================
+   Search Input
+   ========================================================================== */
+
+.flow-search {
+  position: relative;
+}
+
+.flow-search__field {
+  width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-normal) var(--ease-in-out),
+              background-color var(--duration-normal) var(--ease-in-out),
+              box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-search__field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.flow-search__field:hover {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border-default);
+}
+
+.flow-search__field:focus {
+  outline: none;
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.flow-search__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.flow-search__clear {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-search__clear:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* ==========================================================================
+   Select Input
+   ========================================================================== */
+
+.flow-select__field {
+  appearance: none;
+  padding-right: var(--space-10);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .flow-select__field {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* ==========================================================================
+   Textarea
+   ========================================================================== */
+
+.flow-textarea__field {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.flow-textarea--no-resize .flow-textarea__field {
+  resize: none;
+}
+
+/* ==========================================================================
+   Amount Input (Large)
+   ========================================================================== */
+
+.flow-amount-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.flow-amount-input__currency {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-tertiary);
+  line-height: 1;
+}
+
+.flow-amount-input__field {
+  width: 180px;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  text-align: left;
+  line-height: 1;
+}
+
+.flow-amount-input__field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.flow-amount-input__field:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+}
+
+/* Amount input with type indicator */
+.flow-amount-input--income .flow-amount-input__field {
+  color: var(--color-income-text);
+}
+
+.flow-amount-input--income .flow-amount-input__field:focus {
+  border-color: var(--color-income);
+}
+
+.flow-amount-input--expense .flow-amount-input__field {
+  color: var(--color-expense-text);
+}
+
+.flow-amount-input--expense .flow-amount-input__field:focus {
+  border-color: var(--color-expense);
+}
+
+/* ==========================================================================
+   Floating Label Input
+   ========================================================================== */
+
+.flow-floating-input {
+  position: relative;
+}
+
+.flow-floating-input__field {
+  width: 100%;
+  padding: var(--space-5) var(--space-3) var(--space-2);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-normal) var(--ease-in-out),
+              box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-floating-input__label {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-base);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.flow-floating-input__field:focus,
+.flow-floating-input__field:not(:placeholder-shown) {
+  padding-top: var(--space-5);
+}
+
+.flow-floating-input__field:focus + .flow-floating-input__label,
+.flow-floating-input__field:not(:placeholder-shown) + .flow-floating-input__label {
+  top: var(--space-2);
+  transform: translateY(0);
+  font-size: var(--font-size-xs);
+  color: var(--color-accent-primary);
+}
+
+.flow-floating-input__field:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}

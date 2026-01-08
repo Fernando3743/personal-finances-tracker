@@ -1,0 +1,322 @@
+/* ==========================================================================
+   Flow Design System - Toggle
+   Toggle switches and segmented controls
+   ========================================================================== */
+
+/* ==========================================================================
+   Toggle Switch
+   ========================================================================== */
+
+.flow-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.flow-toggle__track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-normal) var(--ease-in-out),
+              border-color var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-normal) var(--ease-in-out);
+}
+
+.flow-toggle__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* Active state */
+.flow-toggle--active .flow-toggle__track {
+  background-color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+}
+
+.flow-toggle--active .flow-toggle__thumb {
+  transform: translateX(20px);
+}
+
+/* Disabled state */
+.flow-toggle--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Segmented Control
+   ========================================================================== */
+
+.flow-segmented {
+  display: inline-flex;
+  padding: var(--space-1);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.flow-segmented__option {
+  position: relative;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: color var(--duration-fast) var(--ease-out);
+  z-index: 1;
+}
+
+.flow-segmented__option:hover {
+  color: var(--color-text-primary);
+}
+
+.flow-segmented__option--active {
+  color: var(--color-text-primary);
+}
+
+/* Sliding indicator */
+.flow-segmented__indicator {
+  position: absolute;
+  top: var(--space-1);
+  height: calc(100% - var(--space-2));
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-normal) var(--ease-in-out),
+              width var(--duration-normal) var(--ease-in-out);
+}
+
+/* ==========================================================================
+   Type Toggle (Income/Expense)
+   ========================================================================== */
+
+.flow-type-toggle {
+  display: flex;
+  padding: var(--space-1);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+}
+
+.flow-type-toggle__option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+
+.flow-type-toggle__option:hover {
+  color: var(--color-text-primary);
+}
+
+/* Income active */
+.flow-type-toggle__option--income.flow-type-toggle__option--active {
+  background-color: var(--color-income-subtle);
+  color: var(--color-income-text);
+}
+
+/* Expense active */
+.flow-type-toggle__option--expense.flow-type-toggle__option--active {
+  background-color: var(--color-expense-subtle);
+  color: var(--color-expense-text);
+}
+
+.flow-type-toggle__icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==========================================================================
+   Theme Toggle
+   ========================================================================== */
+
+.flow-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors), background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-theme-toggle:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.flow-theme-toggle__icon {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--duration-normal) var(--ease-bounce);
+}
+
+.flow-theme-toggle:active .flow-theme-toggle__icon {
+  transform: scale(0.9);
+}
+
+/* Icon visibility based on theme */
+.flow-theme-toggle .flow-icon-sun {
+  display: none;
+}
+
+.flow-theme-toggle .flow-icon-moon {
+  display: block;
+}
+
+[data-theme="dark"] .flow-theme-toggle .flow-icon-sun {
+  display: block;
+}
+
+[data-theme="dark"] .flow-theme-toggle .flow-icon-moon {
+  display: none;
+}
+
+/* ==========================================================================
+   Radio Group
+   ========================================================================== */
+
+.flow-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-radio-group--horizontal {
+  flex-direction: row;
+  gap: var(--space-4);
+}
+
+.flow-radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.flow-radio__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.flow-radio__circle {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-radio__circle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-accent-primary);
+  border-radius: var(--radius-full);
+  transition: transform var(--duration-fast) var(--ease-bounce);
+}
+
+.flow-radio__input:checked + .flow-radio__circle {
+  border-color: var(--color-accent-primary);
+}
+
+.flow-radio__input:checked + .flow-radio__circle::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.flow-radio__input:focus-visible + .flow-radio__circle {
+  box-shadow: var(--shadow-focus);
+}
+
+.flow-radio__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* ==========================================================================
+   Checkbox
+   ========================================================================== */
+
+.flow-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.flow-checkbox__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.flow-checkbox__box {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-bg-secondary);
+  border: 2px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-checkbox__box svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 12px;
+  height: 12px;
+  color: white;
+  transition: transform var(--duration-fast) var(--ease-bounce);
+}
+
+.flow-checkbox__input:checked + .flow-checkbox__box {
+  background-color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+}
+
+.flow-checkbox__input:checked + .flow-checkbox__box svg {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.flow-checkbox__input:focus-visible + .flow-checkbox__box {
+  box-shadow: var(--shadow-focus);
+}
+
+.flow-checkbox__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}

@@ -1,0 +1,714 @@
+/* ==========================================================================
+   Flow Design System - Add/Edit Transaction Form View
+   Form page-specific styles
+   ========================================================================== */
+
+/* ==========================================================================
+   Form Page Layout
+   ========================================================================== */
+
+.flow-form-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   Form Page Header
+   ========================================================================== */
+
+.flow-form-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.flow-form-page__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.flow-form-page__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   Amount Section
+   ========================================================================== */
+
+.flow-form-page__amount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-form-page__amount-input {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Large amount display */
+.flow-form-page__amount-display {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.flow-form-page__amount-display--income {
+  color: var(--color-income-text);
+}
+
+.flow-form-page__amount-display--expense {
+  color: var(--color-expense-text);
+}
+
+/* Type toggle in amount section */
+.flow-form-page__type-toggle {
+  margin-top: var(--space-2);
+}
+
+/* ==========================================================================
+   Details Section
+   ========================================================================== */
+
+.flow-form-page__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-form-page__section-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  margin-bottom: var(--space-2);
+}
+
+/* ==========================================================================
+   Category Section
+   ========================================================================== */
+
+.flow-form-page__categories {
+  padding: var(--space-5);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-form-page__category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+@media (min-width: 480px) {
+  .flow-form-page__category-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Category item button */
+.flow-category-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+}
+
+.flow-category-btn:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-category-btn:active {
+  transform: scale(0.97);
+}
+
+.flow-category-btn--selected {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-accent-subtle);
+}
+
+.flow-category-btn__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.flow-category-btn__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.flow-category-btn--selected .flow-category-btn__label {
+  color: var(--color-accent-primary);
+}
+
+/* Category icons for each type */
+.flow-category-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* ==========================================================================
+   Form Actions
+   ========================================================================== */
+
+.flow-form-page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 480px) {
+  .flow-form-page__actions {
+    flex-direction: row;
+  }
+
+  .flow-form-page__actions .flow-btn {
+    flex: 1;
+  }
+}
+
+/* ==========================================================================
+   Form Validation Messages
+   ========================================================================== */
+
+.flow-form-page__validation {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-expense-subtle);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--color-expense);
+}
+
+.flow-form-page__validation-message {
+  font-size: var(--font-size-sm);
+  color: var(--color-expense-text);
+}
+
+/* ==========================================================================
+   Date Picker Enhancement
+   ========================================================================== */
+
+.flow-form-page__date-group {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.flow-form-page__date-preset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors), border-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-form-page__date-preset:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
+.flow-form-page__date-preset--active {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
+/* ==========================================================================
+   Tags Section
+   ========================================================================== */
+
+.flow-form-page__tags {
+  padding: var(--space-5);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.flow-tag-suggestion {
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  transition: var(--transition-colors);
+}
+
+.flow-tag-suggestion:hover {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent-primary);
+}
+
+/* ==========================================================================
+   Panel Form Layout (for side panel)
+   ========================================================================== */
+
+.flow-panel-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  height: 100%;
+}
+
+.flow-panel-form__amount-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  margin: calc(var(--space-5) * -1);
+  margin-bottom: 0;
+}
+
+.flow-panel-form__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ==========================================================================
+   Success Animation
+   ========================================================================== */
+
+.flow-form-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.flow-form-success__icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-income-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-income);
+  animation: flow-scale-in var(--duration-slow) var(--ease-bounce);
+}
+
+.flow-form-success__icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.flow-form-success__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.flow-form-success__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.flow-form-success__amount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.flow-form-success__amount--income {
+  color: var(--color-income-text);
+}
+
+.flow-form-success__amount--expense {
+  color: var(--color-expense-text);
+}
+
+/* ==========================================================================
+   Add Transaction Form (Full Page)
+   ========================================================================== */
+
+.flow-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .flow-add-form {
+    padding: var(--space-6);
+  }
+}
+
+.flow-add-form__header {
+  text-align: center;
+}
+
+.flow-add-form__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.flow-add-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.flow-add-form__amount-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-add-form__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+}
+
+@media (min-width: 480px) {
+  .flow-add-form__footer {
+    flex-direction: row;
+  }
+
+  .flow-add-form__footer .flow-btn {
+    flex: 1;
+  }
+}
+
+/* ==========================================================================
+   Amount Input (Large)
+   ========================================================================== */
+
+.flow-amount-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.flow-amount-input__currency {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-normal) var(--ease-out);
+}
+
+.flow-amount-input__currency--income {
+  color: var(--color-income-text);
+}
+
+.flow-amount-input__currency--expense {
+  color: var(--color-expense-text);
+}
+
+.flow-amount-input__field {
+  width: 200px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.flow-amount-input__field::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.flow-amount-input__field:focus {
+  outline: none;
+}
+
+/* ==========================================================================
+   Segmented Control (Type Toggle)
+   ========================================================================== */
+
+.flow-segmented {
+  display: inline-flex;
+  padding: var(--space-1);
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  gap: var(--space-1);
+}
+
+.flow-segmented__option {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.flow-segmented__option:hover:not(.flow-segmented__option--active) {
+  color: var(--color-text-primary);
+}
+
+.flow-segmented__option--active {
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-segmented__option--active.flow-segmented__option--income {
+  color: var(--color-income-text);
+}
+
+.flow-segmented__option--active.flow-segmented__option--expense {
+  color: var(--color-expense-text);
+}
+
+/* ==========================================================================
+   Category Picker
+   ========================================================================== */
+
+.flow-category-picker {
+  padding: var(--space-5);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  margin-bottom: var(--space-3);
+}
+
+.flow-category-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: var(--space-2);
+}
+
+@media (min-width: 480px) {
+  .flow-category-picker__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.flow-category-picker__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--color-bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+}
+
+.flow-category-picker__item:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-category-picker__item:active {
+  transform: scale(0.97);
+}
+
+.flow-category-picker__item--active {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-accent-subtle);
+}
+
+.flow-category-picker__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.flow-category-picker__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-align: center;
+  text-transform: capitalize;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flow-category-picker__item--active .flow-category-picker__label {
+  color: var(--color-accent-primary);
+}
+
+.flow-category-picker__check {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-accent-primary);
+  border-radius: var(--radius-full);
+  color: white;
+}
+
+/* ==========================================================================
+   Form Field
+   ========================================================================== */
+
+.flow-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-input-wrapper {
+  position: relative;
+  height: 48px;
+}
+
+.flow-input-wrapper--icon .flow-input {
+  padding-left: var(--space-10);
+}
+
+.flow-input__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.flow-input__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Date Input Specific Styling */
+.flow-input[type="date"] {
+  cursor: pointer;
+  line-height: 46px; /* 48px height - 2px border */
+}
+
+.flow-input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.flow-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.flow-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.flow-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.flow-input:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
+}
+
+.flow-input:disabled {
+  background-color: var(--color-bg-tertiary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Recent Transactions Widget
+   ========================================================================== */
+
+.flow-recent-transactions {
+  padding: var(--space-4);
+}
+
+.flow-recent-transactions__list {
+  display: flex;
+  flex-direction: column;
+}

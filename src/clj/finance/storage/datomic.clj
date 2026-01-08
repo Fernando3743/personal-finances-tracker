@@ -38,7 +38,17 @@
    {:db/ident :transaction/tags
     :db/valueType :db.type/keyword
     :db/cardinality :db.cardinality/many
-    :db/doc "Optional set of tags"}])
+    :db/doc "Optional set of tags"}
+
+   {:db/ident :transaction/currency
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Currency code: :COP or :USD"}
+
+   {:db/ident :transaction/exchange-rate
+    :db/valueType :db.type/bigdec
+    :db/cardinality :db.cardinality/one
+    :db/doc "Optional exchange rate at time of creation"}])
 
 (defn- entity->transaction
   "Converts a Datomic entity to a transaction map."
@@ -47,13 +57,17 @@
               :transaction/amount (:transaction/amount entity)
               :transaction/type (:transaction/type entity)
               :transaction/category (:transaction/category entity)
-              :transaction/date (:transaction/date entity)}]
+              :transaction/date (:transaction/date entity)
+              :transaction/currency (or (:transaction/currency entity) :COP)}]
     (cond-> base
       (:transaction/description entity)
       (assoc :transaction/description (:transaction/description entity))
 
       (seq (:transaction/tags entity))
-      (assoc :transaction/tags (set (:transaction/tags entity))))))
+      (assoc :transaction/tags (set (:transaction/tags entity)))
+
+      (:transaction/exchange-rate entity)
+      (assoc :transaction/exchange-rate (:transaction/exchange-rate entity)))))
 
 (defn- transaction->tx-data
   "Converts a transaction map to Datomic transaction data."
@@ -62,13 +76,17 @@
               :transaction/amount (bigdec (:transaction/amount transaction))
               :transaction/type (:transaction/type transaction)
               :transaction/category (:transaction/category transaction)
-              :transaction/date (:transaction/date transaction)}]
+              :transaction/date (:transaction/date transaction)
+              :transaction/currency (:transaction/currency transaction)}]
     (cond-> base
       (:transaction/description transaction)
       (assoc :transaction/description (:transaction/description transaction))
 
       (seq (:transaction/tags transaction))
-      (assoc :transaction/tags (:transaction/tags transaction)))))
+      (assoc :transaction/tags (:transaction/tags transaction))
+
+      (:transaction/exchange-rate transaction)
+      (assoc :transaction/exchange-rate (bigdec (:transaction/exchange-rate transaction))))))
 
 (defn- find-entity-id
   "Finds the Datomic entity ID for a transaction by its UUID."

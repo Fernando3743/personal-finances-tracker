@@ -1,0 +1,644 @@
+/* ==========================================================================
+   Flow Design System - Transactions View
+   Transactions list page-specific styles
+   ========================================================================== */
+
+/* ==========================================================================
+   Transactions Page Layout
+   ========================================================================== */
+
+.flow-transactions-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .flow-transactions-page {
+    padding: var(--space-6);
+  }
+}
+
+/* ==========================================================================
+   Filter Bar
+   ========================================================================== */
+
+.flow-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+@media (min-width: 768px) {
+  .flow-filter-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+.flow-filter-bar__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .flow-filter-bar__left {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+  }
+}
+
+.flow-filter-bar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.flow-filter-bar__chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.flow-filter-bar__count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Search Input
+   ========================================================================== */
+
+.flow-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.flow-search__icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.flow-search__input {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--space-10) 0 var(--space-10);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  transition: var(--transition-colors),
+              border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.flow-search__input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.flow-search__input:focus {
+  outline: none;
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
+}
+
+.flow-search__clear {
+  position: absolute;
+  right: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  transition: var(--transition-colors),
+              background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-search__clear:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+/* ==========================================================================
+   Filter Chips
+   ========================================================================== */
+
+.flow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors),
+              background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.flow-chip:hover {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
+.flow-chip--active {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
+.flow-chip--active:hover {
+  background-color: var(--color-accent-subtle);
+}
+
+.flow-chip--income.flow-chip--active {
+  background-color: var(--color-income-subtle);
+  border-color: var(--color-income);
+  color: var(--color-income-text);
+}
+
+.flow-chip--expense.flow-chip--active {
+  background-color: var(--color-expense-subtle);
+  border-color: var(--color-expense);
+  color: var(--color-expense-text);
+}
+
+.flow-chip--sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.flow-chip__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: var(--space-0-5);
+  margin-right: calc(-1 * var(--space-1));
+  border-radius: var(--radius-full);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-chip__clear:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Transaction Table (Desktop)
+   ========================================================================== */
+
+.flow-tx-table-container {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .flow-tx-table-container {
+    display: block;
+  }
+}
+
+.flow-tx-table__wrapper {
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.flow-tx-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.flow-tx-table__head {
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-tx-table__header {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.flow-tx-table__header--right {
+  text-align: right;
+}
+
+.flow-tx-table__body {
+  /* Body styles */
+}
+
+.flow-tx-table__row {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-tx-table__row:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.flow-tx-table__row:not(:last-child) {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.flow-tx-table__cell {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: middle;
+}
+
+.flow-tx-table__cell--date {
+  width: 100px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.flow-tx-table__cell--desc {
+  min-width: 200px;
+}
+
+.flow-tx-table__desc-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.flow-tx-table__icon {
+  font-size: var(--font-size-xl);
+  flex-shrink: 0;
+}
+
+.flow-tx-table__description {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.flow-tx-table__cell--category {
+  width: 140px;
+}
+
+.flow-tx-table__cell--amount {
+  width: 120px;
+  text-align: right;
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.flow-tx-table__cell--income {
+  color: var(--color-income-text);
+}
+
+.flow-tx-table__cell--expense {
+  color: var(--color-expense-text);
+}
+
+.flow-tx-table__cell--actions {
+  width: 60px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Transaction Cards (Mobile)
+   ========================================================================== */
+
+.flow-tx-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .flow-tx-cards-container {
+    display: none;
+  }
+}
+
+.flow-tx-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-tx-group__header {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  padding: var(--space-2) var(--space-1);
+  position: sticky;
+  top: calc(var(--header-height));
+  background-color: var(--color-bg-primary);
+  z-index: 1;
+}
+
+.flow-tx-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-tx-card {
+  position: relative;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.flow-tx-card:active {
+  transform: scale(0.98);
+}
+
+.flow-tx-card__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.flow-tx-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-tertiary);
+  font-size: var(--font-size-xl);
+  flex-shrink: 0;
+}
+
+.flow-tx-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.flow-tx-card__description {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-tx-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.flow-tx-card__category {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: capitalize;
+}
+
+.flow-tx-card__separator {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-tx-card__date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-tx-card__amount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.flow-tx-card__amount--income {
+  color: var(--color-income-text);
+}
+
+.flow-tx-card__amount--expense {
+  color: var(--color-expense-text);
+}
+
+.flow-tx-card__delete {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: var(--transition-colors),
+              opacity var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) var(--ease-out);
+}
+
+.flow-tx-card:hover .flow-tx-card__delete,
+.flow-tx-card:focus-within .flow-tx-card__delete {
+  opacity: 1;
+}
+
+.flow-tx-card__delete:hover {
+  background-color: var(--color-expense-subtle);
+  color: var(--color-expense-text);
+}
+
+/* Always show delete on mobile */
+@media (max-width: 767px) {
+  .flow-tx-card__delete {
+    opacity: 1;
+  }
+
+  .flow-tx-card__main {
+    padding-right: var(--space-12);
+  }
+}
+
+/* ==========================================================================
+   Transaction Loading State
+   ========================================================================== */
+
+.flow-tx-loading {
+  padding: var(--space-4);
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+.flow-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.flow-empty--sm {
+  padding: var(--space-8) var(--space-4);
+}
+
+.flow-empty__icon {
+  font-size: 3rem;
+  opacity: 0.8;
+}
+
+.flow-empty__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.flow-empty__text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 280px;
+  margin: 0;
+}
+
+.flow-empty__subtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  max-width: 280px;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Transaction Row (for dashboard recent transactions)
+   ========================================================================== */
+
+.flow-tx-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.flow-tx-row:last-child {
+  border-bottom: none;
+}
+
+.flow-tx-row__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-tertiary);
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.flow-tx-row__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.flow-tx-row__primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.flow-tx-row__description {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-tx-row__amount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.flow-tx-row__amount--income {
+  color: var(--color-income-text);
+}
+
+.flow-tx-row__amount--expense {
+  color: var(--color-expense-text);
+}
+
+.flow-tx-row__secondary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-0-5);
+}
+
+.flow-tx-row__category {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: capitalize;
+}
+
+.flow-tx-row__separator {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.flow-tx-row__date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}

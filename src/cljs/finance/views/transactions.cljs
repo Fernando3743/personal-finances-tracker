@@ -1,144 +1,363 @@
 (ns finance.views.transactions
-  "Transaction list and form views."
+  "Transaction list, filters, and form views with Flow design system."
   (:require [re-frame.core :as rf]
+            [clojure.string :as str]
             [finance.subs :as subs]
-            [finance.events :as events]))
-
-(defn format-currency
-  "Formats a number as currency."
-  [amount]
-  (let [formatted (.toFixed (js/Math.abs amount) 2)]
-    (if (neg? amount)
-      (str "-$" formatted)
-      (str "$" formatted))))
+            [finance.events :as events]
+            [finance.db :as db]
+            [finance.utils.currency :as currency]
+            [finance.components.icons :refer [icon]]))
 
 (defn format-date
-  "Formats a date string for display."
+  "Formats a date for display."
   [date-str]
-  (if date-str
+  (when date-str
     (let [date (js/Date. date-str)]
       (.toLocaleDateString date "en-US" #js {:year "numeric"
                                               :month "short"
-                                              :day "numeric"}))
-    "Unknown"))
+                                              :day "numeric"}))))
 
-(defn transaction-item
-  "Single transaction display component."
-  [{:keys [transaction/id transaction/amount transaction/type
-           transaction/category transaction/description transaction/date]}]
-  [:li.transaction-item
-   [:div {:style {:flex 1}}
-    [:div {:style {:display "flex" :align-items "center" :gap "10px"}}
-     [:strong (or description "No description")]
-     [:span.category-badge (name (or category :other))]]
-    [:div {:style {:font-size "0.85rem" :color "#666" :margin-top "5px"}}
-     (format-date date)]]
-   [:div {:style {:display "flex" :align-items "center" :gap "15px"}}
-    [:span {:class (if (= type :income) "amount-income" "amount-expense")}
-     (format-currency (if (= type :income) amount (- amount)))]
-    [:button.btn.btn-danger
-     {:style {:padding "5px 10px" :font-size "0.85rem"}
-      :on-click #(when (js/confirm "Delete this transaction?")
-                   (rf/dispatch [::events/delete-transaction (str id)]))}
-     "Delete"]]])
+(defn format-date-short
+  "Formats a date with short month."
+  [date-str]
+  (when date-str
+    (let [date (js/Date. date-str)]
+      (.toLocaleDateString date "en-US" #js {:month "short"
+                                              :day "numeric"}))))
 
-(defn transaction-list
-  "Full transaction list view."
-  []
-  (let [transactions @(rf/subscribe [::subs/transactions])
-        count @(rf/subscribe [::subs/transaction-count])]
-    [:div.card
-     [:div {:style {:display "flex"
-                    :justify-content "space-between"
-                    :align-items "center"
-                    :margin-bottom "15px"}}
-      [:h2 (str "All Transactions (" count ")")]
-      [:button.btn
-       {:on-click #(rf/dispatch [::events/set-active-view :add-transaction])}
-       "Add Transaction"]]
-     (if (seq transactions)
-       [:ul.transaction-list
-        (for [tx transactions]
-          ^{:key (or (:transaction/id tx) (random-uuid))}
-          [transaction-item tx])]
-       [:p {:style {:text-align "center" :color "#666" :padding "40px"}}
-        "No transactions yet. Click 'Add Transaction' to get started!"])]))
+(defn search-input []
+  (let [search @(rf/subscribe [::subs/filter-search])]
+    [:div.flow-search
+     [:span.flow-search__icon [icon :search {:width 18 :height 18}]]
+     [:input.flow-search__input
+      {:type "text"
+       :placeholder "Search transactions..."
+       :value (or search "")
+       :on-change #(rf/dispatch [::events/update-filter :search (-> % .-target .-value)])}]
+     (when (and search (not (str/blank? search)))
+       [:button.flow-search__clear
+        {:on-click #(rf/dispatch [::events/update-filter :search ""])}
+        [icon :x {:width 14 :height 14}]])]))
 
-;; =============================================================================
-;; Add Transaction Form
-;; =============================================================================
+(defn filter-chip [{:keys [label active? on-click on-clear variant]}]
+  [:button.flow-chip
+   {:class [(when active? "flow-chip--active")
+            (when variant (str "flow-chip--" (name variant)))]
+    :on-click on-click}
+   [:span label]
+   (when (and active? on-clear)
+     [:span.flow-chip__clear
+      {:on-click (fn [e]
+                   (.stopPropagation e)
+                   (on-clear))}
+      [icon :x {:width 14 :height 14}]])])
 
-(defn form-input
-  "Reusable form input component."
-  [{:keys [label field type options]}]
-  (let [value @(rf/subscribe [::subs/form-field field])]
-    [:div.form-group
-     [:label label]
-     (case type
-       :select
-       [:select
-        {:value (if (keyword? value) (name value) value)
-         :on-change #(rf/dispatch [::events/update-form-field
-                                   field
-                                   (keyword (-> % .-target .-value))])}
-        (for [opt options]
-          ^{:key opt}
-          [:option {:value (name opt)} (name opt)])]
+(defn filter-bar []
+  (let [filter-type @(rf/subscribe [::subs/filter-type])
+        filter-category @(rf/subscribe [::subs/filter-category])
+        filter-currency @(rf/subscribe [::subs/filter-currency])
+        has-filters? @(rf/subscribe [::subs/has-active-filters?])
+        tx-count @(rf/subscribe [::subs/transaction-count])
+        currencies @(rf/subscribe [::subs/available-currencies])]
+    [:div.flow-filter-bar
+     [:div.flow-filter-bar__left
+      [search-input]
+      [:div.flow-filter-bar__chips
+       [filter-chip {:label "All"
+                     :active? (nil? filter-type)
+                     :on-click #(rf/dispatch [::events/update-filter :type nil])}]
+       [filter-chip {:label "Income"
+                     :active? (= filter-type :income)
+                     :variant :income
+                     :on-click #(rf/dispatch [::events/update-filter :type :income])
+                     :on-clear #(rf/dispatch [::events/update-filter :type nil])}]
+       [filter-chip {:label "Expenses"
+                     :active? (= filter-type :expense)
+                     :variant :expense
+                     :on-click #(rf/dispatch [::events/update-filter :type :expense])
+                     :on-clear #(rf/dispatch [::events/update-filter :type nil])}]
 
-       :number
-       [:input
-        {:type "number"
-         :step "0.01"
-         :value value
-         :placeholder "0.00"
-         :on-change #(rf/dispatch [::events/update-form-field
-                                   field
-                                   (-> % .-target .-value)])}]
+       [:span.flow-filter-bar__separator "|"]
 
-       ;; default text
-       [:input
-        {:type "text"
-         :value value
-         :on-change #(rf/dispatch [::events/update-form-field
-                                   field
-                                   (-> % .-target .-value)])}])]))
+       [filter-chip {:label "All Currencies"
+                     :active? (nil? filter-currency)
+                     :on-click #(rf/dispatch [::events/update-filter :currency nil])}]
+       (for [curr currencies]
+         ^{:key curr}
+         [filter-chip {:label (name curr)
+                       :active? (= filter-currency curr)
+                       :on-click #(rf/dispatch [::events/update-filter :currency curr])
+                       :on-clear #(rf/dispatch [::events/update-filter :currency nil])}])
 
-(defn add-transaction-form
-  "Form for adding new transactions."
-  []
-  (let [categories @(rf/subscribe [::subs/categories])
-        form-valid? @(rf/subscribe [::subs/form-valid?])
+       (when filter-category
+         [filter-chip {:label (name filter-category)
+                       :active? true
+                       :on-click #(rf/dispatch [::events/update-filter :category nil])
+                       :on-clear #(rf/dispatch [::events/update-filter :category nil])}])]]
+
+     [:div.flow-filter-bar__right
+      [:span.flow-filter-bar__count (str tx-count " transactions")]
+      (when has-filters?
+        [:button.flow-btn.flow-btn--ghost.flow-btn--sm
+         {:on-click #(rf/dispatch [::events/clear-filters])}
+         "Clear filters"])]]))
+
+(defn transaction-table-row [{:keys [transaction/id transaction/amount transaction/type
+                                     transaction/category transaction/description
+                                     transaction/date transaction/currency]}]
+  (let [cat-icon (get db/category-icons category "📦")
+        is-income? (= type :income)
+        curr (or currency :COP)
+        display-amount (if is-income? amount (- amount))]
+    [:tr.flow-tx-table__row
+     [:td.flow-tx-table__cell.flow-tx-table__cell--date
+      (format-date-short date)]
+     [:td.flow-tx-table__cell.flow-tx-table__cell--desc
+      [:div.flow-tx-table__desc-content
+       [:span.flow-tx-table__icon cat-icon]
+       [:span.flow-tx-table__description (or description "No description")]]]
+     [:td.flow-tx-table__cell.flow-tx-table__cell--category
+      [:span.flow-chip.flow-chip--sm (name (or category :other))]]
+     [:td.flow-tx-table__cell.flow-tx-table__cell--currency
+      [:span.flow-chip.flow-chip--sm.flow-chip--currency (name curr)]]
+     [:td.flow-tx-table__cell.flow-tx-table__cell--amount
+      {:class (if is-income?
+                "flow-tx-table__cell--income"
+                "flow-tx-table__cell--expense")}
+      (currency/format-currency display-amount curr {:show-sign? true})]
+     [:td.flow-tx-table__cell.flow-tx-table__cell--actions
+      [:button.flow-btn.flow-btn--icon.flow-btn--ghost
+       {:on-click #(when (js/confirm "Delete this transaction?")
+                     (rf/dispatch [::events/delete-transaction (str id)]))}
+       [icon :trash {:width 16 :height 16}]]]]))
+
+(defn transaction-table [transactions]
+  [:div.flow-tx-table__wrapper
+   [:table.flow-tx-table
+    [:thead.flow-tx-table__head
+     [:tr
+      [:th.flow-tx-table__header "Date"]
+      [:th.flow-tx-table__header "Description"]
+      [:th.flow-tx-table__header "Category"]
+      [:th.flow-tx-table__header "Currency"]
+      [:th.flow-tx-table__header.flow-tx-table__header--right "Amount"]
+      [:th.flow-tx-table__header {:style {:width "60px"}}]]]
+    [:tbody.flow-tx-table__body
+     (for [tx transactions]
+       ^{:key (or (:transaction/id tx) (random-uuid))}
+       [transaction-table-row tx])]]])
+
+(defn transaction-card [{:keys [transaction/id transaction/amount transaction/type
+                                transaction/category transaction/description
+                                transaction/date transaction/currency]}]
+  (let [cat-icon (get db/category-icons category "📦")
+        is-income? (= type :income)
+        curr (or currency :COP)
+        display-amount (if is-income? amount (- amount))]
+    [:div.flow-tx-card
+     [:div.flow-tx-card__main
+      [:div.flow-tx-card__icon cat-icon]
+      [:div.flow-tx-card__content
+       [:div.flow-tx-card__description (or description "No description")]
+       [:div.flow-tx-card__meta
+        [:span.flow-tx-card__category (name (or category :other))]
+        [:span.flow-tx-card__separator "•"]
+        [:span.flow-tx-card__currency (name curr)]
+        [:span.flow-tx-card__separator "•"]
+        [:span.flow-tx-card__date (format-date-short date)]]]
+      [:div.flow-tx-card__amount
+       {:class (if is-income?
+                 "flow-tx-card__amount--income"
+                 "flow-tx-card__amount--expense")}
+       (currency/format-currency display-amount curr {:show-sign? true})]]
+     [:button.flow-tx-card__delete
+      {:on-click #(when (js/confirm "Delete this transaction?")
+                    (rf/dispatch [::events/delete-transaction (str id)]))}
+      [icon :trash {:width 16 :height 16}]]]))
+
+(defn transaction-cards [transactions]
+  [:div.flow-tx-cards
+   (for [tx transactions]
+     ^{:key (or (:transaction/id tx) (random-uuid))}
+     [transaction-card tx])])
+
+(defn transaction-list []
+  (let [transactions @(rf/subscribe [::subs/filtered-transactions])
+        grouped @(rf/subscribe [::subs/transactions-by-date])
         loading? @(rf/subscribe [::subs/loading?])]
-    [:div.card
-     [:h2 "Add New Transaction"]
+    [:div.flow-transactions-page
+     [filter-bar]
 
-     [form-input {:label "Amount"
-                  :field :amount
-                  :type :number}]
+     (cond
+       loading?
+       [:div.flow-tx-loading
+        [:div.flow-skeleton.flow-skeleton--animated
+         (for [i (range 5)]
+           ^{:key i}
+           [:div.flow-skeleton__row
+            [:div.flow-skeleton__circle]
+            [:div.flow-skeleton__lines
+             [:div.flow-skeleton__line {:style {:width "60%"}}]
+             [:div.flow-skeleton__line.flow-skeleton__line--sm {:style {:width "40%"}}]]])]]
 
-     [form-input {:label "Type"
-                  :field :type
-                  :type :select
-                  :options [:expense :income]}]
+       (empty? transactions)
+       [:div.flow-empty
+        [:div.flow-empty__icon "📋"]
+        [:h3.flow-empty__title "No transactions found"]
+        [:p.flow-empty__text
+         (if @(rf/subscribe [::subs/has-active-filters?])
+           "Try adjusting your filters to see more results"
+           "Start tracking your finances by adding your first transaction")]
+        [:button.flow-btn.flow-btn--primary
+         {:on-click #(rf/dispatch [::events/set-active-view :add-transaction])}
+         "Add Transaction"]]
 
-     [form-input {:label "Category"
-                  :field :category
-                  :type :select
-                  :options categories}]
+       :else
+       [:<>
+        [:div.flow-tx-table-container
+         [transaction-table transactions]]
 
-     [form-input {:label "Description"
-                  :field :description
-                  :type :text}]
+        [:div.flow-tx-cards-container
+         (for [[date-str txs] (sort-by first > grouped)]
+           ^{:key (or date-str "unknown")}
+           [:div.flow-tx-group
+            [:div.flow-tx-group__header (or date-str "Unknown date")]
+            [transaction-cards txs]])]])]))
 
-     [:div {:style {:display "flex" :gap "10px" :margin-top "20px"}}
-      [:button.btn
-       {:disabled (or (not form-valid?) loading?)
-        :on-click #(rf/dispatch [::events/create-transaction])}
-       (if loading? "Saving..." "Save Transaction")]
+(defn amount-input []
+  (let [amount @(rf/subscribe [::subs/form-field :amount])
+        display @(rf/subscribe [::subs/form-amount-display])
+        tx-type @(rf/subscribe [::subs/form-field :type])
+        curr @(rf/subscribe [::subs/form-currency])]
+    [:div.flow-amount-input
+     [:span.flow-amount-input__currency
+      {:class (if (= tx-type :income)
+                "flow-amount-input__currency--income"
+                "flow-amount-input__currency--expense")}
+      (currency/currency-symbol curr)]
+     [:input.flow-amount-input__field
+      {:type "text"
+       :inputMode "decimal"
+       :placeholder "0.00"
+       :value (or amount "")
+       :on-change #(let [val (-> % .-target .-value)
+                         cleaned (str/replace val #"[^\d.]" "")]
+                     (rf/dispatch [::events/update-form-field :amount cleaned]))}]]))
 
-      [:button.btn
-       {:style {:background "#999"}
-        :on-click #(do
+(defn type-toggle []
+  (let [current-type @(rf/subscribe [::subs/form-field :type])]
+    [:div.flow-segmented
+     [:button.flow-segmented__option
+      {:class (when (= current-type :expense) "flow-segmented__option--active flow-segmented__option--expense")
+       :on-click #(rf/dispatch [::events/update-form-field :type :expense])}
+      "Expense"]
+     [:button.flow-segmented__option
+      {:class (when (= current-type :income) "flow-segmented__option--active flow-segmented__option--income")
+       :on-click #(rf/dispatch [::events/update-form-field :type :income])}
+      "Income"]]))
+
+(defn category-picker []
+  (let [categories @(rf/subscribe [::subs/categories])
+        selected @(rf/subscribe [::subs/form-field :category])]
+    [:div.flow-category-picker
+     [:label.flow-label "Category"]
+     [:div.flow-category-picker__grid
+      (for [cat categories]
+        (let [cat-icon (get db/category-icons cat "📦")
+              active? (= cat selected)]
+          ^{:key cat}
+          [:button.flow-category-picker__item
+           {:class (when active? "flow-category-picker__item--active")
+            :on-click #(rf/dispatch [::events/update-form-field :category cat])}
+           [:span.flow-category-picker__icon cat-icon]
+           [:span.flow-category-picker__label (name cat)]
+           (when active?
+             [:span.flow-category-picker__check [icon :check {:width 16 :height 16}]])]))]]))
+
+(defn description-input []
+  (let [description @(rf/subscribe [::subs/form-field :description])]
+    [:div.flow-form-field
+     [:label.flow-label {:for "description"} "Description"]
+     [:div.flow-input-wrapper
+      [:input.flow-input
+       {:type "text"
+        :id "description"
+        :placeholder "What was this for?"
+        :value (or description "")
+        :on-change #(rf/dispatch [::events/update-form-field :description (-> % .-target .-value)])}]]]))
+
+(defn date-input []
+  (let [date @(rf/subscribe [::subs/form-field :date])
+        today (.toISOString (js/Date.))]
+    [:div.flow-form-field
+     [:label.flow-label {:for "date"} "Date"]
+     [:div.flow-input-wrapper.flow-input-wrapper--icon
+      [:span.flow-input__icon [icon :calendar {:width 18 :height 18}]]
+      [:input.flow-input
+       {:type "date"
+        :id "date"
+        :value (or date (subs today 0 10))
+        :on-change #(rf/dispatch [::events/update-form-field :date (-> % .-target .-value)])}]]]))
+
+(defn currency-selector []
+  (let [currencies @(rf/subscribe [::subs/available-currencies])
+        selected @(rf/subscribe [::subs/form-currency])]
+    [:div.flow-form-field
+     [:label.flow-label "Currency"]
+     [:div.flow-segmented
+      (for [curr currencies]
+        ^{:key curr}
+        [:button.flow-segmented__option
+         {:class (when (= curr selected) "flow-segmented__option--active")
+          :on-click #(rf/dispatch [::events/update-form-field :currency curr])}
+         (name curr)])]]))
+
+(defn exchange-rate-input []
+  (let [rate @(rf/subscribe [::subs/form-field :exchange-rate])
+        curr @(rf/subscribe [::subs/form-currency])]
+    (when (= curr :USD)
+      [:div.flow-form-field
+       [:label.flow-label {:for "exchange-rate"} "Exchange Rate (COP/USD) - Optional"]
+       [:div.flow-input-wrapper
+        [:input.flow-input
+         {:type "number"
+          :id "exchange-rate"
+          :placeholder "e.g., 4000"
+          :step "0.01"
+          :value (or rate "")
+          :on-change #(let [v (-> % .-target .-value)]
+                        (rf/dispatch [::events/update-form-field
+                                      :exchange-rate
+                                      (when (not (str/blank? v))
+                                        (js/parseFloat v))]))}]]])))
+
+(defn add-transaction-form []
+  (let [form-valid? @(rf/subscribe [::subs/form-valid?])
+        loading? @(rf/subscribe [::subs/loading?])]
+    [:div.flow-add-form
+     [:div.flow-add-form__header
+      [:h2.flow-add-form__title "Add Transaction"]]
+
+     [:div.flow-add-form__body
+      [:div.flow-add-form__amount-section
+       [amount-input]
+       [type-toggle]]
+
+      [currency-selector]
+      [exchange-rate-input]
+      [category-picker]
+      [description-input]
+      [date-input]]
+
+     [:div.flow-add-form__footer
+      [:button.flow-btn.flow-btn--secondary.flow-btn--lg
+       {:on-click #(do
                      (rf/dispatch [::events/reset-form])
                      (rf/dispatch [::events/set-active-view :transactions]))}
-       "Cancel"]]]))
+       "Cancel"]
+      [:button.flow-btn.flow-btn--primary.flow-btn--lg
+       {:disabled (or (not form-valid?) loading?)
+        :on-click #(rf/dispatch [::events/create-transaction])}
+       (if loading?
+         [:span.flow-btn__loading "Saving..."]
+         "Save Transaction")]]]))
