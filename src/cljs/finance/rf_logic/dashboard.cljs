@@ -11,6 +11,7 @@
  (fn [{:keys [_db]} _]
    {:http-xhrio {:method :get
                  :uri (str api-base "/summary")
+                 :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:dashboard/fetch-summary-success]
                  :on-failure [:app/api-error]}}))
@@ -26,6 +27,7 @@
    {:db (assoc db :loading? true)
     :http-xhrio {:method :get
                  :uri (str api-base "/dashboard")
+                 :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:dashboard/fetch-dashboard-success]
                  :on-failure [:app/api-error]}}))

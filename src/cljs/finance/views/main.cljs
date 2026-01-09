@@ -3,6 +3,8 @@
   (:require [re-frame.core :as rf]
             [finance.views.dashboard :as dashboard]
             [finance.views.transactions :as transactions]
+            [finance.views.auth :as auth]
+            [finance.routes :as routes]
             [finance.components.icons :refer [icon]]))
 
 (defn theme-toggle []
@@ -13,6 +15,15 @@
      (if (= theme :light)
        [icon :moon {:width 20 :height 20 :class "flow-icon-moon"}]
        [icon :sun {:width 20 :height 20 :class "flow-icon-sun"}])]))
+
+(defn user-menu []
+  (let [user @(rf/subscribe [:auth/user])]
+    [:div.flow-user-menu
+     [:span.flow-user-name (:user/name user)]
+     [:button.flow-btn.flow-btn-ghost
+      {:on-click #(rf/dispatch [:auth/logout])}
+      [icon :logout {:width 18 :height 18}]
+      [:span "Logout"]]]))
 
 (defn header []
   (let [active-view @(rf/subscribe [:app/current-route])]
@@ -42,7 +53,8 @@
        [:span "Add Transaction"]]
       [:button.flow-header__add-btn-mobile
        {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
-       [icon :plus {:width 20 :height 20}]]]]))
+       [icon :plus {:width 20 :height 20}]]
+      [user-menu]]]))
 
 (defn sidebar []
   (let [active-view @(rf/subscribe [:app/current-route])]
@@ -115,6 +127,11 @@
          ^{:key (:id t)}
          [toast t])])))
 
+(defn loading-screen []
+  [:div.flow-loading-screen
+   [:div.flow-loading-spinner]
+   [:p "Loading..."]])
+
 (defn main-content []
   (let [active-view @(rf/subscribe [:app/current-route])]
     [:main.flow-main
@@ -125,7 +142,23 @@
        :add-transaction [transactions/add-transaction-form]
        [dashboard/dashboard-view])]))
 
-(defn main-panel []
+(defn auth-layout []
+  (let [active-view @(rf/subscribe [:app/current-route])
+        theme @(rf/subscribe [:app/theme])]
+    [:div.flow-auth-layout
+     {:class (str "flow-theme-" (name theme))}
+     [:div.flow-auth-header
+      [:div.flow-header__logo
+       [icon :dollar {:width 24 :height 24}]]
+      [:span.flow-header__title "Finance Tracker"]
+      [theme-toggle]]
+     (case active-view
+       :login [auth/login-form]
+       :register [auth/register-form]
+       [auth/login-form])
+     [toast-container]]))
+
+(defn app-layout []
   [:div.flow-shell
    [:div.flow-shell__header
     [header]]
@@ -136,3 +169,31 @@
    [:div.flow-shell__tab-bar
     [tab-bar]]
    [toast-container]])
+
+(defn main-panel []
+  (let [authenticated? @(rf/subscribe [:auth/authenticated?])
+        auth-initialized? @(rf/subscribe [:auth/initialized?])
+        active-view @(rf/subscribe [:app/current-route])
+        theme @(rf/subscribe [:app/theme])]
+    [:div {:class (str "flow-theme-" (name theme))}
+     (cond
+       ;; Still checking auth status
+       (not auth-initialized?)
+       [loading-screen]
+
+       ;; Public routes (login/register)
+       (contains? routes/public-routes active-view)
+       (if authenticated?
+         ;; Already authenticated, redirect to dashboard
+         (do (rf/dispatch [:app/navigate :dashboard])
+             [loading-screen])
+         [auth-layout])
+
+       ;; Protected routes - check if authenticated
+       (not authenticated?)
+       (do (rf/dispatch [:app/navigate :login])
+           [loading-screen])
+
+       ;; Authenticated - show app
+       :else
+       [app-layout])]))

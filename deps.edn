@@ -19,7 +19,10 @@
 
         ;; nREPL
         nrepl/nrepl {:mvn/version "1.5.2"}
-        cider/cider-nrepl {:mvn/version "0.58.0"}}
+        cider/cider-nrepl {:mvn/version "0.58.0"}
+
+        ;; Authentication
+        at.favre.lib/bcrypt {:mvn/version "0.10.2"}}
 
  :aliases
  {:cljs {:extra-paths ["src/cljs"]
@@ -27,7 +30,8 @@
                        reagent/reagent           {:mvn/version "2.0.1"}
                        re-frame/re-frame         {:mvn/version "1.4.3"}
                        cljs-ajax/cljs-ajax       {:mvn/version "0.8.4"}
-                       day8.re-frame/http-fx     {:mvn/version "0.2.4"}}}
+                       day8.re-frame/http-fx     {:mvn/version "0.2.4"}
+                       bidi/bidi                 {:mvn/version "2.1.6"}}}
 
   :dev  {:extra-paths ["test/clj"]
          :extra-deps  {org.clojure/test.check {:mvn/version "1.1.2"}}}

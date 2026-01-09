@@ -1,0 +1,243 @@
+/* ==========================================================================
+   Auth Views - Login & Register
+   ========================================================================== */
+
+/* Loading Screen */
+.flow-loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--color-bg-default);
+  color: var(--color-text-muted);
+  gap: var(--space-4);
+}
+
+.flow-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-default);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Auth Layout */
+.flow-auth-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-default);
+}
+
+.flow-auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.flow-auth-header .flow-header__logo {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.flow-auth-header .flow-header__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-default);
+}
+
+.flow-auth-header .flow-theme-toggle {
+  position: absolute;
+  right: var(--space-4);
+}
+
+/* Auth Container */
+.flow-auth-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.flow-auth-card {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-lg);
+}
+
+.flow-auth-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text-default);
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.flow-auth-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+/* Auth Error */
+.flow-auth-error {
+  background-color: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+
+/* Auth Form */
+.flow-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flow-auth-form .flow-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flow-auth-form .flow-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-default);
+}
+
+.flow-auth-form .flow-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-default);
+  color: var(--color-text-default);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.flow-auth-form .flow-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.flow-auth-form .flow-input:disabled {
+  background-color: var(--color-bg-muted);
+  cursor: not-allowed;
+}
+
+.flow-auth-form .flow-input-error {
+  border-color: var(--color-danger);
+}
+
+.flow-auth-form .flow-input-error:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
+.flow-input-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.flow-input-hint-error {
+  color: var(--color-danger);
+}
+
+/* Full Width Button */
+.flow-btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Auth Link */
+.flow-auth-link {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-4);
+}
+
+.flow-auth-link a {
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.flow-auth-link a:hover {
+  text-decoration: underline;
+}
+
+/* User Menu */
+.flow-user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--color-border-default);
+  margin-left: var(--space-2);
+}
+
+.flow-user-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-default);
+}
+
+.flow-user-menu .flow-btn-ghost {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.flow-user-menu .flow-btn-ghost:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-danger);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .flow-auth-card {
+    padding: var(--space-6);
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+  }
+
+  .flow-user-menu {
+    display: none;
+  }
+}

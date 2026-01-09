@@ -5,7 +5,13 @@
 (def routes
   ["/" {""             :dashboard
         "transactions" :transactions
-        "add"          :add-transaction}])
+        "add"          :add-transaction
+        "login"        :login
+        "register"     :register}])
+
+(def public-routes
+  "Routes that don't require authentication."
+  #{:login :register})
 
 (defn path-for [route]
   (bidi/path-for routes route))

@@ -13,8 +13,7 @@
  :app/initialize-app
  (fn [{:keys [db]} _]
    {:db (assoc db :loading? true)
-    :dispatch-n [[:tx/fetch-transactions]
-                 [:dashboard/fetch-summary]
+    :dispatch-n [[:auth/check-session]
                  [:app/load-theme]]}))
 
 (rf/reg-event-fx

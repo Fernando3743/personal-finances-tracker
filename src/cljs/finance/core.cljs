@@ -4,6 +4,7 @@
             [re-frame.core :as rf]
             [finance.views.main :as main]
             [finance.rf-logic.app :as app]
+            [finance.rf-logic.auth]
             [finance.rf-logic.dashboard]
             [finance.rf-logic.transactions]))
 

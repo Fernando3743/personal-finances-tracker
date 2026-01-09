@@ -50,6 +50,7 @@
 @import 'views/_dashboard.css';
 @import 'views/_transactions.css';
 @import 'views/_form.css';
+@import 'views/_auth.css';
 
 /* ==========================================================================
    Icons (SVG Sprite References)

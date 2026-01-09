@@ -6,8 +6,11 @@
             [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.session.memory :refer [memory-store]]
             [finance.api.routes :as routes]
             [finance.storage.datomic :as db]
+            [finance.auth.middleware :refer [wrap-current-user]]
             [nrepl.server :as nrepl]
             [nrepl.cmdline :as nrepl-cmd]
             [cider.nrepl :refer [cider-nrepl-handler]])
@@ -15,14 +18,25 @@
 
 (def ^:private db-uri "datomic:mem://finance")
 
+;; Session store - memory for development
+(def session-store (memory-store))
+
 (defn create-app
   "Creates the Ring application with all middleware."
   [conn]
   (-> (routes/app-routes conn)
+      wrap-current-user
+      (wrap-session {:store session-store
+                     :cookie-name "finance-session"
+                     :cookie-attrs {:http-only true
+                                    :same-site :lax
+                                    :max-age 86400}})
       (wrap-json-body {:keywords? true})
       wrap-json-response
-      (wrap-cors :access-control-allow-origin [#".*"]
-                 :access-control-allow-methods [:get :post :put :delete :options])
+      (wrap-cors :access-control-allow-origin [#"http://localhost:8280"
+                                               #"http://localhost:3000"]
+                 :access-control-allow-methods [:get :post :put :delete :options]
+                 :access-control-allow-credentials true)
       (wrap-resource "public")
       wrap-content-type))
 

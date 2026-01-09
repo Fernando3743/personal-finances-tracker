@@ -21,10 +21,16 @@
    :other "📦"})
 
 (def default-db
-  {:transactions []
+  {;; Authentication state
+   :auth {:user nil              ; Current user map or nil
+          :loading? false        ; Auth operation in progress
+          :initialized? false    ; Has auth been checked on load?
+          :error nil}            ; Auth error message
+
+   :transactions []
    :loading? false
    :error nil
-   :current-route :dashboard  ; :dashboard, :transactions, :add-transaction
+   :current-route :dashboard  ; :dashboard, :transactions, :add-transaction, :login, :register
    :categories default-categories
 
    ;; UI State

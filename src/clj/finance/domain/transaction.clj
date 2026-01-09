@@ -4,10 +4,6 @@
    Demonstrates: SRP, Pure Functions, Spec-based validation."
   (:require [clojure.spec.alpha :as s]))
 
-;; =============================================================================
-;; Specs - Data validation and documentation
-;; =============================================================================
-
 (s/def :transaction/id uuid?)
 (s/def :transaction/amount number?)
 (s/def :transaction/type #{:income :expense})
@@ -34,10 +30,6 @@
   #{:groceries :restaurants :transportation :utilities
     :entertainment :healthcare :shopping :salary
     :freelance :investments :gifts :other})
-
-;; =============================================================================
-;; Factory Functions
-;; =============================================================================
 
 (defn create-transaction
   "Creates a new transaction map.
@@ -69,10 +61,6 @@
   (when-not (valid? transaction)
     (s/explain-str ::transaction transaction)))
 
-;; =============================================================================
-;; Calculation Functions (Pure)
-;; =============================================================================
-
 (defn signed-amount
   "Returns the signed amount based on transaction type.
    Income is positive, expense is negative."
@@ -101,10 +89,6 @@
        (filter #(= :expense (:transaction/type %)))
        (map :transaction/amount)
        (reduce + 0)))
-
-;; =============================================================================
-;; Filtering Functions (Pure)
-;; =============================================================================
 
 (defn by-type
   "Filters transactions by type (:income or :expense)."
@@ -142,10 +126,6 @@
   "Filters transactions by currency (:COP or :USD)."
   [transactions currency]
   (filter #(= currency (:transaction/currency %)) transactions))
-
-;; =============================================================================
-;; Grouping & Aggregation Functions (Pure)
-;; =============================================================================
 
 (defn group-by-category
   "Groups transactions by category."
@@ -217,10 +197,6 @@
                :balance (total-balance txs)
                :count (count txs)}))
        (sort-by (juxt :year :month))))
-
-;; =============================================================================
-;; Sorting Functions
-;; =============================================================================
 
 (defn sort-by-date
   "Sorts transactions by date (newest first by default)."

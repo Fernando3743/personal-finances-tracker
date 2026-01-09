@@ -14,6 +14,7 @@
    {:db (assoc db :loading? true)
     :http-xhrio {:method :get
                  :uri (str api-base "/transactions")
+                 :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:tx/fetch-transactions-success]
                  :on-failure [:app/api-error]}}))
@@ -43,6 +44,7 @@
                    :uri (str api-base "/transactions")
                    :params payload
                    :format (ajax/json-request-format)
+                   :with-credentials true
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success [:tx/create-transaction-success]
                    :on-failure [:app/api-error]}})))
@@ -70,6 +72,7 @@
     :http-xhrio {:method :delete
                  :uri (str api-base "/transactions/" id)
                  :format (ajax/json-request-format)
+                 :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:tx/delete-transaction-success]
                  :on-failure [:app/api-error]}}))
