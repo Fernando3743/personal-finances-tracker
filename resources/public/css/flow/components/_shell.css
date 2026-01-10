@@ -30,6 +30,16 @@
    Shell Header Area
    ========================================================================== */
 
+.flow-shell__mobile-header {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .flow-shell__mobile-header {
+    display: none;
+  }
+}
+
 .flow-shell__header {
   display: none;
 }

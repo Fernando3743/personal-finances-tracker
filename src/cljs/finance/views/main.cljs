@@ -57,6 +57,17 @@
      [:span "Add Transaction"]]
     [user-profile]]])
 
+(defn mobile-header []
+  (let [user @(rf/subscribe [:auth/user])
+        initial (first (or (:user/name user) "U"))]
+    [:header.flow-header.flow-header--mobile
+     [:div.flow-header__left
+      [:div.flow-header__logo [icon :dollar {:width 18 :height 18}]]
+      [:span.flow-header__title "Finance Tracker"]]
+     [:div.flow-header__actions
+      [theme-toggle]
+      [:div.flow-header__avatar initial]]]))
+
 (defn sidebar []
   (let [active-view @(rf/subscribe [:app/current-route])]
     [:aside.flow-sidebar
@@ -176,6 +187,8 @@
 
 (defn app-layout []
   [:div.flow-shell
+   [:div.flow-shell__mobile-header
+    [mobile-header]]
    [:div.flow-shell__sidebar
     [sidebar]]
    [:div.flow-shell__content

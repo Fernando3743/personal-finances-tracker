@@ -204,6 +204,10 @@
   z-index: var(--z-sticky);
 }
 
+.flow-header--mobile .flow-header__title {
+  display: block;
+}
+
 .flow-header__back-btn {
   display: flex;
   align-items: center;

@@ -22,7 +22,10 @@
         cider/cider-nrepl {:mvn/version "0.58.0"}
 
         ;; Authentication
-        at.favre.lib/bcrypt {:mvn/version "0.10.2"}}
+        at.favre.lib/bcrypt {:mvn/version "0.10.2"}
+
+        ;; Redis (session store)
+        com.taoensso/carmine {:mvn/version "3.5.0"}}
 
  :aliases
  {:cljs {:extra-paths ["src/cljs"]

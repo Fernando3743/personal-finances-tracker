@@ -7,7 +7,8 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.session :refer [wrap-session]]
-            [ring.middleware.session.memory :refer [memory-store]]
+            [finance.session.redis :as redis]
+            [finance.config :as config]
             [finance.api.routes :as routes]
             [finance.storage.datomic :as db]
             [datomic.api :as d]
@@ -19,8 +20,7 @@
 
 (def ^:private db-uri "datomic:dev://localhost:4334/finance?password=admin")
 
-;; Session store - memory for development
-(def session-store (memory-store))
+(def session-store (redis/create-session-store))
 
 (defn create-app
   "Creates the Ring application with all middleware."
@@ -31,7 +31,7 @@
                      :cookie-name "finance-session"
                      :cookie-attrs {:http-only true
                                     :same-site :lax
-                                    :max-age 86400}})
+                                    :max-age config/session-ttl-seconds}})
       (wrap-json-body {:keywords? true})
       wrap-json-response
       (wrap-cors :access-control-allow-origin [#"http://localhost:8280"
