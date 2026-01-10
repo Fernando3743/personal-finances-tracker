@@ -3,6 +3,8 @@
   (:require [re-frame.core :as rf]
             [finance.views.dashboard :as dashboard]
             [finance.views.transactions :as transactions]
+            [finance.views.wallets :as wallets]
+            [finance.views.reports :as reports]
             [finance.views.auth :as auth]
             [finance.routes :as routes]
             [finance.components.icons :refer [icon]]))
@@ -16,49 +18,51 @@
        [icon :moon {:width 20 :height 20 :class "flow-icon-moon"}]
        [icon :sun {:width 20 :height 20 :class "flow-icon-sun"}])]))
 
-(defn user-menu []
-  (let [user @(rf/subscribe [:auth/user])]
-    [:div.flow-user-menu
-     [:span.flow-user-name (:user/name user)]
-     [:button.flow-btn.flow-btn-ghost
-      {:on-click #(rf/dispatch [:auth/logout])}
-      [icon :logout {:width 18 :height 18}]
-      [:span "Logout"]]]))
+(defn breadcrumbs []
+  (let [active-view @(rf/subscribe [:app/current-route])
+        page-name (case active-view
+                    :dashboard "Dashboard"
+                    :transactions "Transactions"
+                    :wallets "Wallets"
+                    :reports "Reports"
+                    :add-transaction "Add Transaction"
+                    "Dashboard")]
+    [:div.flow-header__breadcrumbs
+     [:span.flow-header__breadcrumb "Pages"]
+     [icon :chevron-right {:width 16 :height 16}]
+     [:span.flow-header__breadcrumb.flow-header__breadcrumb--current page-name]]))
+
+(defn user-profile []
+  (let [user @(rf/subscribe [:auth/user])
+        user-name (or (:user/name user) "User")
+        initial (first user-name)]
+    [:div.flow-header__user-section
+     [:div.flow-header__user-info
+      [:span.flow-header__user-name user-name]
+      [:span.flow-header__user-role "Admin"]]
+     [:div.flow-header__avatar initial]
+     [:button.flow-header__logout
+      {:on-click #(rf/dispatch [:auth/logout])
+       :aria-label "Logout"}
+      [icon :logout {:width 20 :height 20}]]]))
 
 (defn header []
-  (let [active-view @(rf/subscribe [:app/current-route])]
-    [:header.flow-header
-     [:div.flow-header__left
-      [:div.flow-header__logo
-       [icon :dollar {:width 20 :height 20}]]
-      [:span.flow-header__title "Finance Tracker"]]
-
-     [:nav.flow-header__nav
-      [:a.flow-header__nav-item
-       {:class (when (= active-view :dashboard) "flow-header__nav-item--active")
-        :on-click #(rf/dispatch [:app/navigate :dashboard])}
-       [:span.flow-header__nav-icon [icon :dashboard {:width 20 :height 20}]]
-       "Dashboard"]
-      [:a.flow-header__nav-item
-       {:class (when (= active-view :transactions) "flow-header__nav-item--active")
-        :on-click #(rf/dispatch [:app/navigate :transactions])}
-       [:span.flow-header__nav-icon [icon :list {:width 20 :height 20}]]
-       "Transactions"]]
-
-     [:div.flow-header__actions
-      [theme-toggle]
-      [:button.flow-header__add-btn
-       {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
-       [icon :plus {:width 20 :height 20}]
-       [:span "Add Transaction"]]
-      [:button.flow-header__add-btn-mobile
-       {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
-       [icon :plus {:width 20 :height 20}]]
-      [user-menu]]]))
+  [:header.flow-header
+   [breadcrumbs]
+   [:div.flow-header__actions
+    [theme-toggle]
+    [:button.flow-header__add-btn
+     {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
+     [icon :plus {:width 16 :height 16}]
+     [:span "Add Transaction"]]
+    [user-profile]]])
 
 (defn sidebar []
   (let [active-view @(rf/subscribe [:app/current-route])]
     [:aside.flow-sidebar
+     [:div.flow-sidebar__header
+      [:div.flow-sidebar__logo [icon :dollar {:width 20 :height 20}]]
+      [:span.flow-sidebar__title "Finance Tracker"]]
      [:nav.flow-sidebar__nav
       [:a.flow-sidebar__item
        {:class (when (= active-view :dashboard) "flow-sidebar__item--active")
@@ -71,10 +75,20 @@
        [:span.flow-sidebar__icon [icon :list {:width 20 :height 20}]]
        [:span.flow-sidebar__label "Transactions"]]
       [:a.flow-sidebar__item
-       {:class (when (= active-view :add-transaction) "flow-sidebar__item--active")
-        :on-click #(rf/dispatch [:app/navigate :add-transaction])}
-       [:span.flow-sidebar__icon [icon :plus {:width 20 :height 20}]]
-       [:span.flow-sidebar__label "Add New"]]]]))
+       {:class (when (= active-view :wallets) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :wallets])}
+       [:span.flow-sidebar__icon [icon :wallet {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Wallets"]]
+      [:a.flow-sidebar__item
+       {:class (when (= active-view :reports) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :reports])}
+       [:span.flow-sidebar__icon [icon :bar-chart {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Reports"]]]
+     [:div.flow-sidebar__footer
+      [:button.flow-sidebar__add-btn
+       {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
+       [icon :plus {:width 16 :height 16}]
+       [:span "Add New"]]]]))
 
 (defn tab-bar []
   (let [active-view @(rf/subscribe [:app/current-route])]
@@ -139,6 +153,8 @@
      (case active-view
        :dashboard [dashboard/dashboard-view]
        :transactions [transactions/transaction-list]
+       :wallets [wallets/wallets-view]
+       :reports [reports/reports-view]
        :add-transaction [transactions/add-transaction-form]
        [dashboard/dashboard-view])]))
 
@@ -160,12 +176,13 @@
 
 (defn app-layout []
   [:div.flow-shell
-   [:div.flow-shell__header
-    [header]]
    [:div.flow-shell__sidebar
     [sidebar]]
    [:div.flow-shell__content
-    [main-content]]
+    [:div.flow-shell__header
+     [header]]
+    [:div.flow-shell__scrollable
+     [main-content]]]
    [:div.flow-shell__tab-bar
     [tab-bar]]
    [toast-container]])

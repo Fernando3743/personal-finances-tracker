@@ -15,7 +15,7 @@
         cheshire/cheshire {:mvn/version "6.1.0"}
 
         ;; Database
-        com.datomic/datomic-free {:mvn/version "0.9.5697"}
+        com.datomic/peer {:mvn/version "1.0.7469"}
 
         ;; nREPL
         nrepl/nrepl {:mvn/version "1.5.2"}

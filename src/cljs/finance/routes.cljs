@@ -5,6 +5,8 @@
 (def routes
   ["/" {""             :dashboard
         "transactions" :transactions
+        "wallets"      :wallets
+        "reports"      :reports
         "add"          :add-transaction
         "login"        :login
         "register"     :register}])

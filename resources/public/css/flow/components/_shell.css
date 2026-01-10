@@ -14,16 +14,15 @@
   background-color: var(--color-bg-primary);
 }
 
-/* Desktop: Sidebar layout */
+/* Desktop: Sidebar-first layout */
 @media (min-width: 1024px) {
   .flow-shell {
     display: grid;
-    grid-template-rows: var(--header-height) 1fr;
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "header"
-      "content";
-    position: relative;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "sidebar main-area";
+    height: 100vh;
+    overflow: hidden;
   }
 }
 
@@ -32,10 +31,13 @@
    ========================================================================== */
 
 .flow-shell__header {
-  grid-area: header;
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .flow-shell__header {
+    display: block;
+  }
 }
 
 /* ==========================================================================
@@ -44,18 +46,14 @@
 
 .flow-shell__sidebar {
   display: none;
-  position: fixed;
-  left: 0;
-  top: var(--header-height);
-  width: var(--sidebar-width);
-  height: calc(100vh - var(--header-height));
-  overflow-y: auto;
-  z-index: var(--z-dropdown);
 }
 
 @media (min-width: 1024px) {
   .flow-shell__sidebar {
     display: block;
+    grid-area: sidebar;
+    height: 100%;
+    overflow-y: auto;
   }
 }
 
@@ -64,7 +62,6 @@
    ========================================================================== */
 
 .flow-shell__content {
-  grid-area: content;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -84,9 +81,24 @@
 
 @media (min-width: 1024px) {
   .flow-shell__content {
+    grid-area: main-area;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+}
+
+.flow-shell__scrollable {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .flow-shell__scrollable {
+    display: block;
+    flex: 1;
+    overflow-y: auto;
     padding: var(--space-8);
-    padding-left: calc(var(--sidebar-width) + var(--space-8));
-    padding-bottom: var(--space-8);
   }
 }
 

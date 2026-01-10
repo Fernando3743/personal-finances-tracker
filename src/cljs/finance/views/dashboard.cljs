@@ -1,6 +1,7 @@
 (ns finance.views.dashboard
   "Dashboard view with financial overview and metrics."
   (:require [re-frame.core :as rf]
+            [clojure.string :as str]
             [finance.utils.currency :as currency]
             [finance.components.icons :refer [icon]]))
 
@@ -14,41 +15,52 @@
     (let [d (js/Date. date)]
       (.toLocaleDateString d "en-US" #js {:month "short" :year "numeric"}))))
 
-(defn balance-card [{:keys [label amount icon-name curr]}]
-  [:div.balance-card
-   [:div.balance-card__icon
-    [icon icon-name]]
-   [:div.balance-card__content
-    [:span.balance-card__label label]
-    [:span.balance-card__amount (currency/format-currency amount (or curr :COP))]]])
+(defn currency-card [{:keys [currency balance income expenses]}]
+  (let [currency-name (case currency
+                        :COP "Colombian Peso"
+                        :USD "US Dollar"
+                        (name currency))
+        trend-percent (if (pos? balance) 2.5 -0.4)
+        trend-positive? (pos? trend-percent)]
+    [:div.currency-card
+     {:class (str "currency-card--" (name currency))}
+     [:div.currency-card__header
+      [:div.currency-card__info
+       [:div.currency-card__badge (name currency)]
+       [:div.currency-card__details
+        [:span.currency-card__name currency-name]
+        [:span.currency-card__balance (currency/format-currency balance currency)]]]
+      [:div.currency-card__trend
+       {:class (if trend-positive? "currency-card__trend--up" "currency-card__trend--down")}
+       [icon (if trend-positive? :trending-up :trending-down) {:width 14 :height 14}]
+       [:span (str (when trend-positive? "+") trend-percent "%")]]]
+     [:div.currency-card__footer
+      [:div.currency-card__stat
+       [:div.currency-card__stat-header
+        [:span.currency-card__stat-dot.currency-card__stat-dot--income]
+        [:span.currency-card__stat-label "Income"]]
+       [:span.currency-card__stat-value (currency/format-currency income currency)]]
+      [:div.currency-card__stat
+       [:div.currency-card__stat-header
+        [:span.currency-card__stat-dot.currency-card__stat-dot--expense]
+        [:span.currency-card__stat-label "Expenses"]]
+       [:span.currency-card__stat-value (currency/format-currency expenses currency)]]]]))
 
 (defn balances-section []
   (let [currency-balances @(rf/subscribe [:dashboard/all-currency-balances])
         currencies @(rf/subscribe [:dashboard/available-currencies])]
-    [:section.dashboard-balances
-     [:h2.dashboard-section-title "Balances"]
-     [:p.dashboard-section-subtitle "Your finances across all currencies"]
-
-     (if (seq currency-balances)
-       [:div.currency-balances-grid
+    [:<>
+     [:div.dashboard-header
+      [:h1.dashboard-header__title "Dashboard"]
+      [:p.dashboard-header__subtitle "Your finances across all currencies"]]
+     [:div.currency-cards-grid
+      (if (seq currency-balances)
         (for [{:keys [currency balance income expenses]} currency-balances]
           ^{:key currency}
-          [:div.currency-balance-group
-           [:h3.currency-label (name currency)]
-           [:div.balance-cards-row
-            [balance-card {:label "Balance" :amount balance :curr currency :icon-name :wallet}]
-            [balance-card {:label "Income" :amount income :curr currency :icon-name :arrow-up}]
-            [balance-card {:label "Expenses" :amount expenses :curr currency :icon-name :arrow-down}]]])]
-
-       [:div.currency-balances-grid
+          [currency-card {:currency currency :balance balance :income income :expenses expenses}])
         (for [curr currencies]
           ^{:key curr}
-          [:div.currency-balance-group
-           [:h3.currency-label (name curr)]
-           [:div.balance-cards-row
-            [balance-card {:label "Balance" :amount 0 :curr curr :icon-name :wallet}]
-            [balance-card {:label "Income" :amount 0 :curr curr :icon-name :arrow-up}]
-            [balance-card {:label "Expenses" :amount 0 :curr curr :icon-name :arrow-down}]]])])]))
+          [currency-card {:currency curr :balance 0 :income 0 :expenses 0}]))]]))
 
 (defn transaction-row [{:keys [transaction/id transaction/date transaction/description
                                transaction/amount transaction/type transaction/category
@@ -97,9 +109,12 @@
           [transaction-row t])])]))
 
 (def category-colors
-  {:groceries "#22C55E"
+  {:housing "#7c3aed"
+   :groceries "#22C55E"
+   :food "#F59E0B"
    :restaurants "#F97316"
-   :transportation "#3B82F6"
+   :transportation "#10B981"
+   :transport "#10B981"
    :utilities "#EAB308"
    :entertainment "#EC4899"
    :healthcare "#14B8A6"
@@ -107,52 +122,78 @@
    :salary "#22C55E"
    :freelance "#06B6D4"
    :investments "#10B981"
-   :gifts "#F43F5E"
-   :other "#6B7280"})
+   :gifts "#D946EF"
+   :other "#EF4444"})
 
-(defn generate-path-d [points width height max-val]
+(defn generate-smooth-path [points width height max-val]
   (when (seq points)
     (let [n (count points)
           x-step (/ width (max 1 (dec n)))
-          scale-y #(- height (* (/ % max-val) height))]
-      (str "M " 0 " " (scale-y (first points))
-           (apply str
-                  (map-indexed
-                   (fn [i val]
-                     (str " L " (* i x-step) " " (scale-y val)))
-                   (rest points)))))))
+          scale-y #(- height (* (/ % max-val) height))
+          coords (map-indexed (fn [i v] [(* i x-step) (scale-y v)]) points)]
+      (if (= n 1)
+        (let [[x y] (first coords)]
+          (str "M " x " " y))
+        (str "M " (first (first coords)) " " (second (first coords))
+             (apply str
+                    (map (fn [[[x1 y1] [x2 y2]]]
+                           (let [cp1x (+ x1 (* 0.3 (- x2 x1)))
+                                 cp2x (- x2 (* 0.3 (- x2 x1)))]
+                             (str " C " cp1x " " y1 " " cp2x " " y2 " " x2 " " y2)))
+                         (partition 2 1 coords))))))))
 
-(defn mini-trend-chart []
+(defn cash-flow-chart []
   (let [monthly-report @(rf/subscribe [:dashboard/monthly-report])
         months (or (:months monthly-report) [])
         income-data (if (seq months)
                       (mapv #(or (:income %) 0) months)
-                      [100 150 120 200 180])
+                      [800 1200 1800 2400 2800 3200])
         expense-data (if (seq months)
                        (mapv #(or (:expenses %) 0) months)
-                       [80 100 90 150 120])
+                       [600 800 1200 1600 1800 2000])
         max-val (max 1 (apply max (concat income-data expense-data)))
-        width 280
-        height 130]
-    [:svg.mini-trend-chart
-     {:viewBox (str "0 0 " width " " height)
-      :preserveAspectRatio "none"}
-     [:path.mini-trend-chart__area--income
-      {:d (str (generate-path-d income-data width height max-val)
-               " L " width " " height " L 0 " height " Z")}]
-     [:path.mini-trend-chart__area--expense
-      {:d (str (generate-path-d expense-data width height max-val)
-               " L " width " " height " L 0 " height " Z")}]
-     [:path.mini-trend-chart__line.mini-trend-chart__line--income
-      {:d (generate-path-d income-data width height max-val)}]
-     [:path.mini-trend-chart__line.mini-trend-chart__line--expense
-      {:d (generate-path-d expense-data width height max-val)}]]))
+        rounded-max (* 1000 (js/Math.ceil (/ max-val 1000)))
+        width 500
+        height 200
+        y-labels [4 3 2 1 0]]
+    [:div.cash-flow-chart
+     [:div.cash-flow-chart__y-axis
+      (for [label y-labels]
+        ^{:key label}
+        [:span.cash-flow-chart__y-label (str label "k")])]
+     [:div.cash-flow-chart__graph
+      [:svg {:viewBox (str "0 0 " width " " height)
+             :preserveAspectRatio "none"
+             :class "cash-flow-chart__svg"}
+       [:defs
+        [:linearGradient {:id "incomeGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
+         [:stop {:offset "0%" :stop-color "#10b981" :stop-opacity "0.3"}]
+         [:stop {:offset "100%" :stop-color "#10b981" :stop-opacity "0"}]]
+        [:linearGradient {:id "expenseGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
+         [:stop {:offset "0%" :stop-color "#ef4444" :stop-opacity "0.3"}]
+         [:stop {:offset "100%" :stop-color "#ef4444" :stop-opacity "0"}]]]
+       (for [i (range 5)]
+         ^{:key i}
+         [:line {:x1 0 :y1 (* i (/ height 4)) :x2 width :y2 (* i (/ height 4))
+                 :stroke "var(--color-border-subtle)" :stroke-dasharray "4 4"}])
+       [:path {:d (str (generate-smooth-path income-data width height rounded-max)
+                       " L " width " " height " L 0 " height " Z")
+               :fill "url(#incomeGradient)"}]
+       [:path {:d (generate-smooth-path income-data width height rounded-max)
+               :fill "none" :stroke "#10b981" :stroke-width "2.5"}]
+       [:path {:d (str (generate-smooth-path expense-data width height rounded-max)
+                       " L " width " " height " L 0 " height " Z")
+               :fill "url(#expenseGradient)"}]
+       [:path {:d (generate-smooth-path expense-data width height rounded-max)
+               :fill "none" :stroke "#ef4444" :stroke-width "2.5"}]]]]))
 
-(defn trend-chart-widget []
+(defn cash-flow-widget []
   (let [time-range @(rf/subscribe [:dashboard/chart-time-range])]
-    [:div.sidebar-widget
-     [:div.sidebar-widget__header
-      [:h3.sidebar-widget__title "Monthly Trends"]
+    [:div.chart-panel
+     [:div.chart-panel__header
+      [:div.chart-panel__titles
+       [:h3.chart-panel__title "Monthly Cash Flow"]
+       [:p.chart-panel__subtitle "Income vs Expenses Analysis"]]
       [:div.time-range-selector
        (for [[key label] [[:week "W"] [:month "M"] [:year "Y"]]]
          ^{:key key}
@@ -160,29 +201,73 @@
           {:class (when (= time-range key) "range-btn--active")
            :on-click #(rf/dispatch [:dashboard/set-chart-range key])}
           label])]]
-     [:div.sidebar-widget__chart
-      [mini-trend-chart]]]))
+     [cash-flow-chart]]))
 
-(defn category-summary-widget []
+(defn donut-chart [{:keys [segments total]}]
+  (let [size 160
+        stroke-width 24
+        radius (/ (- size stroke-width) 2)
+        circumference (* 2 js/Math.PI radius)
+        center (/ size 2)]
+    [:div.donut-chart
+     [:svg {:width size :height size :viewBox (str "0 0 " size " " size)}
+      [:circle {:cx center :cy center :r radius
+                :fill "none" :stroke "var(--color-border-subtle)" :stroke-width stroke-width}]
+      (let [offset (atom 0)]
+        (for [{:keys [percent color]} segments]
+          (let [dash (* (/ percent 100) circumference)
+                gap (- circumference dash)
+                current-offset @offset]
+            (swap! offset + dash)
+            ^{:key color}
+            [:circle {:cx center :cy center :r radius
+                      :fill "none" :stroke color :stroke-width stroke-width
+                      :stroke-dasharray (str dash " " gap)
+                      :stroke-dashoffset (- (* 0.25 circumference) current-offset)
+                      :style {:transform "rotate(-90deg)" :transform-origin "center"}}])))]
+     [:div.donut-chart__center
+      [:span.donut-chart__label "TOTAL"]
+      [:span.donut-chart__value (currency/format-currency total :USD)]]]))
+
+(defn category-donut-widget []
   (let [{:keys [categories]} @(rf/subscribe [:dashboard/category-totals])
         expense-cats (->> categories
                           (filter #(= (:type %) :expense))
                           (sort-by :total >)
-                          (take 5))]
-    [:div.sidebar-widget
-     [:div.sidebar-widget__header
-      [:h3.sidebar-widget__title "Top Categories"]]
+                          (take 4))
+        total-expenses (reduce + 0 (map :total expense-cats))
+        segments (if (seq expense-cats)
+                   (map (fn [{:keys [category total]}]
+                          {:name (name category)
+                           :percent (if (pos? total-expenses)
+                                      (* 100 (/ total total-expenses))
+                                      0)
+                           :color (get category-colors category "#6B7280")})
+                        expense-cats)
+                   [{:name "Housing" :percent 45 :color "#7c3aed"}
+                    {:name "Food" :percent 25 :color "#F59E0B"}
+                    {:name "Transport" :percent 15 :color "#10B981"}
+                    {:name "Others" :percent 15 :color "#EF4444"}])
+        display-total (if (pos? total-expenses) total-expenses 2690)]
+    [:div.chart-panel.chart-panel--category
+     [:div.chart-panel__header
+      [:h3.chart-panel__title "Spending by Category"]]
+     [:div.category-chart-content
+      [donut-chart {:segments segments :total display-total}]
+      [:div.category-legend
+       (for [{:keys [name percent color]} segments]
+         ^{:key name}
+         [:div.category-legend__item
+          [:div.category-legend__info
+           [:span.category-legend__dot {:style {:background-color color}}]
+           [:span.category-legend__name (str/capitalize name)]]
+          [:span.category-legend__percent (str (js/Math.round percent) "%")]])]]]))
 
-     (if (seq expense-cats)
-       [:div.category-list
-        (for [{:keys [category total]} expense-cats]
-          ^{:key category}
-          [:div.category-item
-           [:span.category-dot {:style {:background-color (get category-colors category "#6B7280")}}]
-           [:span.category-item__name (name category)]
-           [:span.category-item__amount (currency/format-currency total :COP)]])]
-       [:div {:style {:text-align "center" :padding "1rem" :color "var(--color-text-tertiary)"}}
-        [:p "No spending data yet"]])]))
+(defn trend-chart-widget []
+  [cash-flow-widget])
+
+(defn category-summary-widget []
+  [category-donut-widget])
 
 (defn dashboard-skeleton []
   [:div.dashboard-skeleton
@@ -199,13 +284,11 @@
 (defn dashboard-view []
   (let [loading? @(rf/subscribe [:app/loading?])]
     [:div.dashboard
-     [:h1.dashboard__title "Dashboard"]
      (if loading?
        [dashboard-skeleton]
        [:<>
         [balances-section]
-        [:div.dashboard__content
-         [transactions-panel]
-         [:div.dashboard__sidebar
-          [trend-chart-widget]
-          [category-summary-widget]]]])]))
+        [:div.charts-section
+         [cash-flow-widget]
+         [category-donut-widget]]
+        [transactions-panel]])]))

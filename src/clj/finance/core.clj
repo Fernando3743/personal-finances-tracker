@@ -10,13 +10,14 @@
             [ring.middleware.session.memory :refer [memory-store]]
             [finance.api.routes :as routes]
             [finance.storage.datomic :as db]
+            [datomic.api :as d]
             [finance.auth.middleware :refer [wrap-current-user]]
             [nrepl.server :as nrepl]
             [nrepl.cmdline :as nrepl-cmd]
             [cider.nrepl :refer [cider-nrepl-handler]])
   (:gen-class))
 
-(def ^:private db-uri "datomic:mem://finance")
+(def ^:private db-uri "datomic:dev://localhost:4334/finance?password=admin")
 
 ;; Session store - memory for development
 (def session-store (memory-store))
@@ -69,4 +70,12 @@
   ;; Development helpers
   (def server (start-server 3000))
   (.stop server)
+  (def conn (db/create-conn db-uri))
+
+  (d/q '[:find (pull ?e [*])
+         :where
+         [?e :user/id ?id]]
+       (d/db conn))
+
+
   )

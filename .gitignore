@@ -59,6 +59,9 @@ Desktop.ini
 .env.*
 *.local
 
+# Docker
+docker/
+
 # Build outputs
 dist/
 build/
