@@ -536,7 +536,6 @@
   color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wider);
-  margin-bottom: var(--space-3);
 }
 
 .flow-category-picker__grid {

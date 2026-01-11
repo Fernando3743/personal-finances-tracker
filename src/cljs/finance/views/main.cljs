@@ -210,17 +210,30 @@
 (defn auth-layout []
   (let [active-view @(rf/subscribe [:app/current-route])
         theme @(rf/subscribe [:app/theme])]
-    [:div.flow-auth-layout
+    [:div.flow-auth-split
      {:class (str "flow-theme-" (name theme))}
-     [:div.flow-auth-header
-      [:div.flow-header__logo
-       [icon :dollar {:width 24 :height 24}]]
-      [:span.flow-header__title "Finance Tracker"]
-      [theme-toggle]]
-     (case active-view
-       :login [auth/login-form]
-       :register [auth/register-form]
-       [auth/login-form])]))
+
+     [:div.flow-auth-hero
+      [:div.flow-auth-hero__content
+       [:div.flow-auth-hero__brand
+        [:div.flow-auth-hero__logo
+         [icon :dollar {:width 32 :height 32}]]
+        [:h1.flow-auth-hero__title "Finance Tracker"]]
+       [:blockquote.flow-auth-hero__quote
+        "\"The best way to predict your future is to create it. Start managing your wealth today.\""]]]
+
+     [:div.flow-auth-panel
+      (case active-view
+        :login [auth/login-form]
+        :register [auth/register-form]
+        [auth/login-form])]
+
+     [:button.flow-auth-theme-toggle
+      {:on-click #(rf/dispatch [:app/toggle-theme])
+       :aria-label (if (= theme :light) "Switch to dark mode" "Switch to light mode")}
+      (if (= theme :light)
+        [icon :moon {:width 24 :height 24}]
+        [icon :sun {:width 24 :height 24}])]]))
 
 (defn app-layout []
   [:div.flow-shell

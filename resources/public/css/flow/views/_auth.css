@@ -2,6 +2,346 @@
    Auth Views - Login & Register
    ========================================================================== */
 
+/* ==========================================================================
+   Split Layout
+   ========================================================================== */
+
+.flow-auth-split {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Hero Panel (Left) */
+.flow-auth-hero {
+  display: none;
+  position: relative;
+  width: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--neutral-900) 0%,
+    var(--purple-900) 50%,
+    var(--purple-700) 100%
+  );
+}
+
+.flow-auth-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 20% 80%,
+    rgba(124, 58, 237, 0.3) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .flow-auth-hero {
+    display: flex;
+  }
+}
+
+.flow-auth-hero__content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--space-12);
+  color: white;
+  width: 100%;
+}
+
+.flow-auth-hero__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.flow-auth-hero__logo {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-auth-hero__title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.flow-auth-hero__quote {
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  line-height: var(--line-height-relaxed);
+  opacity: 0.9;
+  margin: 0;
+  font-style: normal;
+}
+
+/* Form Panel (Right) */
+.flow-auth-panel {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: var(--color-bg-primary);
+}
+
+@media (min-width: 1024px) {
+  .flow-auth-panel {
+    width: 50%;
+  }
+}
+
+@media (min-width: 640px) {
+  .flow-auth-panel {
+    padding: var(--space-8);
+  }
+}
+
+/* Enhanced Card */
+.flow-auth-card--enhanced {
+  width: 100%;
+  max-width: 28rem;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-8);
+  border: 1px solid var(--color-border-default);
+  transition: box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+@media (min-width: 640px) {
+  .flow-auth-card--enhanced {
+    padding: var(--space-10);
+  }
+}
+
+/* Mobile Logo */
+.flow-auth-mobile-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+@media (min-width: 1024px) {
+  .flow-auth-mobile-logo {
+    display: none;
+  }
+}
+
+.flow-auth-mobile-logo__icon {
+  background: var(--color-accent-primary);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Input with Icon */
+.flow-input-with-icon {
+  position: relative;
+}
+
+.flow-input-with-icon__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-input-with-icon .flow-input {
+  padding-left: var(--space-12);
+}
+
+/* Remember Me / Options Row */
+.flow-auth-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+}
+
+.flow-auth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.flow-auth-checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-default);
+  accent-color: var(--color-accent-primary);
+  cursor: pointer;
+}
+
+.flow-auth-checkbox label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.flow-auth-forgot {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-in-out);
+}
+
+.flow-auth-forgot:hover {
+  color: var(--color-accent-primary-hover);
+}
+
+/* Button with Lift Effect */
+.flow-btn--lift {
+  transition: transform var(--duration-fast) var(--ease-in-out),
+              box-shadow var(--duration-fast) var(--ease-in-out),
+              background-color var(--duration-fast) var(--ease-in-out);
+}
+
+.flow-btn--lift:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+/* Divider */
+.flow-auth-divider {
+  position: relative;
+  margin: var(--space-8) 0;
+}
+
+.flow-auth-divider__line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.flow-auth-divider__line::before {
+  content: '';
+  width: 100%;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.flow-auth-divider__text {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.flow-auth-divider__text span {
+  background-color: var(--color-surface-elevated);
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+/* Social Login Buttons */
+.flow-auth-social {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.flow-auth-social__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--space-3);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-in-out),
+              border-color var(--duration-fast) var(--ease-in-out);
+}
+
+.flow-auth-social__btn:hover {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border-hover);
+}
+
+/* Fixed Theme Toggle */
+.flow-auth-theme-toggle {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-fixed);
+  padding: var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-in-out),
+              box-shadow var(--duration-fast) var(--ease-in-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-auth-theme-toggle:hover {
+  color: var(--color-accent-primary);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Enhanced Card Typography */
+.flow-auth-card--enhanced .flow-auth-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.flow-auth-card--enhanced .flow-auth-subtitle {
+  margin-bottom: var(--space-6);
+}
+
+.flow-auth-card--enhanced .flow-label {
+  font-size: var(--font-size-2xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.flow-auth-card--enhanced .flow-btn-primary {
+  background: var(--color-accent-primary);
+  color: white;
+}
+
+.flow-auth-card--enhanced .flow-btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-primary-hover);
+}
+
+/* ==========================================================================
+   Legacy Styles (kept for compatibility)
+   ========================================================================== */
+
 /* Loading Screen */
 .flow-loading-screen {
   display: flex;
@@ -56,7 +396,7 @@
 }
 
 .flow-auth-header .flow-header__title {
-  font-size: var(--text-lg);
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--color-text-default);
 }
@@ -86,7 +426,7 @@
 }
 
 .flow-auth-title {
-  font-size: var(--text-2xl);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--color-text-default);
   text-align: center;
@@ -94,7 +434,7 @@
 }
 
 .flow-auth-subtitle {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   text-align: center;
   margin-bottom: var(--space-6);
@@ -108,7 +448,7 @@
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-4);
   color: var(--color-danger);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
 }
 
 /* Auth Form */
@@ -125,15 +465,15 @@
 }
 
 .flow-auth-form .flow-label {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-2xs);
   font-weight: 500;
-  color: var(--color-text-default);
+  color: var(--color-text-secondary);
 }
 
 .flow-auth-form .flow-input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
   background-color: var(--color-bg-default);
@@ -161,7 +501,7 @@
 }
 
 .flow-input-hint {
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
 
@@ -178,7 +518,7 @@
 /* Auth Link */
 .flow-auth-link {
   text-align: center;
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin-top: var(--space-4);
 }
@@ -204,7 +544,7 @@
 }
 
 .flow-user-name {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-text-default);
 }
@@ -214,7 +554,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   background: transparent;
   border: none;
