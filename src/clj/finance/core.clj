@@ -7,6 +7,7 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [finance.session.redis :as redis]
             [finance.config :as config]
             [finance.api.routes :as routes]
@@ -32,6 +33,7 @@
                      :cookie-attrs {:http-only true
                                     :same-site :lax
                                     :max-age config/session-ttl-seconds}})
+      wrap-multipart-params
       (wrap-json-body {:keywords? true})
       wrap-json-response
       (wrap-cors :access-control-allow-origin [#"http://localhost:8280"

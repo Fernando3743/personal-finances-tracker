@@ -6,6 +6,7 @@
             [clojure.string :as str]
             [finance.api.handlers :as handlers]
             [finance.api.auth-handlers :as auth]
+            [finance.api.profile-handlers :as profile]
             [finance.auth.middleware :refer [wrap-auth-required]]))
 
 (defn auth-routes
@@ -51,7 +52,26 @@
         (handlers/get-monthly-report conn request))
 
       (GET "/dashboard" request
-        (handlers/get-dashboard conn request)))
+        (handlers/get-dashboard conn request))
+
+      (context "/profile" []
+        (GET "/" request
+          (profile/get-profile conn request))
+
+        (PUT "/" request
+          (profile/update-profile conn request))
+
+        (PUT "/password" request
+          (profile/change-password conn request))
+
+        (PUT "/preferences" request
+          (profile/update-preferences conn request))
+
+        (GET "/export" request
+          (profile/export-data conn request))
+
+        (DELETE "/" request
+          (profile/delete-account conn request))))
     wrap-auth-required))
 
 (defn- spa-fallback

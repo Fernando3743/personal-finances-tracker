@@ -30,7 +30,17 @@
    {:db/ident :user/created-at
     :db/valueType :db.type/instant
     :db/cardinality :db.cardinality/one
-    :db/doc "Account creation timestamp"}])
+    :db/doc "Account creation timestamp"}
+
+   {:db/ident :user/updated-at
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Last profile update timestamp"}
+
+   {:db/ident :user/preferred-currency
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "User's preferred currency (:COP or :USD)"}])
 
 (def schema
   "Datomic schema for transactions."
@@ -201,11 +211,16 @@
   "Converts a Datomic entity to a user map."
   [entity]
   (when entity
-    {:user/id (:user/id entity)
-     :user/email (:user/email entity)
-     :user/password-hash (:user/password-hash entity)
-     :user/name (:user/name entity)
-     :user/created-at (:user/created-at entity)}))
+    (cond-> {:user/id (:user/id entity)
+             :user/email (:user/email entity)
+             :user/password-hash (:user/password-hash entity)
+             :user/name (:user/name entity)
+             :user/created-at (:user/created-at entity)}
+      (:user/updated-at entity)
+      (assoc :user/updated-at (:user/updated-at entity))
+
+      (:user/preferred-currency entity)
+      (assoc :user/preferred-currency (:user/preferred-currency entity)))))
 
 (defn save-user!
   "Saves a user to the database. Returns the saved user."
@@ -270,3 +285,64 @@
             [?e :transaction/id ?tx-id]
             [?e :transaction/user-id ?user-id]]
           db transaction-id user-id))))
+
+(defn- find-user-entity-id
+  "Finds the Datomic entity ID for a user by UUID."
+  [db user-id]
+  (ffirst
+   (d/q '[:find ?e
+          :in $ ?id
+          :where [?e :user/id ?id]]
+        db user-id)))
+
+(defn update-user!
+  "Updates user profile fields. Returns updated user or nil if not found."
+  [conn user-id updates]
+  (let [db (d/db conn)
+        eid (find-user-entity-id db user-id)]
+    (when eid
+      (let [valid-keys #{:user/name :user/email :user/password-hash
+                         :user/preferred-currency}
+            filtered-updates (select-keys updates valid-keys)
+            tx-data (-> filtered-updates
+                        (assoc :db/id eid)
+                        (assoc :user/updated-at (java.util.Date.)))]
+        (when (seq filtered-updates)
+          @(d/transact conn [tx-data])
+          (find-user-by-id conn user-id))))))
+
+(defn delete-user!
+  "Deletes a user and all their transactions. Returns true if deleted."
+  [conn user-id]
+  (let [db (d/db conn)
+        user-eid (find-user-entity-id db user-id)]
+    (when user-eid
+      (let [tx-eids (d/q '[:find [?e ...]
+                           :in $ ?user-id
+                           :where [?e :transaction/user-id ?user-id]]
+                         db user-id)
+            retractions (mapv (fn [eid] [:db/retractEntity eid]) tx-eids)]
+        (when (seq retractions)
+          @(d/transact conn retractions))
+        @(d/transact conn [[:db/retractEntity user-eid]])
+        true))))
+
+(defn get-user-statistics
+  "Returns aggregated statistics for a user."
+  [conn user-id]
+  (let [transactions (load-transactions-for-user conn user-id)
+        total-count (count transactions)
+        income-txs (filter #(= :income (:transaction/type %)) transactions)
+        expense-txs (filter #(= :expense (:transaction/type %)) transactions)
+        sum-by-currency (fn [txs]
+                          (reduce (fn [acc tx]
+                                    (let [curr (:transaction/currency tx)
+                                          amt (:transaction/amount tx)]
+                                      (update acc curr (fnil + 0M) amt)))
+                                  {}
+                                  txs))]
+    {:total-transactions total-count
+     :income-by-currency (sum-by-currency income-txs)
+     :expenses-by-currency (sum-by-currency expense-txs)
+     :income-count (count income-txs)
+     :expense-count (count expense-txs)}))

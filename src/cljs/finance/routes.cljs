@@ -8,6 +8,7 @@
         "wallets"      :wallets
         "reports"      :reports
         "add"          :add-transaction
+        "profile"      :profile
         "login"        :login
         "register"     :register}])
 

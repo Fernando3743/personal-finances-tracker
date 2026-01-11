@@ -105,7 +105,31 @@
 
    :trending-down
    [[:polyline {:points "23 18 13.5 8.5 8.5 13.5 1 6"}]
-    [:polyline {:points "17 18 23 18 23 12"}]]})
+    [:polyline {:points "17 18 23 18 23 12"}]]
+
+   :upload
+   [[:path {:d "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"}]
+    [:polyline {:points "17 8 12 3 7 8"}]
+    [:line {:x1 "12" :y1 "3" :x2 "12" :y2 "15"}]]
+
+   :download
+   [[:path {:d "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"}]
+    [:polyline {:points "7 10 12 15 17 10"}]
+    [:line {:x1 "12" :y1 "15" :x2 "12" :y2 "3"}]]
+
+   :user
+   [[:path {:d "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"}]
+    [:circle {:cx "12" :cy "7" :r "4"}]]
+
+   :shield
+   [[:path {:d "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"}]]
+
+   :edit
+   [[:path {:d "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"}]
+    [:path {:d "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"}]]
+
+   :key
+   [[:path {:d "M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"}]]})
 
 (def default-svg-attrs
   {:xmlns "http://www.w3.org/2000/svg"

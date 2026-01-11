@@ -6,7 +6,8 @@
             [finance.rf-logic.app :as app]
             [finance.rf-logic.auth]
             [finance.rf-logic.dashboard]
-            [finance.rf-logic.transactions]))
+            [finance.rf-logic.transactions]
+            [finance.rf-logic.profile]))
 
 (defn ^:dev/after-load mount-root
   []

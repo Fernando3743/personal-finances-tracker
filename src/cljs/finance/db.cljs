@@ -78,4 +78,12 @@
                     :averages nil}
 
    ;; Chart time range
-   :chart-time-range :month}) ; :week, :month, :year
+   :chart-time-range :month ; :week, :month, :year
+
+   ;; Profile page state
+   :profile {:loading? false
+             :saving? false
+             :uploading-avatar? false
+             :deleting? false
+             :statistics nil
+             :error nil}})

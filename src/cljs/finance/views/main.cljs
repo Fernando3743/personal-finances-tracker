@@ -5,6 +5,7 @@
             [finance.views.transactions :as transactions]
             [finance.views.wallets :as wallets]
             [finance.views.reports :as reports]
+            [finance.views.profile :as profile]
             [finance.views.auth :as auth]
             [finance.routes :as routes]
             [finance.components.icons :refer [icon]]))
@@ -26,6 +27,7 @@
                     :wallets "Wallets"
                     :reports "Reports"
                     :add-transaction "Add Transaction"
+                    :profile "Profile"
                     "Dashboard")]
     [:div.flow-header__breadcrumbs
      [:span.flow-header__breadcrumb "Pages"]
@@ -35,12 +37,22 @@
 (defn user-profile []
   (let [user @(rf/subscribe [:auth/user])
         user-name (or (:user/name user) "User")
+        avatar-url (:user/avatar-url user)
         initial (first user-name)]
     [:div.flow-header__user-section
      [:div.flow-header__user-info
+      {:on-click #(rf/dispatch [:app/navigate :profile])
+       :style {:cursor "pointer"}
+       :title "Go to Profile"}
       [:span.flow-header__user-name user-name]
       [:span.flow-header__user-role "Admin"]]
-     [:div.flow-header__avatar initial]
+     [:div.flow-header__avatar
+      {:on-click #(rf/dispatch [:app/navigate :profile])
+       :style {:cursor "pointer"}
+       :title "Go to Profile"}
+      (if avatar-url
+        [:img {:src avatar-url :alt user-name}]
+        initial)]
      [:button.flow-header__logout
       {:on-click #(rf/dispatch [:auth/logout])
        :aria-label "Logout"}
@@ -59,6 +71,7 @@
 
 (defn mobile-header []
   (let [user @(rf/subscribe [:auth/user])
+        avatar-url (:user/avatar-url user)
         initial (first (or (:user/name user) "U"))]
     [:header.flow-header.flow-header--mobile
      [:div.flow-header__left
@@ -66,10 +79,19 @@
       [:span.flow-header__title "Finance Tracker"]]
      [:div.flow-header__actions
       [theme-toggle]
-      [:div.flow-header__avatar initial]]]))
+      [:div.flow-header__avatar
+       {:on-click #(rf/dispatch [:app/navigate :profile])
+        :style {:cursor "pointer"}}
+       (if avatar-url
+         [:img {:src avatar-url :alt "Profile"}]
+         initial)]]]))
 
 (defn sidebar []
-  (let [active-view @(rf/subscribe [:app/current-route])]
+  (let [active-view @(rf/subscribe [:app/current-route])
+        user @(rf/subscribe [:auth/user])
+        user-name (or (:user/name user) "User")
+        avatar-url (:user/avatar-url user)
+        initial (first user-name)]
     [:aside.flow-sidebar
      [:div.flow-sidebar__header
       [:div.flow-sidebar__logo [icon :dollar {:width 20 :height 20}]]
@@ -99,7 +121,18 @@
       [:button.flow-sidebar__add-btn
        {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
        [icon :plus {:width 16 :height 16}]
-       [:span "Add New"]]]]))
+       [:span "Add New"]]
+      [:div.flow-sidebar__profile
+       {:on-click #(rf/dispatch [:app/navigate :profile])
+        :class (when (= active-view :profile) "flow-sidebar__profile--active")}
+       [:div.flow-sidebar__profile-avatar
+        (if avatar-url
+          [:img {:src avatar-url :alt user-name}]
+          initial)]
+       [:div.flow-sidebar__profile-info
+        [:span.flow-sidebar__profile-name user-name]
+        [:span.flow-sidebar__profile-role "Pro Member"]]
+       [icon :chevron-right {:width 16 :height 16 :class "flow-sidebar__profile-arrow"}]]]]))
 
 (defn tab-bar []
   (let [active-view @(rf/subscribe [:app/current-route])]
@@ -167,6 +200,7 @@
        :wallets [wallets/wallets-view]
        :reports [reports/reports-view]
        :add-transaction [transactions/add-transaction-form]
+       :profile [profile/profile-view]
        [dashboard/dashboard-view])]))
 
 (defn auth-layout []
