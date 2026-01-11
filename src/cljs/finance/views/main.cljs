@@ -1,6 +1,8 @@
 (ns finance.views.main
   "Main layout, navigation, and UI components."
   (:require [re-frame.core :as rf]
+            [reagent.core :as r]
+            ["react-dom" :as react-dom]
             [finance.views.dashboard :as dashboard]
             [finance.views.transactions :as transactions]
             [finance.views.wallets :as wallets]
@@ -179,11 +181,13 @@
 
 (defn toast-container []
   (let [toasts @(rf/subscribe [:app/toast-queue])]
-    (when (seq toasts)
-      [:div.flow-toast-container
-       (for [t toasts]
-         ^{:key (:id t)}
-         [toast t])])))
+    (react-dom/createPortal
+      (r/as-element
+        [:div.flow-toast-container
+         (for [t toasts]
+           ^{:key (:id t)}
+           [toast t])])
+      (.-body js/document))))
 
 (defn loading-screen []
   [:div.flow-loading-screen
@@ -216,8 +220,7 @@
      (case active-view
        :login [auth/login-form]
        :register [auth/register-form]
-       [auth/login-form])
-     [toast-container]]))
+       [auth/login-form])]))
 
 (defn app-layout []
   [:div.flow-shell
@@ -231,33 +234,29 @@
     [:div.flow-shell__scrollable
      [main-content]]]
    [:div.flow-shell__tab-bar
-    [tab-bar]]
-   [toast-container]])
+    [tab-bar]]])
 
 (defn main-panel []
   (let [authenticated? @(rf/subscribe [:auth/authenticated?])
         auth-initialized? @(rf/subscribe [:auth/initialized?])
         active-view @(rf/subscribe [:app/current-route])
         theme @(rf/subscribe [:app/theme])]
-    [:div {:class (str "flow-theme-" (name theme))}
-     (cond
-       ;; Still checking auth status
-       (not auth-initialized?)
-       [loading-screen]
+    [:<>
+     [:div {:class (str "flow-theme-" (name theme))}
+      (cond
+        ;; Still checking auth status
+        (not auth-initialized?)
+        [loading-screen]
 
-       ;; Public routes (login/register)
-       (contains? routes/public-routes active-view)
-       (if authenticated?
-         ;; Already authenticated, redirect to dashboard
-         (do (rf/dispatch [:app/navigate :dashboard])
-             [loading-screen])
-         [auth-layout])
+        (and (contains? routes/public-routes active-view) (not authenticated?))
+        [auth-layout]
 
-       ;; Protected routes - check if authenticated
-       (not authenticated?)
-       (do (rf/dispatch [:app/navigate :login])
-           [loading-screen])
+        ;; Protected routes - check if authenticated
+        (not authenticated?)
+        (do (rf/dispatch [:app/navigate :login])
+            [loading-screen])
 
-       ;; Authenticated - show app
-       :else
-       [app-layout])]))
+        ;; Authenticated - show app
+        :else
+        [app-layout])]
+     [toast-container]]))

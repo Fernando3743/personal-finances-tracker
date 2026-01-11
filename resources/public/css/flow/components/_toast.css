@@ -9,7 +9,7 @@
 
 .flow-toast-container {
   position: fixed;
-  bottom: var(--space-4);
+  top: var(--space-4);
   right: var(--space-4);
   z-index: var(--z-toast);
   display: flex;
@@ -18,12 +18,11 @@
   pointer-events: none;
 }
 
-/* Mobile: full width at bottom */
 @media (max-width: 639px) {
   .flow-toast-container {
     left: var(--space-4);
     right: var(--space-4);
-    bottom: calc(var(--tab-bar-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+    top: var(--space-4);
   }
 }
 
