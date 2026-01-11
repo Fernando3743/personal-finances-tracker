@@ -2,12 +2,13 @@
   "Authentication request handlers."
   (:require [finance.domain.user :as user]
             [finance.storage.datomic :as db]
-            [ring.util.response :as response]))
+            [ring.util.response :as response]
+            [cheshire.core :as json]))
 
 (defn- json-response
   ([body] (json-response body 200))
   ([body status]
-   (-> (response/response body)
+   (-> (response/response (json/generate-string body))
        (response/status status)
        (response/content-type "application/json"))))
 
