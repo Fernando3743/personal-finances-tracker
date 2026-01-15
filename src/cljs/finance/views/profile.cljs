@@ -148,31 +148,31 @@
         [:div.profile-stat-card__icon
          [icon :calendar {:width 24 :height 24}]]
         [:div.profile-stat-card__content
-         [:span.profile-stat-card__value (or member-since "N/A")]
-         [:span.profile-stat-card__label "Member Since"]]]
+         [:span.profile-stat-card__label "Member Since"]
+         [:span.profile-stat-card__value (or member-since "N/A")]]]
        [:div.profile-stat-card
         [:div.profile-stat-card__icon
          [icon :list {:width 24 :height 24}]]
         [:div.profile-stat-card__content
-         [:span.profile-stat-card__value (or (:total-transactions stats) 0)]
-         [:span.profile-stat-card__label "Total Transactions"]]]
+         [:span.profile-stat-card__label "Total Transactions"]
+         [:span.profile-stat-card__value (or (:total-transactions stats) 0)]]]
        [:div.profile-stat-card.profile-stat-card--income
         [:div.profile-stat-card__icon
          [icon :trending-up {:width 24 :height 24}]]
         [:div.profile-stat-card__content
-         [:span.profile-stat-card__value (or (:income-count stats) 0)]
-         [:span.profile-stat-card__label "Income Entries"]]]
+         [:span.profile-stat-card__label "Income Entries"]
+         [:span.profile-stat-card__value (or (:income-count stats) 0)]]]
        [:div.profile-stat-card.profile-stat-card--expense
         [:div.profile-stat-card__icon
          [icon :trending-down {:width 24 :height 24}]]
         [:div.profile-stat-card__content
-         [:span.profile-stat-card__value (or (:expense-count stats) 0)]
-         [:span.profile-stat-card__label "Expense Entries"]]]]]]))
+         [:span.profile-stat-card__label "Expense Entries"]
+         [:span.profile-stat-card__value (or (:expense-count stats) 0)]]]]]]))
 
 (defn preferences-section []
   (let [user @(rf/subscribe [:auth/user])
         theme @(rf/subscribe [:app/theme])
-        current-currency (or (:user/preferred-currency user) :COP)]
+        current-currency (or (some-> (:user/preferred-currency user) keyword) :COP)]
     [:div.profile-section
      [:div.profile-section__header
       [:div.profile-section__header-content

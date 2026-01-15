@@ -6,6 +6,11 @@
 (def api-base "http://localhost:3000/api")
 
 (rf/reg-event-fx
+ :profile/init
+ (fn [_ _]
+   {:dispatch [:profile/fetch]}))
+
+(rf/reg-event-fx
  :profile/fetch
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:profile :loading?] true)

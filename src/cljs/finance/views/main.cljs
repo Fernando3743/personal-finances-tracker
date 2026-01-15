@@ -77,6 +77,7 @@
         initial (first (or (:user/name user) "U"))]
     [:header.flow-header.flow-header--mobile
      [:div.flow-header__left
+      {:on-click #(rf/dispatch [:app/navigate :dashboard])}
       [:div.flow-header__logo [icon :dollar {:width 18 :height 18}]]
       [:span.flow-header__title "Finance Tracker"]]
      [:div.flow-header__actions
@@ -96,6 +97,7 @@
         initial (first user-name)]
     [:aside.flow-sidebar
      [:div.flow-sidebar__header
+      {:on-click #(rf/dispatch [:app/navigate :dashboard])}
       [:div.flow-sidebar__logo [icon :dollar {:width 20 :height 20}]]
       [:span.flow-sidebar__title "Finance Tracker"]]
      [:nav.flow-sidebar__nav

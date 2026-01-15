@@ -9,6 +9,11 @@
 (def api-base "http://localhost:3000/api")
 
 (rf/reg-event-fx
+ :transactions/init
+ (fn [_ _]
+   {:dispatch [:tx/fetch-transactions]}))
+
+(rf/reg-event-fx
  :tx/fetch-transactions
  (fn [{:keys [db]} _]
    {:db (assoc db :loading? true)

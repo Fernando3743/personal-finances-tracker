@@ -34,14 +34,27 @@
  (fn [db _]
    (assoc db :error nil)))
 
+(def route-init-events
+  {:dashboard       :dashboard/init
+   :transactions    :transactions/init
+   :add-transaction :transactions/init
+   :profile         :profile/init
+   :reports         :reports/init})
+
 (rf/reg-event-fx
  :app/set-route
  (fn [{:keys [db]} [_ route]]
    (let [authenticated? (some? (get-in db [:auth :user]))
-         is-public-route? (contains? routes/public-routes route)]
-     (if (and authenticated? is-public-route?)
+         is-public-route? (contains? routes/public-routes route)
+         init-event (get route-init-events route)]
+     (cond
+       (and authenticated? is-public-route?)
        {:dispatch [:app/navigate :dashboard]}
-       {:db (assoc db :current-route route)}))))
+
+       :else
+       (cond-> {:db (assoc db :current-route route)}
+         (and authenticated? init-event)
+         (assoc :dispatch [init-event]))))))
 
 (rf/reg-event-fx
  :app/navigate

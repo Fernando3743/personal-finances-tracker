@@ -7,6 +7,16 @@
 (def api-base "http://localhost:3000/api")
 
 (rf/reg-event-fx
+ :dashboard/init
+ (fn [_ _]
+   {:dispatch [:dashboard/fetch-dashboard]}))
+
+(rf/reg-event-fx
+ :reports/init
+ (fn [_ _]
+   {}))
+
+(rf/reg-event-fx
  :dashboard/fetch-summary
  (fn [{:keys [_db]} _]
    {:http-xhrio {:method :get

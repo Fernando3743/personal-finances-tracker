@@ -1,7 +1,8 @@
 (ns finance.rf-logic.auth
   "Authentication re-frame events and subscriptions."
   (:require [re-frame.core :as rf]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [finance.routes :as routes]))
 
 (def api-base "http://localhost:3000/api")
 
@@ -19,13 +20,15 @@
 (rf/reg-event-fx
  :auth/check-session-success
  (fn [{:keys [db]} [_ response]]
-   {:db (-> db
-            (assoc-in [:auth :user] (:user response))
-            (assoc-in [:auth :loading?] false)
-            (assoc-in [:auth :initialized?] true)
-            (assoc-in [:auth :error] nil))
-    :dispatch-n [[:tx/fetch-transactions]
-                 [:dashboard/fetch-summary]]}))
+   (let [current-route (:current-route db)
+         on-public-route? (contains? routes/public-routes current-route)]
+     (cond-> {:db (-> db
+                      (assoc-in [:auth :user] (:user response))
+                      (assoc-in [:auth :loading?] false)
+                      (assoc-in [:auth :initialized?] true)
+                      (assoc-in [:auth :error] nil))}
+       on-public-route? (assoc :dispatch [:app/navigate :dashboard])
+       (not on-public-route?) (assoc :dispatch [:app/set-route current-route])))))
 
 (rf/reg-event-db
  :auth/check-session-failure
@@ -58,9 +61,7 @@
             (assoc-in [:auth :loading?] false)
             (assoc-in [:auth :error] nil))
     :dispatch-n [[:app/navigate :dashboard]
-                 [:tx/fetch-transactions]
-                 [:dashboard/fetch-summary]
-                 [:app/show-toast {:type :success :message "Welcome back!"}]]}))
+                 [:app/show-toast {:type :success :title "Welcome back!" :message "You have successfully signed in."}]]}))
 
 (rf/reg-event-db
  :auth/login-failure
