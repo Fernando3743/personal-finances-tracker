@@ -86,4 +86,54 @@
              :uploading-avatar? false
              :deleting? false
              :statistics nil
-             :error nil}})
+             :error nil}
+
+   ;; Incomes page filter
+   :incomes-filter {:search ""
+                    :category nil
+                    :currency nil
+                    :sort-by :date
+                    :sort-dir :desc}
+
+   ;; Expenses page filter
+   :expenses-filter {:search ""
+                     :category nil
+                     :currency nil
+                     :sort-by :date
+                     :sort-dir :desc}
+
+   ;; Recurring transactions state
+   :recurring {:items []
+               :loading? false
+               :error nil}
+
+   ;; Recurring form state
+   :recurring-form {:amount ""
+                    :type :expense
+                    :category :other
+                    :description ""
+                    :currency :COP
+                    :frequency :monthly
+                    :start-date nil
+                    :end-date nil
+                    :active true}
+
+   ;; Budgets state
+   :budgets {:items []
+             :status {}
+             :loading? false
+             :error nil}
+
+   ;; Budget form state
+   :budget-form {:category nil
+                 :amount ""
+                 :currency :COP
+                 :alert-threshold 80}
+
+   ;; Analytics state
+   :analytics {:loading? false
+               :income-expense-data []
+               :category-trends []
+               :budget-comparison []
+               :date-range {:start nil :end nil}
+               :selected-view :overview}})

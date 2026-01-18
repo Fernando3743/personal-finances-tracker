@@ -52,6 +52,9 @@
 @import 'views/_form.css';
 @import 'views/_auth.css';
 @import 'views/_profile.css';
+@import 'views/_recurring.css';
+@import 'views/_budgets.css';
+@import 'views/_analytics.css';
 
 /* ==========================================================================
    Icons (SVG Sprite References)

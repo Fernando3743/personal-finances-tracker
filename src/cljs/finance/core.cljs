@@ -7,7 +7,12 @@
             [finance.rf-logic.auth]
             [finance.rf-logic.dashboard]
             [finance.rf-logic.transactions]
-            [finance.rf-logic.profile]))
+            [finance.rf-logic.profile]
+            [finance.rf-logic.incomes]
+            [finance.rf-logic.expenses]
+            [finance.rf-logic.recurring]
+            [finance.rf-logic.budgets]
+            [finance.rf-logic.analytics]))
 
 (defn ^:dev/after-load mount-root
   []

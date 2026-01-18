@@ -7,6 +7,8 @@
             [finance.api.handlers :as handlers]
             [finance.api.auth-handlers :as auth]
             [finance.api.profile-handlers :as profile]
+            [finance.api.recurring-handlers :as recurring]
+            [finance.api.budget-handlers :as budget]
             [finance.auth.middleware :refer [wrap-auth-required]]))
 
 (defn auth-routes
@@ -53,6 +55,53 @@
 
       (GET "/dashboard" request
         (handlers/get-dashboard conn request))
+
+      (context "/recurring" []
+        (GET "/" request
+          (recurring/list-recurring conn request))
+
+        (POST "/" request
+          (recurring/create-recurring conn request))
+
+        (GET "/upcoming" request
+          (recurring/upcoming-recurring conn request))
+
+        (POST "/generate" request
+          (recurring/generate-transactions conn request))
+
+        (GET "/:id" [id :as request]
+          (recurring/get-recurring conn id request))
+
+        (PUT "/:id" [id :as request]
+          (recurring/update-recurring conn id request))
+
+        (DELETE "/:id" [id :as request]
+          (recurring/delete-recurring conn id request))
+
+        (POST "/:id/toggle" [id :as request]
+          (recurring/toggle-active conn id request)))
+
+      (context "/budgets" []
+        (GET "/" request
+          (budget/list-budgets conn request))
+
+        (POST "/" request
+          (budget/create-budget conn request))
+
+        (GET "/status" request
+          (budget/get-budget-status conn request))
+
+        (POST "/copy" request
+          (budget/copy-budgets-to-month conn request))
+
+        (GET "/:id" [id :as request]
+          (budget/get-budget conn id request))
+
+        (PUT "/:id" [id :as request]
+          (budget/update-budget conn id request))
+
+        (DELETE "/:id" [id :as request]
+          (budget/delete-budget conn id request)))
 
       (context "/profile" []
         (GET "/" request

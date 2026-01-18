@@ -4,9 +4,13 @@
 
 (def routes
   ["/" {""             :dashboard
+        "incomes"      :incomes
+        "expenses"     :expenses
         "transactions" :transactions
+        "recurring"    :recurring
+        "budgets"      :budgets
+        "analytics"    :analytics
         "wallets"      :wallets
-        "reports"      :reports
         "add"          :add-transaction
         "profile"      :profile
         "login"        :login

@@ -42,6 +42,129 @@
     :db/cardinality :db.cardinality/one
     :db/doc "User's preferred currency (:COP or :USD)"}])
 
+(def recurring-schema
+  "Datomic schema for recurring transactions."
+  [{:db/ident :recurring/id
+    :db/valueType :db.type/uuid
+    :db/unique :db.unique/identity
+    :db/cardinality :db.cardinality/one
+    :db/doc "Unique identifier for the recurring transaction"}
+
+   {:db/ident :recurring/amount
+    :db/valueType :db.type/bigdec
+    :db/cardinality :db.cardinality/one
+    :db/doc "Recurring transaction amount (always positive)"}
+
+   {:db/ident :recurring/type
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Transaction type: :income or :expense"}
+
+   {:db/ident :recurring/category
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Transaction category"}
+
+   {:db/ident :recurring/description
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Description of the recurring transaction"}
+
+   {:db/ident :recurring/currency
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Currency: :COP or :USD"}
+
+   {:db/ident :recurring/frequency
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Frequency: :daily, :weekly, :monthly, :yearly"}
+
+   {:db/ident :recurring/start-date
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "When the recurring transaction starts"}
+
+   {:db/ident :recurring/end-date
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Optional end date for the recurring transaction"}
+
+   {:db/ident :recurring/next-occurrence
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Next scheduled occurrence date"}
+
+   {:db/ident :recurring/last-generated
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Last time a transaction was generated from this template"}
+
+   {:db/ident :recurring/active?
+    :db/valueType :db.type/boolean
+    :db/cardinality :db.cardinality/one
+    :db/doc "Whether this recurring transaction is active"}
+
+   {:db/ident :recurring/user-id
+    :db/valueType :db.type/uuid
+    :db/cardinality :db.cardinality/one
+    :db/index true
+    :db/doc "Owner user ID"}
+
+   {:db/ident :recurring/created-at
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Creation timestamp"}])
+
+(def budget-schema
+  "Datomic schema for budgets."
+  [{:db/ident :budget/id
+    :db/valueType :db.type/uuid
+    :db/unique :db.unique/identity
+    :db/cardinality :db.cardinality/one
+    :db/doc "Unique identifier for the budget"}
+
+   {:db/ident :budget/category
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Category this budget applies to"}
+
+   {:db/ident :budget/amount
+    :db/valueType :db.type/bigdec
+    :db/cardinality :db.cardinality/one
+    :db/doc "Monthly budget amount limit"}
+
+   {:db/ident :budget/currency
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Currency: :COP or :USD"}
+
+   {:db/ident :budget/year
+    :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/one
+    :db/doc "Budget year"}
+
+   {:db/ident :budget/month
+    :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/one
+    :db/doc "Budget month (1-12)"}
+
+   {:db/ident :budget/alert-threshold
+    :db/valueType :db.type/bigdec
+    :db/cardinality :db.cardinality/one
+    :db/doc "Percentage threshold for alerts (e.g., 0.8 = 80%)"}
+
+   {:db/ident :budget/user-id
+    :db/valueType :db.type/uuid
+    :db/cardinality :db.cardinality/one
+    :db/index true
+    :db/doc "Owner user ID"}
+
+   {:db/ident :budget/created-at
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Creation timestamp"}])
+
 (def schema
   "Datomic schema for transactions."
   [{:db/ident :transaction/id
@@ -94,7 +217,12 @@
     :db/valueType :db.type/uuid
     :db/cardinality :db.cardinality/one
     :db/index true
-    :db/doc "Owner user ID"}])
+    :db/doc "Owner user ID"}
+
+   {:db/ident :transaction/recurring-id
+    :db/valueType :db.type/uuid
+    :db/cardinality :db.cardinality/one
+    :db/doc "Reference to the recurring transaction template that generated this"}])
 
 (defn- entity->transaction
   "Converts a Datomic entity to a transaction map."
@@ -205,6 +333,8 @@
   (let [conn (d/connect uri)]
     @(d/transact conn user-schema)
     @(d/transact conn schema)
+    @(d/transact conn recurring-schema)
+    @(d/transact conn budget-schema)
     conn))
 
 (defn- entity->user
@@ -346,3 +476,264 @@
      :expenses-by-currency (sum-by-currency expense-txs)
      :income-count (count income-txs)
      :expense-count (count expense-txs)}))
+
+(defn- entity->recurring
+  "Converts a Datomic entity to a recurring transaction map."
+  [entity]
+  (when entity
+    (let [base {:recurring/id (:recurring/id entity)
+                :recurring/amount (:recurring/amount entity)
+                :recurring/type (:recurring/type entity)
+                :recurring/category (:recurring/category entity)
+                :recurring/currency (or (:recurring/currency entity) :COP)
+                :recurring/frequency (:recurring/frequency entity)
+                :recurring/start-date (:recurring/start-date entity)
+                :recurring/active? (if (nil? (:recurring/active? entity)) true (:recurring/active? entity))
+                :recurring/user-id (:recurring/user-id entity)}]
+      (cond-> base
+        (:recurring/description entity)
+        (assoc :recurring/description (:recurring/description entity))
+
+        (:recurring/end-date entity)
+        (assoc :recurring/end-date (:recurring/end-date entity))
+
+        (:recurring/next-occurrence entity)
+        (assoc :recurring/next-occurrence (:recurring/next-occurrence entity))
+
+        (:recurring/last-generated entity)
+        (assoc :recurring/last-generated (:recurring/last-generated entity))
+
+        (:recurring/created-at entity)
+        (assoc :recurring/created-at (:recurring/created-at entity))))))
+
+(defn- recurring->tx-data
+  "Converts a recurring transaction map to Datomic transaction data."
+  [recurring]
+  (let [base {:recurring/id (:recurring/id recurring)
+              :recurring/amount (bigdec (:recurring/amount recurring))
+              :recurring/type (:recurring/type recurring)
+              :recurring/category (:recurring/category recurring)
+              :recurring/currency (:recurring/currency recurring)
+              :recurring/frequency (:recurring/frequency recurring)
+              :recurring/start-date (:recurring/start-date recurring)
+              :recurring/active? (:recurring/active? recurring)
+              :recurring/user-id (:recurring/user-id recurring)}]
+    (cond-> base
+      (:recurring/description recurring)
+      (assoc :recurring/description (:recurring/description recurring))
+
+      (:recurring/end-date recurring)
+      (assoc :recurring/end-date (:recurring/end-date recurring))
+
+      (:recurring/next-occurrence recurring)
+      (assoc :recurring/next-occurrence (:recurring/next-occurrence recurring))
+
+      (:recurring/last-generated recurring)
+      (assoc :recurring/last-generated (:recurring/last-generated recurring))
+
+      (:recurring/created-at recurring)
+      (assoc :recurring/created-at (:recurring/created-at recurring)))))
+
+(defn- find-recurring-entity-id
+  "Finds the Datomic entity ID for a recurring transaction by its UUID."
+  [db uuid]
+  (ffirst
+   (d/q '[:find ?e
+          :in $ ?id
+          :where [?e :recurring/id ?id]]
+        db uuid)))
+
+(defn save-recurring!
+  "Saves a recurring transaction to the database."
+  [conn recurring]
+  (let [tx-data (recurring->tx-data recurring)]
+    @(d/transact conn [tx-data])
+    recurring))
+
+(defn load-recurring-for-user
+  "Loads all recurring transactions for a specific user."
+  [conn user-id]
+  (let [db (d/db conn)
+        entities (d/q '[:find [(pull ?e [*]) ...]
+                        :in $ ?user-id
+                        :where [?e :recurring/user-id ?user-id]]
+                      db user-id)]
+    (mapv entity->recurring entities)))
+
+(defn load-recurring-by-id
+  "Loads a single recurring transaction by ID."
+  [conn id]
+  (let [db (d/db conn)
+        entity (d/q '[:find (pull ?e [*]) .
+                      :in $ ?id
+                      :where [?e :recurring/id ?id]]
+                    db id)]
+    (entity->recurring entity)))
+
+(defn update-recurring!
+  "Updates a recurring transaction. Returns the updated record or nil."
+  [conn id updates]
+  (let [db (d/db conn)
+        eid (find-recurring-entity-id db id)]
+    (when eid
+      (let [current (d/pull db '[*] eid)
+            merged (merge (entity->recurring current) updates)
+            tx-data (recurring->tx-data merged)]
+        @(d/transact conn [tx-data])
+        merged))))
+
+(defn delete-recurring!
+  "Deletes a recurring transaction by ID."
+  [conn id]
+  (let [db (d/db conn)
+        eid (find-recurring-entity-id db id)]
+    (when eid
+      @(d/transact conn [[:db/retractEntity eid]])
+      true)))
+
+(defn user-owns-recurring?
+  "Checks if a recurring transaction belongs to a user."
+  [conn user-id recurring-id]
+  (let [db (d/db conn)]
+    (some?
+     (d/q '[:find ?e .
+            :in $ ?rec-id ?user-id
+            :where
+            [?e :recurring/id ?rec-id]
+            [?e :recurring/user-id ?user-id]]
+          db recurring-id user-id))))
+
+(defn load-pending-recurring
+  "Loads all active recurring transactions where next-occurrence <= now."
+  [conn now]
+  (let [db (d/db conn)
+        entities (d/q '[:find [(pull ?e [*]) ...]
+                        :in $ ?now
+                        :where
+                        [?e :recurring/active? true]
+                        [?e :recurring/next-occurrence ?next]
+                        [(<= ?next ?now)]]
+                      db now)]
+    (mapv entity->recurring entities)))
+
+(defn- entity->budget
+  "Converts a Datomic entity to a budget map."
+  [entity]
+  (when entity
+    {:budget/id (:budget/id entity)
+     :budget/category (:budget/category entity)
+     :budget/amount (:budget/amount entity)
+     :budget/currency (or (:budget/currency entity) :COP)
+     :budget/year (:budget/year entity)
+     :budget/month (:budget/month entity)
+     :budget/alert-threshold (or (:budget/alert-threshold entity) 0.8M)
+     :budget/user-id (:budget/user-id entity)
+     :budget/created-at (:budget/created-at entity)}))
+
+(defn- budget->tx-data
+  "Converts a budget map to Datomic transaction data."
+  [budget]
+  {:budget/id (:budget/id budget)
+   :budget/category (:budget/category budget)
+   :budget/amount (bigdec (:budget/amount budget))
+   :budget/currency (:budget/currency budget)
+   :budget/year (:budget/year budget)
+   :budget/month (:budget/month budget)
+   :budget/alert-threshold (bigdec (or (:budget/alert-threshold budget) 0.8))
+   :budget/user-id (:budget/user-id budget)
+   :budget/created-at (or (:budget/created-at budget) (java.util.Date.))})
+
+(defn- find-budget-entity-id
+  "Finds the Datomic entity ID for a budget by its UUID."
+  [db uuid]
+  (ffirst
+   (d/q '[:find ?e
+          :in $ ?id
+          :where [?e :budget/id ?id]]
+        db uuid)))
+
+(defn save-budget!
+  "Saves a budget to the database."
+  [conn budget]
+  (let [tx-data (budget->tx-data budget)]
+    @(d/transact conn [tx-data])
+    budget))
+
+(defn load-budgets-for-user
+  "Loads all budgets for a specific user."
+  [conn user-id]
+  (let [db (d/db conn)
+        entities (d/q '[:find [(pull ?e [*]) ...]
+                        :in $ ?user-id
+                        :where [?e :budget/user-id ?user-id]]
+                      db user-id)]
+    (mapv entity->budget entities)))
+
+(defn load-budgets-for-month
+  "Loads budgets for a specific user, year, and month."
+  [conn user-id year month]
+  (let [db (d/db conn)
+        entities (d/q '[:find [(pull ?e [*]) ...]
+                        :in $ ?user-id ?year ?month
+                        :where
+                        [?e :budget/user-id ?user-id]
+                        [?e :budget/year ?year]
+                        [?e :budget/month ?month]]
+                      db user-id year month)]
+    (mapv entity->budget entities)))
+
+(defn load-budget-by-id
+  "Loads a single budget by ID."
+  [conn id]
+  (let [db (d/db conn)
+        entity (d/q '[:find (pull ?e [*]) .
+                      :in $ ?id
+                      :where [?e :budget/id ?id]]
+                    db id)]
+    (entity->budget entity)))
+
+(defn update-budget!
+  "Updates a budget. Returns the updated record or nil."
+  [conn id updates]
+  (let [db (d/db conn)
+        eid (find-budget-entity-id db id)]
+    (when eid
+      (let [current (d/pull db '[*] eid)
+            merged (merge (entity->budget current) updates)
+            tx-data (budget->tx-data merged)]
+        @(d/transact conn [tx-data])
+        merged))))
+
+(defn delete-budget!
+  "Deletes a budget by ID."
+  [conn id]
+  (let [db (d/db conn)
+        eid (find-budget-entity-id db id)]
+    (when eid
+      @(d/transact conn [[:db/retractEntity eid]])
+      true)))
+
+(defn user-owns-budget?
+  "Checks if a budget belongs to a user."
+  [conn user-id budget-id]
+  (let [db (d/db conn)]
+    (some?
+     (d/q '[:find ?e .
+            :in $ ?budget-id ?user-id
+            :where
+            [?e :budget/id ?budget-id]
+            [?e :budget/user-id ?user-id]]
+          db budget-id user-id))))
+
+(defn load-expenses-for-month
+  "Loads expenses for a specific user, year, and month."
+  [conn user-id year month]
+  (let [all-txs (load-transactions-for-user conn user-id)]
+    (filter (fn [tx]
+              (let [date (:transaction/date tx)
+                    cal (doto (java.util.Calendar/getInstance)
+                          (.setTime date))]
+                (and (= :expense (:transaction/type tx))
+                     (= year (.get cal java.util.Calendar/YEAR))
+                     (= (dec month) (.get cal java.util.Calendar/MONTH)))))
+            all-txs)))

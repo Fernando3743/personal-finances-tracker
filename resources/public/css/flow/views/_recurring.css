@@ -1,0 +1,207 @@
+.flow-recurring-page {
+  padding: var(--space-6);
+}
+
+.flow-recurring-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+@media (max-width: 1024px) {
+  .flow-recurring-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.flow-recurring-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.flow-recurring-sidebar {
+  position: sticky;
+  top: var(--space-6);
+  height: fit-content;
+}
+
+.flow-recurring-section__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.flow-recurring-section__title--muted {
+  color: var(--color-text-tertiary);
+}
+
+.flow-recurring-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.flow-recurring-card {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: all var(--transition-base);
+}
+
+.flow-recurring-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-recurring-card--inactive {
+  opacity: 0.6;
+}
+
+.flow-recurring-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.flow-recurring-card__type {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.flow-recurring-card__type--income {
+  background: var(--color-income-bg);
+  color: var(--color-income);
+}
+
+.flow-recurring-card__type--expense {
+  background: var(--color-expense-bg);
+  color: var(--color-expense);
+}
+
+.flow-recurring-card__frequency {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.flow-recurring-card__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: var(--space-1);
+  transition: color var(--transition-fast);
+}
+
+.flow-recurring-card__toggle:hover {
+  color: var(--color-primary);
+}
+
+.flow-recurring-card__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.flow-recurring-card__icon {
+  font-size: var(--font-size-2xl);
+}
+
+.flow-recurring-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.flow-recurring-card__description {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.flow-recurring-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.flow-recurring-card__separator {
+  opacity: 0.5;
+}
+
+.flow-recurring-card__amount {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.flow-recurring-card__amount--income {
+  color: var(--color-income);
+}
+
+.flow-recurring-card__amount--expense {
+  color: var(--color-expense);
+}
+
+.flow-recurring-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.flow-recurring-card__next {
+  font-size: var(--font-size-sm);
+}
+
+.flow-recurring-card__next-label {
+  color: var(--color-text-tertiary);
+  margin-right: var(--space-1);
+}
+
+.flow-recurring-card__next-date {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.flow-recurring-form {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.flow-recurring-form__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-5);
+}
+
+.flow-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.flow-form-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.flow-form-actions .flow-btn {
+  flex: 1;
+}

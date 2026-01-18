@@ -5,8 +5,12 @@
             ["react-dom" :as react-dom]
             [finance.views.dashboard :as dashboard]
             [finance.views.transactions :as transactions]
+            [finance.views.incomes :as incomes]
+            [finance.views.expenses :as expenses]
+            [finance.views.recurring :as recurring]
+            [finance.views.budgets :as budgets]
+            [finance.views.analytics :as analytics]
             [finance.views.wallets :as wallets]
-            [finance.views.reports :as reports]
             [finance.views.profile :as profile]
             [finance.views.auth :as auth]
             [finance.routes :as routes]
@@ -25,9 +29,13 @@
   (let [active-view @(rf/subscribe [:app/current-route])
         page-name (case active-view
                     :dashboard "Dashboard"
+                    :incomes "Incomes"
+                    :expenses "Expenses"
                     :transactions "Transactions"
+                    :recurring "Recurring"
+                    :budgets "Budgets"
+                    :analytics "Analytics"
                     :wallets "Wallets"
-                    :reports "Reports"
                     :add-transaction "Add Transaction"
                     :profile "Profile"
                     "Dashboard")]
@@ -107,20 +115,40 @@
        [:span.flow-sidebar__icon [icon :dashboard {:width 20 :height 20}]]
        [:span.flow-sidebar__label "Dashboard"]]
       [:a.flow-sidebar__item
+       {:class (when (= active-view :incomes) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :incomes])}
+       [:span.flow-sidebar__icon [icon :trending-up {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Incomes"]]
+      [:a.flow-sidebar__item
+       {:class (when (= active-view :expenses) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :expenses])}
+       [:span.flow-sidebar__icon [icon :trending-down {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Expenses"]]
+      [:a.flow-sidebar__item
        {:class (when (= active-view :transactions) "flow-sidebar__item--active")
         :on-click #(rf/dispatch [:app/navigate :transactions])}
        [:span.flow-sidebar__icon [icon :list {:width 20 :height 20}]]
        [:span.flow-sidebar__label "Transactions"]]
       [:a.flow-sidebar__item
+       {:class (when (= active-view :recurring) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :recurring])}
+       [:span.flow-sidebar__icon [icon :refresh-cw {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Recurring"]]
+      [:a.flow-sidebar__item
+       {:class (when (= active-view :budgets) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :budgets])}
+       [:span.flow-sidebar__icon [icon :piggy-bank {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Budgets"]]
+      [:a.flow-sidebar__item
+       {:class (when (= active-view :analytics) "flow-sidebar__item--active")
+        :on-click #(rf/dispatch [:app/navigate :analytics])}
+       [:span.flow-sidebar__icon [icon :bar-chart {:width 20 :height 20}]]
+       [:span.flow-sidebar__label "Analytics"]]
+      [:a.flow-sidebar__item
        {:class (when (= active-view :wallets) "flow-sidebar__item--active")
         :on-click #(rf/dispatch [:app/navigate :wallets])}
        [:span.flow-sidebar__icon [icon :wallet {:width 20 :height 20}]]
-       [:span.flow-sidebar__label "Wallets"]]
-      [:a.flow-sidebar__item
-       {:class (when (= active-view :reports) "flow-sidebar__item--active")
-        :on-click #(rf/dispatch [:app/navigate :reports])}
-       [:span.flow-sidebar__icon [icon :bar-chart {:width 20 :height 20}]]
-       [:span.flow-sidebar__label "Reports"]]]
+       [:span.flow-sidebar__label "Wallets"]]]
      [:div.flow-sidebar__footer
       [:button.flow-sidebar__add-btn
        {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
@@ -202,9 +230,13 @@
      {:class "flow-animate flow-animate-fade-in"}
      (case active-view
        :dashboard [dashboard/dashboard-view]
+       :incomes [incomes/incomes-view]
+       :expenses [expenses/expenses-view]
        :transactions [transactions/transaction-list]
+       :recurring [recurring/recurring-view]
+       :budgets [budgets/budgets-view]
+       :analytics [analytics/analytics-view]
        :wallets [wallets/wallets-view]
-       :reports [reports/reports-view]
        :add-transaction [transactions/add-transaction-form]
        :profile [profile/profile-view]
        [dashboard/dashboard-view])]))
