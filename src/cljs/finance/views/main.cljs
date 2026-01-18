@@ -13,6 +13,7 @@
             [finance.views.wallets :as wallets]
             [finance.views.profile :as profile]
             [finance.views.auth :as auth]
+            [finance.views.transaction-panel :as tx-panel]
             [finance.routes :as routes]
             [finance.components.icons :refer [icon]]))
 
@@ -74,7 +75,7 @@
    [:div.flow-header__actions
     [theme-toggle]
     [:button.flow-header__add-btn
-     {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
+     {:on-click #(rf/dispatch [:app/open-panel :add-transaction])}
      [icon :plus {:width 16 :height 16}]
      [:span "Add Transaction"]]
     [user-profile]]])
@@ -151,7 +152,7 @@
        [:span.flow-sidebar__label "Wallets"]]]
      [:div.flow-sidebar__footer
       [:button.flow-sidebar__add-btn
-       {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
+       {:on-click #(rf/dispatch [:app/open-panel :add-transaction])}
        [icon :plus {:width 16 :height 16}]
        [:span "Add New"]]
       [:div.flow-sidebar__profile
@@ -176,7 +177,7 @@
       [:span.flow-tab-bar__label "Dashboard"]]
 
      [:button.flow-tab-bar__fab
-      {:on-click #(rf/dispatch [:app/navigate :add-transaction])
+      {:on-click #(rf/dispatch [:app/open-panel :add-transaction])
        :aria-label "Add Transaction"}
       [icon :plus {:width 20 :height 20}]]
 
@@ -237,7 +238,7 @@
        :budgets [budgets/budgets-view]
        :analytics [analytics/analytics-view]
        :wallets [wallets/wallets-view]
-       :add-transaction [transactions/add-transaction-form]
+       :add-transaction [dashboard/dashboard-view]
        :profile [profile/profile-view]
        [dashboard/dashboard-view])]))
 
@@ -281,7 +282,8 @@
     [:div.flow-shell__scrollable
      [main-content]]]
    [:div.flow-shell__tab-bar
-    [tab-bar]]])
+    [tab-bar]]
+   [tx-panel/transaction-panel]])
 
 (defn main-panel []
   (let [authenticated? @(rf/subscribe [:auth/authenticated?])

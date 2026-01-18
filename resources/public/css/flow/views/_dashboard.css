@@ -58,11 +58,11 @@
 }
 
 .currency-card--COP::before {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--color-info-bg);
 }
 
 .currency-card--USD::before {
-  background: rgba(139, 92, 246, 0.1);
+  background: var(--color-brand-subtle);
 }
 
 .currency-card__header {
@@ -91,13 +91,13 @@
 }
 
 .currency-card--COP .currency-card__badge {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .currency-card--USD .currency-card__badge {
-  background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
 }
 
 .currency-card__details {
@@ -128,13 +128,13 @@
 }
 
 .currency-card__trend--up {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background: var(--color-income-bg);
+  color: var(--color-income-alt);
 }
 
 .currency-card__trend--down {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: var(--color-expense-bg);
+  color: var(--color-expense);
 }
 
 .currency-card__trend svg {
@@ -176,11 +176,11 @@
 }
 
 .currency-card__stat-dot--income {
-  background: #10b981;
+  background: var(--color-income-alt);
 }
 
 .currency-card__stat-dot--expense {
-  background: #ef4444;
+  background: var(--color-expense);
 }
 
 .currency-card__stat-value {

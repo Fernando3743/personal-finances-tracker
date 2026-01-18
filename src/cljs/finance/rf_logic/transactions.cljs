@@ -36,6 +36,7 @@
  :tx/create-transaction
  (fn [{:keys [db]} _]
    (let [form (:transaction-form db)
+         is-recurring? (:is-recurring form)
          payload (cond-> {:amount (js/parseFloat (:amount form))
                           :type (name (:type form))
                           :category (name (:category form))
@@ -43,8 +44,12 @@
                           :tags (mapv name (:tags form))
                           :currency (name (or (:currency form) :COP))}
                    (:exchange-rate form)
-                   (assoc :exchange-rate (:exchange-rate form)))]
-     {:db (assoc db :loading? true)
+                   (assoc :exchange-rate (:exchange-rate form))
+                   (not (str/blank? (:notes form)))
+                   (assoc :notes (:notes form)))]
+     {:db (-> db
+              (assoc :loading? true)
+              (assoc-in [:transaction-form :pending-recurring?] is-recurring?))
       :http-xhrio {:method :post
                    :uri (str api-base "/transactions")
                    :params payload
@@ -57,18 +62,21 @@
 (rf/reg-event-fx
  :tx/create-transaction-success
  (fn [{:keys [db]} [_ _response]]
-   {:db (-> db
-            (assoc :loading? false)
-            (assoc :error nil)
-            (assoc :transaction-form (:transaction-form db/default-db))
-            (assoc-in [:panel :open?] false))
-    :fx [[:dispatch [:app/navigate :transactions]]]
-    :dispatch-n [[:tx/fetch-transactions]
-                 [:dashboard/fetch-summary]
-                 [:app/show-toast
-                  {:type :success
-                   :title "Transaction Added"
-                   :message "Your transaction was saved successfully."}]]}))
+   (let [was-recurring? (get-in db [:transaction-form :pending-recurring?])
+         form (:transaction-form db)]
+     {:db (-> db
+              (assoc :loading? false)
+              (assoc :error nil)
+              (assoc :transaction-form (:transaction-form db/default-db))
+              (assoc-in [:panel :open?] false))
+      :dispatch-n (cond-> [[:tx/fetch-transactions]
+                           [:dashboard/fetch-summary]
+                           [:app/show-toast
+                            {:type :success
+                             :title "Transaction Added"
+                             :message "Your transaction was saved successfully."}]]
+                    was-recurring?
+                    (conj [:recurring/create-from-transaction form]))})))
 
 (rf/reg-event-fx
  :tx/delete-transaction
@@ -255,3 +263,32 @@
  :<- [:tx/transaction-form]
  (fn [form _]
    (or (:currency form) :COP)))
+
+(rf/reg-sub
+ :tx/form-preview
+ :<- [:tx/transaction-form]
+ (fn [form _]
+   (let [amount-str (:amount form)
+         amount (when (and amount-str (not (str/blank? (str amount-str))))
+                  (let [parsed (js/parseFloat amount-str)]
+                    (when-not (js/isNaN parsed) parsed)))
+         today (js/Date.)]
+     {:amount (or amount 0)
+      :type (or (:type form) :expense)
+      :category (or (:category form) :other)
+      :description (or (:description form) "")
+      :currency (or (:currency form) :COP)
+      :date (or (:date form)
+                (.toLocaleDateString today "en-US" #js {:month "short" :day "numeric"}))})))
+
+(rf/reg-sub
+ :tx/form-notes
+ :<- [:tx/transaction-form]
+ (fn [form _]
+   (or (:notes form) "")))
+
+(rf/reg-sub
+ :tx/form-is-recurring
+ :<- [:tx/transaction-form]
+ (fn [form _]
+   (boolean (:is-recurring form))))

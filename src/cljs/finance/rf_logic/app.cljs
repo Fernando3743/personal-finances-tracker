@@ -51,6 +51,11 @@
        (and authenticated? is-public-route?)
        {:dispatch [:app/navigate :dashboard]}
 
+       (and authenticated? (= route :add-transaction))
+       {:db (assoc db :current-route :dashboard)
+        :dispatch-n [[:dashboard/init]
+                     [:app/open-panel :add-transaction]]}
+
        :else
        (cond-> {:db (assoc db :current-route route)}
          (and authenticated? init-event)
@@ -109,13 +114,15 @@
  (fn [db [_ id]]
    (update db :toast-queue (fn [q] (filterv #(not= (:id %) id) q)))))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :app/open-panel
- (fn [db [_ mode data]]
-   (-> db
-       (assoc-in [:panel :open?] true)
-       (assoc-in [:panel :mode] mode)
-       (assoc-in [:panel :data] data))))
+ (fn [{:keys [db]} [_ mode data]]
+   (cond-> {:db (-> db
+                    (assoc-in [:panel :open?] true)
+                    (assoc-in [:panel :mode] mode)
+                    (assoc-in [:panel :data] data))}
+     (= mode :add-transaction)
+     (assoc :dispatch [:tx/reset-form]))))
 
 (rf/reg-event-db
  :app/close-panel

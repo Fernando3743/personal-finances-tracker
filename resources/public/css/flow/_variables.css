@@ -20,6 +20,36 @@
   --purple-800: #6B21A8;
   --purple-900: #581C87;
 
+  /* Violet Scale */
+  --violet-500: #8B5CF6;
+  --violet-600: #7C3AED;
+
+  /* Indigo Scale */
+  --indigo-500: #6366F1;
+
+  /* Emerald Scale */
+  --emerald-400: #4ade80;
+  --emerald-500: #10B981;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+
+  /* Gray Scale (Tailwind) */
+  --gray-200: #e5e7eb;
+  --gray-500: #6B7280;
+  --gray-600: #4b5563;
+
+  /* Orange Scale */
+  --orange-500: #F97316;
+
+  /* Pink Scale */
+  --pink-500: #EC4899;
+
+  /* Cyan Scale */
+  --cyan-500: #06B6D4;
+
+  /* Fuchsia Scale */
+  --fuchsia-500: #D946EF;
+
   /* Neutral Scale */
   --neutral-0: #FFFFFF;
   --neutral-50: #FAFAFA;
@@ -79,29 +109,45 @@
   --color-accent-subtle: var(--purple-100);
   --color-accent-gradient: linear-gradient(135deg, var(--purple-700) 0%, var(--purple-500) 100%);
 
+  /* Brand */
+  --color-brand: var(--violet-500);
+  --color-brand-dark: var(--violet-600);
+  --color-brand-darker: var(--indigo-500);
+  --color-brand-subtle: rgba(139, 92, 246, 0.2);
+  --color-brand-gradient: linear-gradient(135deg, var(--violet-500) 0%, var(--violet-600) 50%, var(--indigo-500) 100%);
+  --color-brand-shadow: rgba(139, 92, 246, 0.3);
+
   /* Borders */
   --color-border-default: var(--neutral-200);
   --color-border-hover: var(--neutral-300);
   --color-border-focus: var(--purple-700);
   --color-border-subtle: rgba(0, 0, 0, 0.06);
-  --color-border-card: #E5E7EB;
+  --color-border-card: var(--gray-200);
 
   /* Semantic */
   --color-income: var(--green-500);
   --color-income-hover: var(--green-600);
   --color-income-subtle: var(--green-100);
   --color-income-text: var(--green-600);
+  --color-income-alt: var(--emerald-500);
+  --color-income-bg: rgba(16, 185, 129, 0.1);
+  --color-income-gradient: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 50%, var(--emerald-700) 100%);
+  --color-income-shadow: rgba(16, 185, 129, 0.3);
+  --color-income-dot: var(--emerald-400);
+  --color-income-glow: rgba(74, 222, 128, 0.6);
 
   --color-expense: var(--red-500);
   --color-expense-hover: var(--red-600);
   --color-expense-subtle: var(--red-100);
   --color-expense-text: var(--red-600);
+  --color-expense-bg: rgba(239, 68, 68, 0.1);
 
   --color-warning: var(--amber-500);
   --color-warning-subtle: var(--amber-100);
 
   --color-info: var(--blue-500);
   --color-info-subtle: var(--blue-100);
+  --color-info-bg: rgba(59, 130, 246, 0.1);
 
   /* Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -143,7 +189,7 @@
   --color-accent-primary: var(--purple-500);
   --color-accent-primary-hover: var(--purple-400);
   --color-accent-secondary: var(--purple-400);
-  --color-accent-subtle: rgba(139, 92, 246, 0.2);
+  --color-accent-subtle: var(--color-brand-subtle);
   --color-accent-gradient: linear-gradient(135deg, var(--purple-500) 0%, var(--purple-400) 100%);
 
   /* Borders */
@@ -316,16 +362,16 @@
    ========================================================================== */
 
 :root {
-  --cat-groceries: #22C55E;
-  --cat-restaurants: #F97316;
-  --cat-transportation: #3B82F6;
-  --cat-utilities: #8B5CF6;
-  --cat-entertainment: #EC4899;
-  --cat-healthcare: #EF4444;
-  --cat-shopping: #F59E0B;
-  --cat-salary: #10B981;
-  --cat-freelance: #06B6D4;
-  --cat-investments: #6366F1;
-  --cat-gifts: #D946EF;
-  --cat-other: #6B7280;
+  --cat-groceries: var(--green-500);
+  --cat-restaurants: var(--orange-500);
+  --cat-transportation: var(--blue-500);
+  --cat-utilities: var(--violet-500);
+  --cat-entertainment: var(--pink-500);
+  --cat-healthcare: var(--red-500);
+  --cat-shopping: var(--amber-500);
+  --cat-salary: var(--emerald-500);
+  --cat-freelance: var(--cyan-500);
+  --cat-investments: var(--indigo-500);
+  --cat-gifts: var(--fuchsia-500);
+  --cat-other: var(--gray-500);
 }

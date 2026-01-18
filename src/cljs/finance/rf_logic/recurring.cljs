@@ -62,6 +62,35 @@
                    :on-failure [:recurring/create-failure]}})))
 
 (rf/reg-event-fx
+ :recurring/create-from-transaction
+ (fn [{:keys [_db]} [_ tx-form]]
+   (let [payload {:amount (js/parseFloat (:amount tx-form))
+                  :type (name (:type tx-form))
+                  :category (name (:category tx-form))
+                  :description (:description tx-form)
+                  :currency (name (or (:currency tx-form) :COP))
+                  :frequency "monthly"
+                  :start-date (.getTime (js/Date.))
+                  :active true}]
+     {:http-xhrio {:method :post
+                   :uri (str api-base "/recurring")
+                   :params payload
+                   :format (ajax/json-request-format)
+                   :with-credentials true
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success [:recurring/create-from-tx-success]
+                   :on-failure [:recurring/create-failure]}})))
+
+(rf/reg-event-fx
+ :recurring/create-from-tx-success
+ (fn [_ _]
+   {:dispatch-n [[:recurring/fetch]
+                 [:app/show-toast
+                  {:type :success
+                   :title "Recurring Created"
+                   :message "This transaction will repeat monthly."}]]}))
+
+(rf/reg-event-fx
  :recurring/create-success
  (fn [{:keys [db]} _]
    {:db (-> db

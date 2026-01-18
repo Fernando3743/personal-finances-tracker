@@ -55,7 +55,9 @@
                       :date nil
                       :tags #{}
                       :currency :COP
-                      :exchange-rate nil}
+                      :exchange-rate nil
+                      :notes ""
+                      :is-recurring false}
 
    ;; Summary data (now with per-currency breakdown)
    :summary {:by-currency {:COP {:balance 0 :income 0 :expenses 0 :count 0}
