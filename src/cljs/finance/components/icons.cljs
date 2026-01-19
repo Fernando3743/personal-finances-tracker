@@ -48,6 +48,23 @@
    :chevron-right
    [[:polyline {:points "9 18 15 12 9 6"}]]
 
+   :chevron-left
+   [[:polyline {:points "15 18 9 12 15 6"}]]
+
+   :grid
+   [[:rect {:x "3" :y "3" :width "7" :height "7"}]
+    [:rect {:x "14" :y "3" :width "7" :height "7"}]
+    [:rect {:x "14" :y "14" :width "7" :height "7"}]
+    [:rect {:x "3" :y "14" :width "7" :height "7"}]]
+
+   :credit-card
+   [[:rect {:x "1" :y "4" :width "22" :height "16" :rx "2" :ry "2"}]
+    [:line {:x1 "1" :y1 "10" :x2 "23" :y2 "10"}]]
+
+   :clock
+   [[:circle {:cx "12" :cy "12" :r "10"}]
+    [:polyline {:points "12 6 12 12 16 14"}]]
+
    :dashboard
    [[:rect {:x "3" :y "3" :width "7" :height "7"}]
     [:rect {:x "14" :y "3" :width "7" :height "7"}]

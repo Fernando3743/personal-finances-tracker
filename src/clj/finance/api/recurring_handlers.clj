@@ -39,7 +39,7 @@
   "POST /api/recurring - Creates a new recurring transaction for current user."
   [conn request]
   (let [user-id (:user-id request)
-        {:keys [amount type category frequency description currency start-date end-date active]} (:body request)]
+        {:keys [amount type category frequency description currency start-date end-date active payment-method]} (:body request)]
     (if (and amount type category frequency)
       (let [rec (recurring/create-recurring
                  (bigdec amount)
@@ -50,7 +50,8 @@
                   :currency (keyword (or currency "COP"))
                   :start-date (when start-date (Date. (long start-date)))
                   :end-date (when end-date (Date. (long end-date)))
-                  :active? (if (nil? active) true active)})
+                  :active? (if (nil? active) true active)
+                  :payment-method payment-method})
             rec-with-user (assoc rec :recurring/user-id user-id)]
         (if (recurring/valid? rec-with-user)
           (do
@@ -83,6 +84,7 @@
                             "start-date" (when v (Date. (long v)))
                             "end-date" (when v (Date. (long v)))
                             "next-occurrence" (when v (Date. (long v)))
+                            "payment-method" v
                             v))))
                {}
                updates)]
@@ -146,3 +148,37 @@
         upcoming (recurring/upcoming items days)]
     (json-response {:upcoming upcoming
                     :count (count upcoming)})))
+
+(defn pay-now
+  "POST /api/recurring/:id/pay - Mark payment as paid (creates transaction and advances date)."
+  [conn id request]
+  (let [user-id (:user-id request)
+        uuid (parse-uuid id)]
+    (if (db/user-owns-recurring? conn user-id uuid)
+      (if-let [rec (db/load-recurring-by-id conn uuid)]
+        (let [tx (-> (recurring/generate-transaction rec)
+                     (assoc :transaction/user-id user-id))
+              updated-rec (recurring/advance-next-occurrence rec)]
+          (db/save-transaction-for-user! conn user-id tx)
+          (db/update-recurring! conn uuid
+                                {:recurring/next-occurrence (:recurring/next-occurrence updated-rec)
+                                 :recurring/last-generated (:recurring/last-generated updated-rec)})
+          (json-response {:transaction tx
+                          :recurring (db/load-recurring-by-id conn uuid)}))
+        (error-response "Recurring transaction not found" 404))
+      (error-response "Recurring transaction not found" 404))))
+
+(defn skip-payment
+  "POST /api/recurring/:id/skip - Skip this occurrence (advances date without creating transaction)."
+  [conn id request]
+  (let [user-id (:user-id request)
+        uuid (parse-uuid id)]
+    (if (db/user-owns-recurring? conn user-id uuid)
+      (if-let [rec (db/load-recurring-by-id conn uuid)]
+        (let [updated-rec (recurring/advance-next-occurrence rec)]
+          (if-let [saved (db/update-recurring! conn uuid
+                                               {:recurring/next-occurrence (:recurring/next-occurrence updated-rec)})]
+            (json-response saved)
+            (error-response "Update failed" 500)))
+        (error-response "Recurring transaction not found" 404))
+      (error-response "Recurring transaction not found" 404))))

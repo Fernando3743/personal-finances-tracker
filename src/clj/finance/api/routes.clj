@@ -79,7 +79,13 @@
           (recurring/delete-recurring conn id request))
 
         (POST "/:id/toggle" [id :as request]
-          (recurring/toggle-active conn id request)))
+          (recurring/toggle-active conn id request))
+
+        (POST "/:id/pay" [id :as request]
+          (recurring/pay-now conn id request))
+
+        (POST "/:id/skip" [id :as request]
+          (recurring/skip-payment conn id request)))
 
       (context "/budgets" []
         (GET "/" request

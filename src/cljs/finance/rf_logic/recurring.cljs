@@ -50,7 +50,8 @@
                   :frequency (name (:frequency form))
                   :start-date (when (:start-date form) (.getTime (js/Date. (:start-date form))))
                   :end-date (when (:end-date form) (.getTime (js/Date. (:end-date form))))
-                  :active (:active form)}]
+                  :active (:active form)
+                  :payment-method (:payment-method form)}]
      {:db (assoc-in db [:recurring :loading?] true)
       :http-xhrio {:method :post
                    :uri (str api-base "/recurring")
@@ -353,3 +354,196 @@
  :recurring/panel-open?
  (fn [db _]
    (get-in db [:recurring-panel :open?] false)))
+
+(rf/reg-event-db
+ :recurring/set-view-mode
+ (fn [db [_ mode]]
+   (assoc-in db [:recurring :view-mode] mode)))
+
+(rf/reg-event-db
+ :recurring/set-search-query
+ (fn [db [_ query]]
+   (assoc-in db [:recurring :search-query] query)))
+
+(rf/reg-event-db
+ :recurring/set-calendar-month
+ (fn [db [_ date]]
+   (assoc-in db [:recurring :calendar-month] date)))
+
+(rf/reg-event-db
+ :recurring/prev-month
+ (fn [db _]
+   (let [current (or (get-in db [:recurring :calendar-month]) (js/Date.))
+         prev-month (js/Date. (.getFullYear current) (dec (.getMonth current)) 1)]
+     (assoc-in db [:recurring :calendar-month] prev-month))))
+
+(rf/reg-event-db
+ :recurring/next-month
+ (fn [db _]
+   (let [current (or (get-in db [:recurring :calendar-month]) (js/Date.))
+         next-month (js/Date. (.getFullYear current) (inc (.getMonth current)) 1)]
+     (assoc-in db [:recurring :calendar-month] next-month))))
+
+(rf/reg-event-db
+ :recurring/go-to-today
+ (fn [db _]
+   (assoc-in db [:recurring :calendar-month] (js/Date.))))
+
+(rf/reg-event-fx
+ :recurring/pay-now
+ (fn [{:keys [db]} [_ id]]
+   {:db (assoc-in db [:recurring :loading?] true)
+    :http-xhrio {:method :post
+                 :uri (str api-base "/recurring/" id "/pay")
+                 :format (ajax/json-request-format)
+                 :with-credentials true
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success [:recurring/pay-now-success]
+                 :on-failure [:recurring/pay-now-failure]}}))
+
+(rf/reg-event-fx
+ :recurring/pay-now-success
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:recurring :loading?] false)
+    :dispatch-n [[:recurring/fetch]
+                 [:tx/fetch-transactions]
+                 [:dashboard/fetch-summary]
+                 [:app/show-toast
+                  {:type :success
+                   :title "Payment Recorded"
+                   :message "Transaction created and next date updated."}]]}))
+
+(rf/reg-event-fx
+ :recurring/pay-now-failure
+ (fn [{:keys [db]} [_ error]]
+   {:db (assoc-in db [:recurring :loading?] false)
+    :dispatch [:app/show-toast
+               {:type :error
+                :title "Error"
+                :message (get-in error [:response :error] "Failed to record payment.")}]}))
+
+(rf/reg-event-fx
+ :recurring/skip-payment
+ (fn [{:keys [db]} [_ id]]
+   {:db (assoc-in db [:recurring :loading?] true)
+    :http-xhrio {:method :post
+                 :uri (str api-base "/recurring/" id "/skip")
+                 :format (ajax/json-request-format)
+                 :with-credentials true
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success [:recurring/skip-success]
+                 :on-failure [:recurring/skip-failure]}}))
+
+(rf/reg-event-fx
+ :recurring/skip-success
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:recurring :loading?] false)
+    :dispatch-n [[:recurring/fetch]
+                 [:app/show-toast
+                  {:type :success
+                   :title "Payment Skipped"
+                   :message "Next occurrence date has been advanced."}]]}))
+
+(rf/reg-event-fx
+ :recurring/skip-failure
+ (fn [{:keys [db]} [_ error]]
+   {:db (assoc-in db [:recurring :loading?] false)
+    :dispatch [:app/show-toast
+               {:type :error
+                :title "Error"
+                :message (get-in error [:response :error] "Failed to skip payment.")}]}))
+
+(rf/reg-sub
+ :recurring/view-mode
+ (fn [db _]
+   (get-in db [:recurring :view-mode] :list)))
+
+(rf/reg-sub
+ :recurring/search-query
+ (fn [db _]
+   (get-in db [:recurring :search-query] "")))
+
+(rf/reg-sub
+ :recurring/calendar-month
+ (fn [db _]
+   (or (get-in db [:recurring :calendar-month]) (js/Date.))))
+
+(rf/reg-sub
+ :recurring/filtered-items
+ :<- [:recurring/items]
+ :<- [:recurring/search-query]
+ (fn [[items query] _]
+   (if (empty? query)
+     items
+     (let [q (clojure.string/lower-case query)]
+       (filter #(or (clojure.string/includes?
+                     (clojure.string/lower-case (or (:recurring/description %) "")) q)
+                    (clojure.string/includes?
+                     (clojure.string/lower-case (name (or (:recurring/category %) :other))) q))
+               items)))))
+
+(rf/reg-sub
+ :recurring/total-monthly-cost
+ :<- [:recurring/active-items]
+ (fn [items _]
+   (reduce (fn [total item]
+             (let [amount (:recurring/amount item)
+                   freq (:recurring/frequency item)
+                   monthly-amount (case freq
+                                    :daily (* amount 30)
+                                    :weekly (* amount 4.33)
+                                    :monthly amount
+                                    :yearly (/ amount 12)
+                                    amount)]
+               (+ total monthly-amount)))
+           0
+           (filter #(= :expense (:recurring/type %)) items))))
+
+(rf/reg-sub
+ :recurring/next-payment
+ :<- [:recurring/sorted-by-next]
+ (fn [items _]
+   (first (filter #(= :expense (:recurring/type %)) items))))
+
+(rf/reg-sub
+ :recurring/active-count
+ :<- [:recurring/active-items]
+ (fn [items _]
+   (count items)))
+
+(defn- same-day? [d1 d2]
+  (and (= (.getDate d1) (.getDate d2))
+       (= (.getMonth d1) (.getMonth d2))
+       (= (.getFullYear d1) (.getFullYear d2))))
+
+(rf/reg-sub
+ :recurring/items-for-date
+ :<- [:recurring/active-items]
+ (fn [items [_ date]]
+   (filter #(when-let [next-occ (:recurring/next-occurrence %)]
+              (same-day? (js/Date. next-occ) date))
+           items)))
+
+(rf/reg-sub
+ :recurring/upcoming-this-week
+ :<- [:recurring/active-items]
+ (fn [items _]
+   (let [now (js/Date.)
+         week-later (js/Date. (.getFullYear now) (.getMonth now) (+ (.getDate now) 7))]
+     (->> items
+          (filter #(when-let [next-occ (:recurring/next-occurrence %)]
+                     (let [occ-date (js/Date. next-occ)]
+                       (and (>= (.getTime occ-date) (.getTime now))
+                            (<= (.getTime occ-date) (.getTime week-later))))))
+          (sort-by #(.getTime (js/Date. (:recurring/next-occurrence %))))))))
+
+(rf/reg-sub
+ :recurring/weekly-total
+ :<- [:recurring/upcoming-this-week]
+ (fn [items _]
+   (reduce (fn [total item]
+             (if (= :expense (:recurring/type item))
+               (+ total (:recurring/amount item))
+               total))
+           0
+           items)))

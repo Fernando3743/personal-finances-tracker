@@ -114,7 +114,12 @@
    {:db/ident :recurring/created-at
     :db/valueType :db.type/instant
     :db/cardinality :db.cardinality/one
-    :db/doc "Creation timestamp"}])
+    :db/doc "Creation timestamp"}
+
+   {:db/ident :recurring/payment-method
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Payment method (e.g., 'Visa ****4242', 'Wells Fargo')"}])
 
 (def budget-schema
   "Datomic schema for budgets."
@@ -504,7 +509,10 @@
         (assoc :recurring/last-generated (:recurring/last-generated entity))
 
         (:recurring/created-at entity)
-        (assoc :recurring/created-at (:recurring/created-at entity))))))
+        (assoc :recurring/created-at (:recurring/created-at entity))
+
+        (:recurring/payment-method entity)
+        (assoc :recurring/payment-method (:recurring/payment-method entity))))))
 
 (defn- recurring->tx-data
   "Converts a recurring transaction map to Datomic transaction data."
@@ -532,7 +540,10 @@
       (assoc :recurring/last-generated (:recurring/last-generated recurring))
 
       (:recurring/created-at recurring)
-      (assoc :recurring/created-at (:recurring/created-at recurring)))))
+      (assoc :recurring/created-at (:recurring/created-at recurring))
+
+      (:recurring/payment-method recurring)
+      (assoc :recurring/payment-method (:recurring/payment-method recurring)))))
 
 (defn- find-recurring-entity-id
   "Finds the Datomic entity ID for a recurring transaction by its UUID."

@@ -16,6 +16,7 @@
 (s/def :recurring/last-generated inst?)
 (s/def :recurring/active? boolean?)
 (s/def :recurring/user-id uuid?)
+(s/def :recurring/payment-method (s/and string? #(<= (count %) 100)))
 
 (s/def ::recurring
   (s/keys :req [:recurring/id
@@ -30,7 +31,8 @@
           :opt [:recurring/description
                 :recurring/end-date
                 :recurring/next-occurrence
-                :recurring/last-generated]))
+                :recurring/last-generated
+                :recurring/payment-method]))
 
 (def frequencies
   #{:daily :weekly :monthly :yearly})
@@ -51,7 +53,7 @@
   "Creates a new recurring transaction template."
   ([amount type category frequency]
    (create-recurring amount type category frequency {}))
-  ([amount type category frequency {:keys [description currency start-date end-date active?]}]
+  ([amount type category frequency {:keys [description currency start-date end-date active? payment-method]}]
    (let [start (or start-date (Date.))
          next-occ (calculate-next-occurrence start frequency)]
      (cond-> {:recurring/id (random-uuid)
@@ -65,7 +67,8 @@
               :recurring/active? (if (nil? active?) true active?)
               :recurring/created-at (Date.)}
        description (assoc :recurring/description description)
-       end-date (assoc :recurring/end-date end-date)))))
+       end-date (assoc :recurring/end-date end-date)
+       payment-method (assoc :recurring/payment-method payment-method)))))
 
 (defn valid?
   "Validates a recurring transaction against spec."

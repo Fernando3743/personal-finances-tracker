@@ -86,6 +86,22 @@
                :value (or name "")
                :on-change #(rf/dispatch [:recurring/update-form-field :name (-> % .-target .-value)])}]]]))
 
+(defn payment-method-input []
+  (let [payment-method @(rf/subscribe [:recurring/form-field :payment-method])]
+    [:div {:class "space-y-2"}
+     [:label {:class "block text-sm font-medium text-gray-500 dark:text-gray-400"} "Payment Method"]
+     [:div {:class "relative"}
+      [:div {:class "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"}
+       [icon :credit-card {:width 18 :height 18 :class "text-gray-400"}]]
+      [:input {:class (str "block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl "
+                           "bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-50 placeholder-gray-400 "
+                           "focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent "
+                           "transition-all sm:text-sm shadow-sm")
+               :type "text"
+               :placeholder "e.g. Visa ****4242"
+               :value (or payment-method "")
+               :on-change #(rf/dispatch [:recurring/update-form-field :payment-method (-> % .-target .-value)])}]]]))
+
 (defn currency-amount-row []
   (let [amount @(rf/subscribe [:recurring/form-field :amount])
         curr @(rf/subscribe [:recurring/form-field :currency])
@@ -223,6 +239,7 @@
       [:div {:class "flex-1 overflow-y-auto p-6"}
        [:form {:class "space-y-6"}
         [payment-name-input]
+        [payment-method-input]
         [category-grid]
         [currency-amount-row]
         [frequency-selector]

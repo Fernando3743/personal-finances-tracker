@@ -98,5 +98,17 @@
          [?e :user/id ?id]]
        (d/db conn))
 
+  ;; Seed recurring test data
+  ;; First, require the seed namespace
+  (require '[finance.dev.seed :as seed])
 
+  ;; Get a user ID
+  (def user-id (seed/get-first-user-id conn))
+
+  ;; Clear existing and seed new recurring transactions
+  (seed/clear-recurring! conn user-id)
+  (seed/seed-recurring! conn user-id)
+
+  ;; Verify the data
+  (db/load-recurring-for-user conn user-id)
   )

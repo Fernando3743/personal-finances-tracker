@@ -107,7 +107,10 @@
    ;; Recurring transactions state
    :recurring {:items []
                :loading? false
-               :error nil}
+               :error nil
+               :view-mode :list       ; :list, :cards, :calendar
+               :search-query ""
+               :calendar-month nil}   ; js/Date for currently viewed month
 
    ;; Recurring panel state
    :recurring-panel {:open? false}
@@ -122,7 +125,8 @@
                     :frequency :monthly
                     :start-date nil
                     :end-date nil
-                    :active true}
+                    :active true
+                    :payment-method ""}
 
    ;; Budgets state
    :budgets {:items []
