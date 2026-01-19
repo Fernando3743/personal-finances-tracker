@@ -16,7 +16,8 @@
             [finance.views.transaction-panel :as tx-panel]
             [finance.views.recurring-panel :as recurring-panel]
             [finance.routes :as routes]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.utils.validation :as validation]))
 
 (defn theme-toggle []
   (let [theme @(rf/subscribe [:app/theme])]
@@ -49,7 +50,7 @@
 (defn user-profile []
   (let [user @(rf/subscribe [:auth/user])
         user-name (or (:user/name user) "User")
-        avatar-url (:user/avatar-url user)
+        avatar-url (validation/sanitize-url (:user/avatar-url user))
         initial (first user-name)]
     [:div {:class "flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-neutral-700"}
      [:div {:class "hidden md:flex flex-col items-end cursor-pointer"
@@ -83,7 +84,7 @@
 
 (defn mobile-header []
   (let [user @(rf/subscribe [:auth/user])
-        avatar-url (:user/avatar-url user)
+        avatar-url (validation/sanitize-url (:user/avatar-url user))
         initial (first (or (:user/name user) "U"))]
     [:header {:class "flex lg:hidden items-center justify-between h-14 px-4 bg-white dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700"}
      [:div {:class "flex items-center gap-3 cursor-pointer"
@@ -103,7 +104,7 @@
   (let [active-view @(rf/subscribe [:app/current-route])
         user @(rf/subscribe [:auth/user])
         user-name (or (:user/name user) "User")
-        avatar-url (:user/avatar-url user)
+        avatar-url (validation/sanitize-url (:user/avatar-url user))
         initial (first user-name)
         nav-item (fn [route icon-name label]
                    [:a {:class (str "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium cursor-pointer transition-colors "

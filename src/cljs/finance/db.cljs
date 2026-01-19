@@ -121,7 +121,7 @@
                     :type :expense
                     :category :entertainment
                     :description ""
-                    :currency :USD
+                    :currency :COP
                     :frequency :monthly
                     :start-date nil
                     :end-date nil

@@ -2,7 +2,8 @@
   "Authentication re-frame events and subscriptions."
   (:require [re-frame.core :as rf]
             [ajax.core :as ajax]
-            [finance.routes :as routes]))
+            [finance.routes :as routes]
+            [finance.utils.errors :as errors]))
 
 (rf/reg-event-fx
  :auth/check-session
@@ -64,9 +65,11 @@
 (rf/reg-event-db
  :auth/login-failure
  (fn [db [_ error]]
-   (-> db
-       (assoc-in [:auth :loading?] false)
-       (assoc-in [:auth :error] (get-in error [:response :error] "Login failed")))))
+   (let [error-msg (errors/extract-error-message error "Login failed")]
+     (errors/log-error "Login" error)
+     (-> db
+         (assoc-in [:auth :loading?] false)
+         (assoc-in [:auth :error] error-msg)))))
 
 (rf/reg-event-fx
  :auth/register
@@ -96,9 +99,11 @@
 (rf/reg-event-db
  :auth/register-failure
  (fn [db [_ error]]
-   (-> db
-       (assoc-in [:auth :loading?] false)
-       (assoc-in [:auth :error] (get-in error [:response :error] "Registration failed")))))
+   (let [error-msg (errors/extract-error-message error "Registration failed")]
+     (errors/log-error "Registration" error)
+     (-> db
+         (assoc-in [:auth :loading?] false)
+         (assoc-in [:auth :error] error-msg)))))
 
 (rf/reg-event-fx
  :auth/logout
@@ -127,6 +132,26 @@
  (fn [db _]
    (assoc-in db [:auth :error] nil)))
 
+(rf/reg-event-db
+ :auth/update-login-form
+ (fn [db [_ field value]]
+   (assoc-in db [:auth :login-form field] value)))
+
+(rf/reg-event-db
+ :auth/reset-login-form
+ (fn [db _]
+   (assoc-in db [:auth :login-form] {:email "" :password "" :remember-me false})))
+
+(rf/reg-event-db
+ :auth/update-register-form
+ (fn [db [_ field value]]
+   (assoc-in db [:auth :register-form field] value)))
+
+(rf/reg-event-db
+ :auth/reset-register-form
+ (fn [db _]
+   (assoc-in db [:auth :register-form] {:name "" :email "" :password "" :confirm-password ""})))
+
 (rf/reg-sub
  :auth/user
  (fn [db _]
@@ -152,3 +177,25 @@
  :<- [:auth/user]
  (fn [user _]
    (some? user)))
+
+(rf/reg-sub
+ :auth/login-form
+ (fn [db _]
+   (get-in db [:auth :login-form] {:email "" :password "" :remember-me false})))
+
+(rf/reg-sub
+ :auth/login-form-field
+ :<- [:auth/login-form]
+ (fn [form [_ field]]
+   (get form field "")))
+
+(rf/reg-sub
+ :auth/register-form
+ (fn [db _]
+   (get-in db [:auth :register-form] {:name "" :email "" :password "" :confirm-password ""})))
+
+(rf/reg-sub
+ :auth/register-form-field
+ :<- [:auth/register-form]
+ (fn [form [_ field]]
+   (get form field "")))

@@ -1,7 +1,8 @@
 (ns finance.rf-logic.profile
   "Profile page re-frame events and subscriptions."
   (:require [re-frame.core :as rf]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [finance.utils.errors :as errors]))
 
 (rf/reg-event-fx
  :profile/init
@@ -33,7 +34,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:profile :loading?] false)
-            (assoc-in [:profile :error] (get-in error [:response :error] "Failed to load profile")))
+            (assoc-in [:profile :error] (errors/extract-error-message error "Failed to load profile")))
     :dispatch [:app/show-toast {:type :error :message "Failed to load profile"}]}))
 
 (rf/reg-event-fx
@@ -63,8 +64,8 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:profile :saving?] false)
-            (assoc-in [:profile :error] (get-in error [:response :error] "Update failed")))
-    :dispatch [:app/show-toast {:type :error :message (get-in error [:response :error] "Update failed")}]}))
+            (assoc-in [:profile :error] (errors/extract-error-message error "Update failed")))
+    :dispatch [:app/show-toast {:type :error :message (errors/extract-error-message error "Update failed")}]}))
 
 (rf/reg-event-fx
  :profile/change-password
@@ -92,13 +93,14 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:profile :saving?] false)
-            (assoc-in [:profile :error] (get-in error [:response :error] "Password change failed")))
-    :dispatch [:app/show-toast {:type :error :message (get-in error [:response :error] "Password change failed")}]}))
+            (assoc-in [:profile :error] (errors/extract-error-message error "Password change failed")))
+    :dispatch [:app/show-toast {:type :error :message (errors/extract-error-message error "Password change failed")}]}))
 
 (rf/reg-event-fx
  :profile/update-preferences
  (fn [{:keys [db]} [_ preferences]]
-   {:http-xhrio {:method :put
+   {:db (assoc-in db [:profile :saving-preferences?] true)
+    :http-xhrio {:method :put
                  :uri "/api/profile/preferences"
                  :params preferences
                  :format (ajax/json-request-format)
@@ -110,13 +112,16 @@
 (rf/reg-event-fx
  :profile/preferences-success
  (fn [{:keys [db]} [_ response]]
-   {:db (assoc-in db [:auth :user] (:user response))
+   {:db (-> db
+            (assoc-in [:profile :saving-preferences?] false)
+            (assoc-in [:auth :user] (:user response)))
     :dispatch [:app/show-toast {:type :success :message "Preferences saved"}]}))
 
 (rf/reg-event-fx
  :profile/preferences-failure
  (fn [{:keys [db]} [_ error]]
-   {:dispatch [:app/show-toast {:type :error :message (get-in error [:response :error] "Failed to save preferences")}]}))
+   {:db (assoc-in db [:profile :saving-preferences?] false)
+    :dispatch [:app/show-toast {:type :error :message (errors/extract-error-message error "Failed to save preferences")}]}))
 
 (rf/reg-event-fx
  :profile/upload-avatar
@@ -144,7 +149,7 @@
  :profile/avatar-upload-failure
  (fn [{:keys [db]} [_ error]]
    {:db (assoc-in db [:profile :uploading-avatar?] false)
-    :dispatch [:app/show-toast {:type :error :message (get-in error [:response :error] "Failed to upload avatar")}]}))
+    :dispatch [:app/show-toast {:type :error :message (errors/extract-error-message error "Failed to upload avatar")}]}))
 
 (rf/reg-event-fx
  :profile/delete-avatar
@@ -234,7 +239,7 @@
  :profile/delete-account-failure
  (fn [{:keys [db]} [_ error]]
    {:db (assoc-in db [:profile :deleting?] false)
-    :dispatch [:app/show-toast {:type :error :message (get-in error [:response :error] "Failed to delete account")}]}))
+    :dispatch [:app/show-toast {:type :error :message (errors/extract-error-message error "Failed to delete account")}]}))
 
 (rf/reg-sub
  :profile/loading?
@@ -265,3 +270,59 @@
  :profile/error
  (fn [db _]
    (get-in db [:profile :error])))
+
+(rf/reg-sub
+ :profile/saving-preferences?
+ (fn [db _]
+   (get-in db [:profile :saving-preferences?])))
+
+(rf/reg-event-db
+ :profile/update-edit-form
+ (fn [db [_ field value]]
+   (assoc-in db [:profile :edit-form field] value)))
+
+(rf/reg-event-db
+ :profile/init-edit-form
+ (fn [db _]
+   (let [user (get-in db [:auth :user])]
+     (assoc-in db [:profile :edit-form]
+               {:name (or (:user/name user) "")
+                :email (or (:user/email user) "")}))))
+
+(rf/reg-event-db
+ :profile/update-password-form
+ (fn [db [_ field value]]
+   (assoc-in db [:profile :password-form field] value)))
+
+(rf/reg-event-db
+ :profile/reset-password-form
+ (fn [db _]
+   (assoc-in db [:profile :password-form]
+             {:current-password "" :new-password "" :confirm-password ""})))
+
+(rf/reg-event-db
+ :profile/update-delete-form
+ (fn [db [_ field value]]
+   (assoc-in db [:profile :delete-form field] value)))
+
+(rf/reg-event-db
+ :profile/toggle-delete-modal
+ (fn [db [_ show?]]
+   (-> db
+       (assoc-in [:profile :delete-form :show-modal?] show?)
+       (assoc-in [:profile :delete-form :password] ""))))
+
+(rf/reg-sub
+ :profile/edit-form
+ (fn [db _]
+   (get-in db [:profile :edit-form] {:name "" :email ""})))
+
+(rf/reg-sub
+ :profile/password-form
+ (fn [db _]
+   (get-in db [:profile :password-form] {:current-password "" :new-password "" :confirm-password ""})))
+
+(rf/reg-sub
+ :profile/delete-form
+ (fn [db _]
+   (get-in db [:profile :delete-form] {:show-modal? false :password ""})))

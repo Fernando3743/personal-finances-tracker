@@ -3,7 +3,10 @@
   (:require [re-frame.core :as rf]
             [finance.db :as db]
             [day8.re-frame.http-fx]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [finance.utils.errors :as errors]
+            [finance.utils.date :as date-utils]
+            [finance.constants :as const]))
 
 (rf/reg-event-fx
  :recurring/init
@@ -34,7 +37,7 @@
  (fn [db [_ error]]
    (-> db
        (assoc-in [:recurring :loading?] false)
-       (assoc-in [:recurring :error] (get-in error [:response :error] "Failed to load recurring transactions")))))
+       (assoc-in [:recurring :error] (errors/extract-error-message error "Failed to load recurring transactions")))))
 
 (rf/reg-event-fx
  :recurring/create
@@ -44,7 +47,7 @@
                   :type (name (:type form))
                   :category (name (:category form))
                   :description (or (:name form) (:description form))
-                  :currency (name (or (:currency form) :USD))
+                  :currency (name (or (:currency form) :COP))
                   :frequency (name (:frequency form))
                   :start-date (when (:start-date form) (.getTime (js/Date. (:start-date form))))
                   :end-date (when (:end-date form) (.getTime (js/Date. (:end-date form))))
@@ -107,7 +110,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:recurring :loading?] false)
-            (assoc-in [:recurring :error] (get-in error [:response :error] "Failed to create")))
+            (assoc-in [:recurring :error] (errors/extract-error-message error "Failed to create")))
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
@@ -141,7 +144,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:recurring :loading?] false)
-            (assoc-in [:recurring :error] (get-in error [:response :error] "Failed to update")))
+            (assoc-in [:recurring :error] (errors/extract-error-message error "Failed to update")))
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
@@ -174,7 +177,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:recurring :loading?] false)
-            (assoc-in [:recurring :error] (get-in error [:response :error] "Failed to delete")))
+            (assoc-in [:recurring :error] (errors/extract-error-message error "Failed to delete")))
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
@@ -182,8 +185,9 @@
 
 (rf/reg-event-fx
  :recurring/toggle-active
- (fn [_ [_ id]]
-   {:http-xhrio {:method :post
+ (fn [{:keys [db]} [_ id]]
+   {:db (assoc-in db [:recurring :toggling?] true)
+    :http-xhrio {:method :post
                  :uri (str "/api/recurring/" id "/toggle")
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -193,8 +197,9 @@
 
 (rf/reg-event-fx
  :recurring/toggle-success
- (fn [_ _]
-   {:dispatch-n [[:recurring/fetch]
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:recurring :toggling?] false)
+    :dispatch-n [[:recurring/fetch]
                  [:app/show-toast
                   {:type :success
                    :title "Updated"
@@ -202,11 +207,12 @@
 
 (rf/reg-event-fx
  :recurring/toggle-failure
- (fn [_ [_ error]]
-   {:dispatch [:app/show-toast
+ (fn [{:keys [db]} [_ error]]
+   {:db (assoc-in db [:recurring :toggling?] false)
+    :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
-                :message (get-in error [:response :error] "Failed to toggle status.")}]}))
+                :message (errors/extract-error-message error "Failed to toggle status.")}]}))
 
 (rf/reg-event-fx
  :recurring/generate-now
@@ -240,7 +246,7 @@
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
-                :message (get-in error [:response :error] "Failed to generate transactions.")}]}))
+                :message (errors/extract-error-message error "Failed to generate transactions.")}]}))
 
 (rf/reg-event-db
  :recurring/update-form-field
@@ -277,6 +283,11 @@
  :recurring/error
  (fn [db _]
    (get-in db [:recurring :error])))
+
+(rf/reg-sub
+ :recurring/toggling?
+ (fn [db _]
+   (get-in db [:recurring :toggling?] false)))
 
 (rf/reg-sub
  :recurring/active-items
@@ -418,7 +429,7 @@
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
-                :message (get-in error [:response :error] "Failed to record payment.")}]}))
+                :message (errors/extract-error-message error "Failed to record payment.")}]}))
 
 (rf/reg-event-fx
  :recurring/skip-payment
@@ -449,7 +460,7 @@
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
-                :message (get-in error [:response :error] "Failed to skip payment.")}]}))
+                :message (errors/extract-error-message error "Failed to skip payment.")}]}))
 
 (rf/reg-sub
  :recurring/view-mode

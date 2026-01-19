@@ -3,7 +3,9 @@
   (:require [re-frame.core :as rf]
             [finance.db :as db]
             [day8.re-frame.http-fx]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [finance.utils.errors :as errors]
+            [finance.constants :as const]))
 
 (rf/reg-event-fx
  :budgets/init
@@ -22,20 +24,20 @@
                  :on-success [:budgets/fetch-success]
                  :on-failure [:budgets/fetch-failure]}}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  :budgets/fetch-success
- (fn [db [_ response]]
-   (-> db
-       (assoc-in [:budgets :loading?] false)
-       (assoc-in [:budgets :error] nil)
-       (assoc-in [:budgets :items] (:budgets response)))))
+ (fn [{:keys [db]} [_ response]]
+   {:db (-> db
+            (assoc-in [:budgets :error] nil)
+            (assoc-in [:budgets :items] (:budgets response)))
+    :dispatch [:budgets/fetch-status]}))
 
 (rf/reg-event-db
  :budgets/fetch-failure
  (fn [db [_ error]]
    (-> db
        (assoc-in [:budgets :loading?] false)
-       (assoc-in [:budgets :error] (get-in error [:response :error] "Failed to load budgets")))))
+       (assoc-in [:budgets :error] (errors/extract-error-message error "Failed to load budgets")))))
 
 (rf/reg-event-fx
  :budgets/fetch-status
@@ -64,7 +66,7 @@
  (fn [db [_ error]]
    (-> db
        (assoc-in [:budgets :loading?] false)
-       (assoc-in [:budgets :error] (get-in error [:response :error] "Failed to load budget status")))))
+       (assoc-in [:budgets :error] (errors/extract-error-message error "Failed to load budget status")))))
 
 (rf/reg-event-fx
  :budgets/create
@@ -93,7 +95,6 @@
             (assoc-in [:budgets-panel :mode] nil)
             (assoc :budget-form (:budget-form db/default-db)))
     :dispatch-n [[:budgets/fetch]
-                 [:budgets/fetch-status]
                  [:app/show-toast
                   {:type :success
                    :title "Budget Created"
@@ -104,7 +105,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:budgets :loading?] false)
-            (assoc-in [:budgets :error] (get-in error [:response :error] "Failed to create budget")))
+            (assoc-in [:budgets :error] (errors/extract-error-message error "Failed to create budget")))
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
@@ -133,7 +134,6 @@
             (assoc-in [:budgets :selected-budget-id] nil)
             (assoc :budget-form (:budget-form db/default-db)))
     :dispatch-n [[:budgets/fetch]
-                 [:budgets/fetch-status]
                  [:app/show-toast
                   {:type :success
                    :title "Updated"
@@ -144,7 +144,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:budgets :loading?] false)
-            (assoc-in [:budgets :error] (get-in error [:response :error] "Failed to update")))
+            (assoc-in [:budgets :error] (errors/extract-error-message error "Failed to update")))
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"
@@ -167,7 +167,6 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:budgets :loading?] false)
     :dispatch-n [[:budgets/fetch]
-                 [:budgets/fetch-status]
                  [:app/show-toast
                   {:type :success
                    :title "Deleted"
@@ -178,7 +177,7 @@
  (fn [{:keys [db]} [_ error]]
    {:db (-> db
             (assoc-in [:budgets :loading?] false)
-            (assoc-in [:budgets :error] (get-in error [:response :error] "Failed to delete")))
+            (assoc-in [:budgets :error] (errors/extract-error-message error "Failed to delete")))
     :dispatch [:app/show-toast
                {:type :error
                 :title "Error"

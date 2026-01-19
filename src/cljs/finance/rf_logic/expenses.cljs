@@ -2,7 +2,9 @@
   "Expenses page logic - filtering and display of expense transactions."
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            [finance.db :as db]))
+            [finance.db :as db]
+            [finance.utils.filters :as filters]
+            [finance.utils.date :as date-utils]))
 
 (rf/reg-event-fx
  :expenses/init
@@ -46,9 +48,7 @@
  :expenses/has-active-filters?
  :<- [:expenses/filter]
  (fn [fltr _]
-   (or (not (str/blank? (:search fltr)))
-       (some? (:category fltr))
-       (some? (:currency fltr)))))
+   (filters/has-active-filters? fltr)))
 
 (rf/reg-sub
  :expenses/all-expenses
@@ -61,29 +61,7 @@
  :<- [:expenses/all-expenses]
  :<- [:expenses/filter]
  (fn [[expenses fltr] _]
-   (let [{:keys [search category currency sort-by sort-dir]} fltr]
-     (cond->> expenses
-       (some? currency)
-       (filter #(= (:transaction/currency %) currency))
-
-       (not (str/blank? search))
-       (filter #(or (str/includes? (str/lower-case (or (:transaction/description %) ""))
-                                   (str/lower-case search))
-                    (str/includes? (str/lower-case (name (or (:transaction/category %) :other)))
-                                   (str/lower-case search))))
-
-       (some? category)
-       (filter #(= (:transaction/category %) category))
-
-       true
-       (sort-by (case sort-by
-                  :date :transaction/date
-                  :amount :transaction/amount
-                  :category :transaction/category
-                  :transaction/date))
-
-       (= sort-dir :desc)
-       reverse))))
+   (filters/apply-filters expenses fltr)))
 
 (rf/reg-sub
  :expenses/count
@@ -155,9 +133,13 @@
 
 (rf/reg-sub
  :expenses/expense-categories
- (fn [db _]
-   (filter #{:groceries :restaurants :transportation :utilities
-             :entertainment :healthcare :shopping :other} (:categories db))))
+ :<- [:expenses/items]
+ (fn [expenses _]
+   (->> expenses
+        (map :transaction/category)
+        (remove nil?)
+        distinct
+        sort)))
 
 (rf/reg-sub
  :expenses/category-breakdown

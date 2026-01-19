@@ -1,16 +1,18 @@
 (ns finance.views.auth
   "Login and registration views."
   (:require [re-frame.core :as rf]
-            [reagent.core :as r]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.utils.validation :as validation]
+            [finance.constants :as const]))
 
 (defn login-form []
-  (let [email (r/atom "")
-        password (r/atom "")
-        remember-me (r/atom false)]
-    (fn []
-      (let [loading? @(rf/subscribe [:auth/loading?])
-            error @(rf/subscribe [:auth/error])]
+  (let [loading? @(rf/subscribe [:auth/loading?])
+        error @(rf/subscribe [:auth/error])
+        form @(rf/subscribe [:auth/login-form])
+        email (:email form)
+        password (:password form)
+        remember-me (:remember-me form)
+        email-valid? (validation/valid-email? email)]
         [:div {:class "w-full max-w-md mx-auto p-8 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-700"}
          [:div {:class "flex justify-center mb-6 lg:hidden"}
           [:div {:class "w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white"}
@@ -27,11 +29,11 @@
          [:form {:class "space-y-5"
                  :on-submit (fn [e]
                               (.preventDefault e)
-                              (rf/dispatch [:auth/login @email @password]))}
+                              (rf/dispatch [:auth/login email password]))}
           [:div {:class "space-y-1.5"}
            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "email"} "Email address"]
            [:div {:class "relative"}
-            (when (empty? @email)
+            (when (empty? email)
               [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
                [icon :mail {:width 20 :height 20}]])
             [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
@@ -39,18 +41,18 @@
                                  "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
                                  "disabled:opacity-50 disabled:cursor-not-allowed "
                                  "transition-all duration-200 "
-                                 (when (empty? @email) "pl-10"))
+                                 (when (empty? email) "pl-10"))
                      :id "email"
                      :type "email"
                      :placeholder "you@example.com"
-                     :value @email
+                     :value email
                      :disabled loading?
-                     :on-change #(reset! email (-> % .-target .-value))}]]]
+                     :on-change #(rf/dispatch [:auth/update-login-form :email (-> % .-target .-value)])}]]]
 
           [:div {:class "space-y-1.5"}
            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "password"} "Password"]
            [:div {:class "relative"}
-            (when (empty? @password)
+            (when (empty? password)
               [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
                [icon :lock {:width 20 :height 20}]])
             [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
@@ -58,21 +60,21 @@
                                  "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
                                  "disabled:opacity-50 disabled:cursor-not-allowed "
                                  "transition-all duration-200 "
-                                 (when (empty? @password) "pl-10"))
+                                 (when (empty? password) "pl-10"))
                      :id "password"
                      :type "password"
                      :placeholder "••••••••"
-                     :value @password
+                     :value password
                      :disabled loading?
-                     :on-change #(reset! password (-> % .-target .-value))}]]]
+                     :on-change #(rf/dispatch [:auth/update-login-form :password (-> % .-target .-value)])}]]]
 
           [:div {:class "flex items-center justify-between text-sm"}
            [:label {:class "flex items-center gap-2 cursor-pointer"}
             [:input {:type "checkbox"
                      :class "w-4 h-4 rounded border-neutral-200 dark:border-neutral-700 text-purple-700 dark:text-purple-400 focus:ring-purple-700 dark:focus:ring-purple-400 focus:ring-offset-0"
                      :id "remember-me"
-                     :checked @remember-me
-                     :on-change #(swap! remember-me not)}]
+                     :checked remember-me
+                     :on-change #(rf/dispatch [:auth/update-login-form :remember-me (not remember-me)])}]
             [:span {:class "text-neutral-600 dark:text-neutral-400"} "Remember me"]]
            [:button {:type "button"
                      :class "text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium transition-colors"
@@ -89,7 +91,7 @@
                                 "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none "
                                 "transition-all duration-200")
                     :type "submit"
-                    :disabled (or loading? (empty? @email) (empty? @password))}
+                    :disabled (or loading? (empty? email) (empty? password) (not email-valid?))}
            (if loading? "Signing in..." "Sign In")]]
 
          [:div {:class "relative my-8"}
@@ -127,18 +129,20 @@
           [:button {:type "button"
                     :class "text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium transition-colors"
                     :on-click #(rf/dispatch [:app/navigate :register])}
-           "Sign up for free"]]]))))
+           "Sign up for free"]]]))
 
 (defn register-form []
-  (let [name (r/atom "")
-        email (r/atom "")
-        password (r/atom "")
-        confirm-password (r/atom "")]
-    (fn []
-      (let [loading? @(rf/subscribe [:auth/loading?])
-            error @(rf/subscribe [:auth/error])
-            passwords-match? (= @password @confirm-password)
-            password-long-enough? (>= (count @password) 8)]
+  (let [loading? @(rf/subscribe [:auth/loading?])
+        error @(rf/subscribe [:auth/error])
+        form @(rf/subscribe [:auth/register-form])
+        name-val (:name form)
+        email (:email form)
+        password (:password form)
+        confirm-password (:confirm-password form)
+        email-valid? (validation/valid-email? email)
+        password-validation (validation/valid-password? password)
+        passwords-match? (validation/passwords-match? password confirm-password)
+        password-long-enough? (>= (count password) const/password-min-length)]
         [:div {:class "w-full max-w-md mx-auto p-8 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-700"}
          [:div {:class "flex justify-center mb-6 lg:hidden"}
           [:div {:class "w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white"}
@@ -156,7 +160,7 @@
                  :on-submit (fn [e]
                               (.preventDefault e)
                               (when (and passwords-match? password-long-enough?)
-                                (rf/dispatch [:auth/register @email @password @name])))}
+                                (rf/dispatch [:auth/register email password name-val])))}
           [:div {:class "space-y-1.5"}
            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "name"} "Full name"]
            [:div {:class "relative"}
@@ -170,9 +174,9 @@
                      :id "name"
                      :type "text"
                      :placeholder "John Doe"
-                     :value @name
+                     :value name-val
                      :disabled loading?
-                     :on-change #(reset! name (-> % .-target .-value))}]]]
+                     :on-change #(rf/dispatch [:auth/update-register-form :name (-> % .-target .-value)])}]]]
 
           [:div {:class "space-y-1.5"}
            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "reg-email"} "Email address"]
@@ -187,9 +191,9 @@
                      :id "reg-email"
                      :type "email"
                      :placeholder "you@example.com"
-                     :value @email
+                     :value email
                      :disabled loading?
-                     :on-change #(reset! email (-> % .-target .-value))}]]]
+                     :on-change #(rf/dispatch [:auth/update-register-form :email (-> % .-target .-value)])}]]]
 
           [:div {:class "space-y-1.5"}
            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "reg-password"} "Password"]
@@ -201,16 +205,16 @@
                                  "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
                                  "disabled:opacity-50 disabled:cursor-not-allowed "
                                  "transition-all duration-200 "
-                                 (if (and (not-empty @password) (not password-long-enough?))
+                                 (if (and (not-empty password) (not password-long-enough?))
                                    "border-red-500 focus:ring-red-500"
                                    "border-neutral-200 dark:border-neutral-700"))
                      :id "reg-password"
                      :type "password"
                      :placeholder "At least 8 characters"
-                     :value @password
+                     :value password
                      :disabled loading?
-                     :on-change #(reset! password (-> % .-target .-value))}]]
-           (when (and (not-empty @password) (not password-long-enough?))
+                     :on-change #(rf/dispatch [:auth/update-register-form :password (-> % .-target .-value)])}]]
+           (when (and (not-empty password) (not password-long-enough?))
              [:span {:class "text-xs text-red-600 dark:text-red-500"} "Password must be at least 8 characters"])]
 
           [:div {:class "space-y-1.5"}
@@ -223,16 +227,16 @@
                                  "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
                                  "disabled:opacity-50 disabled:cursor-not-allowed "
                                  "transition-all duration-200 "
-                                 (if (and (not-empty @confirm-password) (not passwords-match?))
+                                 (if (and (not-empty confirm-password) (not passwords-match?))
                                    "border-red-500 focus:ring-red-500"
                                    "border-neutral-200 dark:border-neutral-700"))
                      :id "confirm-password"
                      :type "password"
                      :placeholder "Re-enter your password"
-                     :value @confirm-password
+                     :value confirm-password
                      :disabled loading?
-                     :on-change #(reset! confirm-password (-> % .-target .-value))}]]
-           (when (and (not-empty @confirm-password) (not passwords-match?))
+                     :on-change #(rf/dispatch [:auth/update-register-form :confirm-password (-> % .-target .-value)])}]]
+           (when (and (not-empty confirm-password) (not passwords-match?))
              [:span {:class "text-xs text-red-600 dark:text-red-500"} "Passwords do not match"])]
 
           [:button {:class (str "w-full h-11 rounded-lg font-medium text-white "
@@ -243,9 +247,10 @@
                                 "transition-all duration-200")
                     :type "submit"
                     :disabled (or loading?
-                                  (empty? @name)
-                                  (empty? @email)
-                                  (empty? @password)
+                                  (empty? name-val)
+                                  (empty? email)
+                                  (not email-valid?)
+                                  (empty? password)
                                   (not passwords-match?)
                                   (not password-long-enough?))}
            (if loading? "Creating account..." "Create Account")]]
@@ -255,4 +260,4 @@
           [:button {:type "button"
                     :class "text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium transition-colors"
                     :on-click #(rf/dispatch [:app/navigate :login])}
-           "Sign in"]]]))))
+           "Sign in"]]]))

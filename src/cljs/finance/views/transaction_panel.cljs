@@ -4,7 +4,9 @@
             [clojure.string :as str]
             [finance.db :as db]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.utils.validation :as validation]
+            [finance.constants :as const]))
 
 (defn preview-card []
   (let [preview @(rf/subscribe [:tx/form-preview])
@@ -93,27 +95,15 @@
                 :placeholder "0.00"
                 :value (or amount "")
                 :on-change #(let [val (-> % .-target .-value)
-                                  cleaned (str/replace val #"[^\d.]" "")]
+                                  cleaned (validation/clean-amount val)]
                               (rf/dispatch [:tx/update-form-field :amount cleaned]))}]]]]))
 
-(def category-colors
-  {:food {:bg "bg-orange-100 dark:bg-orange-900/30" :text "text-orange-600 dark:text-orange-400"}
-   :groceries {:bg "bg-green-100 dark:bg-green-900/30" :text "text-green-600 dark:text-green-400"}
-   :transportation {:bg "bg-blue-100 dark:bg-blue-900/30" :text "text-blue-600 dark:text-blue-400"}
-   :transport {:bg "bg-blue-100 dark:bg-blue-900/30" :text "text-blue-600 dark:text-blue-400"}
-   :entertainment {:bg "bg-pink-100 dark:bg-pink-900/30" :text "text-pink-600 dark:text-pink-400"}
-   :utilities {:bg "bg-yellow-100 dark:bg-yellow-900/30" :text "text-yellow-600 dark:text-yellow-400"}
-   :healthcare {:bg "bg-red-100 dark:bg-red-900/30" :text "text-red-600 dark:text-red-400"}
-   :shopping {:bg "bg-purple-100 dark:bg-purple-900/30" :text "text-purple-600 dark:text-purple-400"}
-   :housing {:bg "bg-violet-100 dark:bg-violet-900/30" :text "text-violet-600 dark:text-violet-400"}
-   :salary {:bg "bg-emerald-100 dark:bg-emerald-900/30" :text "text-emerald-600 dark:text-emerald-400"}
-   :other {:bg "bg-gray-100 dark:bg-gray-800" :text "text-gray-600 dark:text-gray-400"}})
 
 (defn category-dropdown []
   (let [categories @(rf/subscribe [:tx/categories])
         selected @(rf/subscribe [:tx/form-field :category])
         selected-icon (get db/category-icons selected "📦")
-        colors (get category-colors selected {:bg "bg-orange-100 dark:bg-orange-900/30" :text "text-orange-600 dark:text-orange-400"})]
+        colors (const/get-category-colors selected)]
     [:div {:class "space-y-2 relative"}
      [:label {:class "block text-sm font-medium text-gray-500 dark:text-gray-400"} "Category"]
      [:button {:class (str "w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-left "
