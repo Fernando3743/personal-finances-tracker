@@ -2,7 +2,9 @@
   "Incomes page logic - filtering and display of income transactions."
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            [finance.db :as db]))
+            [finance.db :as db]
+            [finance.utils.filters :as filters]
+            [finance.utils.date :as date-utils]))
 
 (rf/reg-event-fx
  :incomes/init
@@ -46,9 +48,7 @@
  :incomes/has-active-filters?
  :<- [:incomes/filter]
  (fn [fltr _]
-   (or (not (str/blank? (:search fltr)))
-       (some? (:category fltr))
-       (some? (:currency fltr)))))
+   (filters/has-active-filters? fltr)))
 
 (rf/reg-sub
  :incomes/all-incomes
@@ -61,29 +61,7 @@
  :<- [:incomes/all-incomes]
  :<- [:incomes/filter]
  (fn [[incomes fltr] _]
-   (let [{:keys [search category currency sort-by sort-dir]} fltr]
-     (cond->> incomes
-       (some? currency)
-       (filter #(= (:transaction/currency %) currency))
-
-       (not (str/blank? search))
-       (filter #(or (str/includes? (str/lower-case (or (:transaction/description %) ""))
-                                   (str/lower-case search))
-                    (str/includes? (str/lower-case (name (or (:transaction/category %) :other)))
-                                   (str/lower-case search))))
-
-       (some? category)
-       (filter #(= (:transaction/category %) category))
-
-       true
-       (sort-by (case sort-by
-                  :date :transaction/date
-                  :amount :transaction/amount
-                  :category :transaction/category
-                  :transaction/date))
-
-       (= sort-dir :desc)
-       reverse))))
+   (filters/apply-filters incomes fltr)))
 
 (rf/reg-sub
  :incomes/count

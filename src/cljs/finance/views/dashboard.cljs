@@ -137,7 +137,7 @@
    :gifts "#D946EF"
    :other "#EF4444"})
 
-(defn generate-smooth-path [points width height max-val]
+(defn generate-smooth-path* [points width height max-val]
   (when (seq points)
     (let [n (count points)
           x-step (/ width (max 1 (dec n)))
@@ -153,6 +153,8 @@
                                  cp2x (- x2 (* 0.3 (- x2 x1)))]
                              (str " C " cp1x " " y1 " " cp2x " " y2 " " x2 " " y2)))
                          (partition 2 1 coords))))))))
+
+(def generate-smooth-path (memoize generate-smooth-path*))
 
 (defn cash-flow-chart []
   (let [monthly-report @(rf/subscribe [:dashboard/monthly-report])

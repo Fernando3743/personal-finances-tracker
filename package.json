@@ -8,7 +8,9 @@
     "dev:css": "postcss resources/public/css/src/main.css -o resources/public/css/output.css --watch",
     "build:css": "NODE_ENV=production postcss resources/public/css/src/main.css -o resources/public/css/output.css",
     "release": "npm run build:css && shadow-cljs release app",
-    "server": "shadow-cljs server"
+    "server": "shadow-cljs server",
+    "test": "shadow-cljs compile test",
+    "test:watch": "shadow-cljs watch test"
   },
   "devDependencies": {
     "shadow-cljs": "^2.26.0",

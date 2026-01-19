@@ -4,7 +4,11 @@
             [clojure.string :as str]
             [finance.db :as db]
             [day8.re-frame.http-fx]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [finance.utils.errors :as errors]
+            [finance.utils.filters :as filters]
+            [finance.utils.date :as date-utils]
+            [finance.constants :as const]))
 
 (rf/reg-event-fx
  :transactions/init
@@ -14,13 +18,28 @@
 (rf/reg-event-fx
  :tx/fetch-transactions
  (fn [{:keys [db]} _]
-   {:db (assoc db :loading? true)
+   {:db (-> db
+            (assoc :loading? true)
+            (assoc-in [:transactions-state :error] nil))
     :http-xhrio {:method :get
                  :uri "/api/transactions"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:tx/fetch-transactions-success]
-                 :on-failure [:app/api-error]}}))
+                 :on-failure [:tx/fetch-transactions-failure]}}))
+
+(rf/reg-event-fx
+ :tx/fetch-transactions-failure
+ (fn [{:keys [db]} [_ error]]
+   (errors/log-error "Transactions fetch" error)
+   {:db (-> db
+            (assoc :loading? false)
+            (assoc-in [:transactions-state :error]
+                      (errors/extract-error-message error "Failed to load transactions")))
+    :dispatch [:app/show-toast
+               {:type :error
+                :title "Error"
+                :message "Failed to load transactions. Please try again."}]}))
 
 (rf/reg-event-db
  :tx/fetch-transactions-success
@@ -125,6 +144,11 @@
    (:transactions db)))
 
 (rf/reg-sub
+ :tx/error
+ (fn [db _]
+   (get-in db [:transactions-state :error])))
+
+(rf/reg-sub
  :tx/transaction-count
  :<- [:tx/transactions]
  (fn [transactions _]
@@ -134,7 +158,7 @@
  :tx/recent-transactions
  :<- [:tx/transactions]
  (fn [transactions _]
-   (take 5 transactions)))
+   (take const/recent-transactions-limit transactions)))
 
 (rf/reg-sub
  :tx/filter
@@ -169,53 +193,21 @@
  :tx/has-active-filters?
  :<- [:tx/filter]
  (fn [fltr _]
-   (or (not (str/blank? (:search fltr)))
-       (some? (:type fltr))
-       (some? (:category fltr))
-       (some? (:currency fltr)))))
+   (filters/has-active-filters? fltr)))
 
 (rf/reg-sub
  :tx/filtered-transactions
  :<- [:tx/transactions]
  :<- [:tx/filter]
  (fn [[transactions fltr] _]
-   (let [{:keys [search type category currency sort-by sort-dir]} fltr]
-     (cond->> transactions
-       (some? currency)
-       (filter #(= (:transaction/currency %) currency))
-
-       (not (str/blank? search))
-       (filter #(or (str/includes? (str/lower-case (or (:transaction/description %) ""))
-                                   (str/lower-case search))
-                    (str/includes? (str/lower-case (name (or (:transaction/category %) :other)))
-                                   (str/lower-case search))))
-
-       (some? type)
-       (filter #(= (:transaction/type %) type))
-
-       (some? category)
-       (filter #(= (:transaction/category %) category))
-
-       true
-       (sort-by (case sort-by
-                  :date :transaction/date
-                  :amount :transaction/amount
-                  :category :transaction/category
-                  :transaction/date))
-
-       (= sort-dir :desc)
-       reverse))))
+   (filters/apply-filters transactions fltr)))
 
 (rf/reg-sub
  :tx/transactions-by-date
  :<- [:tx/filtered-transactions]
  (fn [transactions _]
    (group-by (fn [tx]
-               (when-let [date (:transaction/date tx)]
-                 (let [d (js/Date. date)]
-                   (.toLocaleDateString d "en-US" #js {:year "numeric"
-                                                       :month "short"
-                                                       :day "numeric"}))))
+               (date-utils/format-date (:transaction/date tx)))
              transactions)))
 
 (rf/reg-sub

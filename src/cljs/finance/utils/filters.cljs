@@ -1,0 +1,118 @@
+(ns finance.utils.filters
+  "Shared filtering utilities for transactions, incomes, and expenses."
+  (:require [clojure.string :as str]))
+
+(defn filter-by-currency
+  "Filters transactions by currency.
+
+   Parameters:
+   - currency: Keyword (:COP, :USD, etc.) or nil for all
+   - transactions: Collection of transaction maps
+
+   Returns: Filtered collection"
+  [currency transactions]
+  (if (some? currency)
+    (filter #(= (:transaction/currency %) currency) transactions)
+    transactions))
+
+(defn filter-by-search
+  "Filters transactions by search term (searches description and category).
+
+   Parameters:
+   - search: String search term
+   - transactions: Collection of transaction maps
+
+   Returns: Filtered collection"
+  [search transactions]
+  (let [search-str (str search)]
+    (if (str/blank? search-str)
+      transactions
+      (let [search-lower (str/lower-case search-str)]
+        (filter (fn [tx]
+                  (or (str/includes? (str/lower-case (or (:transaction/description tx) ""))
+                                    search-lower)
+                      (str/includes? (str/lower-case (name (or (:transaction/category tx) :other)))
+                                    search-lower)))
+                transactions)))))
+
+(defn filter-by-type
+  "Filters transactions by type (:income or :expense).
+
+   Parameters:
+   - type: Keyword (:income or :expense) or nil for all
+   - transactions: Collection of transaction maps
+
+   Returns: Filtered collection"
+  [type transactions]
+  (if (some? type)
+    (filter #(= (:transaction/type %) type) transactions)
+    transactions))
+
+(defn filter-by-category
+  "Filters transactions by category.
+
+   Parameters:
+   - category: Keyword (category name) or nil for all
+   - transactions: Collection of transaction maps
+
+   Returns: Filtered collection"
+  [category transactions]
+  (if (some? category)
+    (filter #(= (:transaction/category %) category) transactions)
+    transactions))
+
+(defn sort-transactions
+  "Sorts transactions by specified field and direction.
+
+   Parameters:
+   - sort-field: Keyword (:date, :amount, :category)
+   - sort-dir: Keyword (:asc or :desc)
+   - transactions: Collection of transaction maps
+
+   Returns: Sorted collection"
+  [sort-field sort-dir transactions]
+  (let [sort-key (case sort-field
+                   :date :transaction/date
+                   :amount :transaction/amount
+                   :category :transaction/category
+                   :transaction/date)
+        sorted (sort-by sort-key transactions)]
+    (if (= sort-dir :desc)
+      (reverse sorted)
+      sorted)))
+
+(defn apply-filters
+  "Applies all filters to a collection of transactions.
+
+   Parameters:
+   - transactions: Collection of transaction maps
+   - filters: Map with optional keys:
+     - :search - String search term
+     - :type - :income or :expense
+     - :category - Category keyword
+     - :currency - Currency keyword
+     - :sort-by - :date, :amount, or :category
+     - :sort-dir - :asc or :desc
+
+   Returns: Filtered and sorted collection"
+  [transactions {:keys [search type category currency sort-by sort-dir]
+                 :or {sort-by :date sort-dir :desc}}]
+  (cond->> transactions
+    true (filter-by-currency currency)
+    true (filter-by-search search)
+    true (filter-by-type type)
+    true (filter-by-category category)
+    true (sort-transactions sort-by sort-dir)))
+
+(defn has-active-filters?
+  "Checks if any filters are currently active.
+
+   Parameters:
+   - filters: Map with optional keys :search, :type, :category, :currency
+
+   Returns: Boolean indicating if any filters are active"
+  [{:keys [search type category currency]}]
+  (or (not (str/blank? search))
+      (some? type)
+      (some? category)
+      (some? currency)))

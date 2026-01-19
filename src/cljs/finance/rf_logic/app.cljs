@@ -2,7 +2,10 @@
   "Shared application logic - init, routing, theme, toast, panel, errors."
   (:require [re-frame.core :as rf]
             [finance.db :as db]
-            [finance.routes :as routes]))
+            [finance.routes :as routes]
+            [finance.utils.validation :as validation]
+            [finance.utils.errors :as errors]
+            [finance.constants :as const]))
 
 (rf/reg-event-db
  :app/initialize-db
@@ -19,15 +22,15 @@
 (rf/reg-event-fx
  :app/api-error
  (fn [{:keys [db]} [_ error]]
-   {:db (-> db
-            (assoc :loading? false)
-            (assoc :error (or (get-in error [:response :error])
-                              "An error occurred")))
-    :dispatch [:app/show-toast
-               {:type :error
-                :title "Error"
-                :message (or (get-in error [:response :error])
-                             "An error occurred")}]}))
+   (let [error-msg (errors/extract-error-message error "An error occurred")]
+     (errors/log-error "API Error" error)
+     {:db (-> db
+              (assoc :loading? false)
+              (assoc :error error-msg))
+      :dispatch [:app/show-toast
+                 {:type :error
+                  :title "Error"
+                  :message error-msg}]})))
 
 (rf/reg-event-db
  :app/clear-error
@@ -35,6 +38,8 @@
    (assoc db :error nil)))
 
 (def route-init-events
+  "Maps routes to their initialization events.
+   These events are dispatched when navigating to authenticated routes."
   {:dashboard       :dashboard/init
    :transactions    :transactions/init
    :add-transaction :transactions/init
@@ -51,7 +56,7 @@
        {:dispatch [:app/navigate :dashboard]}
 
        (and authenticated? (= route :add-transaction))
-       {:db (assoc db :current-route :dashboard)
+       {:db (assoc db :current-route :add-transaction)
         :dispatch-n [[:dashboard/init]
                      [:app/open-panel :add-transaction]]}
 
@@ -76,7 +81,7 @@
  :app/load-theme
  (fn [{:keys [db]} _]
    (let [saved-theme (-> js/localStorage (.getItem "theme"))
-         theme (if saved-theme (keyword saved-theme) :light)]
+         theme (validation/sanitize-theme-string saved-theme)]
      {:db (assoc db :theme theme)
       :dispatch [:app/apply-theme theme]})))
 
@@ -105,7 +110,7 @@
    (let [id (random-uuid)
          toast-with-id (assoc toast :id id)]
      {:db (update db :toast-queue conj toast-with-id)
-      :dispatch-later [{:ms (or (:duration toast) 5000)
+      :dispatch-later [{:ms (or (:duration toast) const/toast-duration-ms)
                         :dispatch [:app/dismiss-toast id]}]})))
 
 (rf/reg-event-db

@@ -26,6 +26,9 @@ resources/public/js/
 out/
 report.html
 
+# CSS (generated)
+resources/public/css/output.css
+
 # Data files (personal data)
 data/
 

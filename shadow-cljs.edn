@@ -22,4 +22,9 @@
         :devtools {:http-root "resources/public"
                    :http-port 8280
                    :watch-dir "resources/public"
-                   :preloads [day8.re-frame-10x.preload]}}}}
+                   :preloads [day8.re-frame-10x.preload]}}
+
+  :test {:target :node-test
+         :output-to "target/test.js"
+         :autorun true
+         :ns-regexp "-test$"}}}

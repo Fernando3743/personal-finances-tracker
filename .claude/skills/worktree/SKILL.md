@@ -67,8 +67,34 @@ If unclear, use AskUserQuestion to clarify.
      git worktree add "<worktree-path>" -b <branch-name>
      ```
 
-6. **Confirm success:**
-   Display the worktree path and suggest the user can `cd` to it.
+6. **Symlink shared resources:**
+   After creating the worktree, symlink files that should be shared between worktrees:
+
+   - **Check and symlink node_modules:**
+     ```bash
+     if [ -d "node_modules" ]; then
+       ln -s "$(pwd)/node_modules" "<worktree-path>/node_modules"
+       echo "Symlinked node_modules to save space and installation time"
+     fi
+     ```
+
+   - **Check and symlink .env:**
+     ```bash
+     if [ -f ".env" ]; then
+       ln -s "$(pwd)/.env" "<worktree-path>/.env"
+       echo "Symlinked .env to share environment configuration"
+     fi
+     ```
+
+   **Note:** Use absolute paths when creating symlinks to ensure they work correctly:
+   ```bash
+   MAIN_DIR="$(pwd)"
+   ln -s "${MAIN_DIR}/node_modules" "<worktree-path>/node_modules"
+   ln -s "${MAIN_DIR}/.env" "<worktree-path>/.env"
+   ```
+
+7. **Confirm success:**
+   Display the worktree path, mention any symlinks created, and suggest the user can `cd` to it.
 
 ### Error Handling:
 - If worktree path already exists, inform user and suggest using a different branch name or removing the existing worktree
@@ -167,6 +193,8 @@ User: "Create a worktree for feature/dark-mode"
 2. Sanitize branch: feature-dark-mode
 3. Create at: ../PersonalFinancesTracker-feature-dark-mode/
 4. Run: git worktree add ../PersonalFinancesTracker-feature-dark-mode/ feature/dark-mode
+5. Symlink node_modules and .env if they exist
+6. Inform user: "Created worktree at ../PersonalFinancesTracker-feature-dark-mode/ with symlinks to node_modules and .env"
 ```
 
 ### Scenario 2: User wants to start a new feature
@@ -175,6 +203,8 @@ User: "Create a worktree for a new branch called feature/user-profile"
 1. Extract project name
 2. Create new branch and worktree
 3. Run: git worktree add ../PersonalFinancesTracker-feature-user-profile/ -b feature/user-profile
+4. Symlink node_modules and .env if they exist
+5. Inform user about the created worktree and any symlinks
 ```
 
 ### Scenario 3: User wants to clean up
