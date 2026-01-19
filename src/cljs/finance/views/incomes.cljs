@@ -208,7 +208,7 @@
         [:button {:class (str "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white "
                               "bg-gradient-to-r from-purple-700 to-purple-500 "
                               "hover:shadow-lg transition-all")
-                  :on-click #(rf/dispatch [:app/navigate :add-transaction])}
+                  :on-click #(rf/dispatch [:app/open-panel :add-transaction])}
          "Add Income"]]
 
        :else

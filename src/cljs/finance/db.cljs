@@ -44,7 +44,7 @@
             :type nil       ; nil, :income, :expense
             :category nil
             :currency nil   ; nil (all), :COP, :USD
-            :sort-by :date
+            :sort-field :date
             :sort-dir :desc}
 
    ;; Form state for adding transactions
@@ -94,14 +94,14 @@
    :incomes-filter {:search ""
                     :category nil
                     :currency nil
-                    :sort-by :date
+                    :sort-field :date
                     :sort-dir :desc}
 
    ;; Expenses page filter
    :expenses-filter {:search ""
                      :category nil
                      :currency nil
-                     :sort-by :date
+                     :sort-field :date
                      :sort-dir :desc}
 
    ;; Recurring transactions state

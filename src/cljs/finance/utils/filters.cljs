@@ -24,9 +24,9 @@
 
    Returns: Filtered collection"
   [transactions search]
-  (if (str/blank? search)
+  (if (or (nil? search) (str/blank? (str search)))
     transactions
-    (let [search-lower (str/lower-case search)]
+    (let [search-lower (str/lower-case (str search))]
       (filter (fn [tx]
                 (or (str/includes? (str/lower-case (or (:transaction/description tx) ""))
                                   search-lower)
@@ -65,12 +65,12 @@
 
    Parameters:
    - transactions: Collection of transaction maps
-   - sort-by: Keyword (:date, :amount, :category)
+   - sort-field: Keyword (:date, :amount, :category)
    - sort-dir: Keyword (:asc or :desc)
 
    Returns: Sorted collection"
-  [transactions sort-by sort-dir]
-  (let [sort-key (case sort-by
+  [transactions sort-field sort-dir]
+  (let [sort-key (case sort-field
                    :date :transaction/date
                    :amount :transaction/amount
                    :category :transaction/category
@@ -90,18 +90,18 @@
      - :type - :income or :expense
      - :category - Category keyword
      - :currency - Currency keyword
-     - :sort-by - :date, :amount, or :category
+     - :sort-field - :date, :amount, or :category
      - :sort-dir - :asc or :desc
 
    Returns: Filtered and sorted collection"
-  [transactions {:keys [search type category currency sort-by sort-dir]
-                 :or {sort-by :date sort-dir :desc}}]
-  (cond->> transactions
-    true (filter-by-currency currency)
-    true (filter-by-search search)
-    true (filter-by-type type)
-    true (filter-by-category category)
-    true (sort-transactions sort-by sort-dir)))
+  [transactions {:keys [search type category currency sort-field sort-dir]
+                 :or {sort-field :date sort-dir :desc}}]
+  (-> transactions
+      (filter-by-currency currency)
+      (filter-by-search search)
+      (filter-by-type type)
+      (filter-by-category category)
+      (sort-transactions sort-field sort-dir)))
 
 (defn has-active-filters?
   "Checks if any filters are currently active.
@@ -111,7 +111,7 @@
 
    Returns: Boolean indicating if any filters are active"
   [{:keys [search type category currency]}]
-  (or (not (str/blank? search))
+  (or (not (str/blank? (str search)))
       (some? type)
       (some? category)
       (some? currency)))
