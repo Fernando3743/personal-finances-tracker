@@ -1,7 +1,24 @@
 (ns finance.storage.datomic
   "Datomic storage implementation."
   (:require [datomic.api :as d]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.tools.logging :as log]
+            [finance.domain.transaction :as tx-domain]
+            [finance.domain.user :as user-domain]))
+
+(defn- safe-transact
+  "Safely executes a Datomic transaction with error handling and logging."
+  [conn tx-data operation-desc]
+  (try
+    (let [result @(d/transact conn tx-data)]
+      (log/debug (str "Transaction succeeded: " operation-desc))
+      result)
+    (catch Exception e
+      (log/error e (str "Transaction failed: " operation-desc))
+      (throw (ex-info (str "Database transaction failed: " operation-desc)
+                      {:operation operation-desc
+                       :tx-data tx-data}
+                      e)))))
 
 (def user-schema
   "Datomic schema for users."
@@ -283,11 +300,17 @@
         db uuid)))
 
 (defn save-transaction!
-  "Saves a transaction to the database. Returns the saved transaction."
+  "Saves a transaction to the database. Returns the saved transaction.
+   Validates transaction against spec before saving."
   [conn transaction]
-  (let [tx-data (transaction->tx-data transaction)]
-    @(d/transact conn [tx-data])
-    transaction))
+  (if (tx-domain/valid? transaction)
+    (let [tx-data (transaction->tx-data transaction)]
+      (safe-transact conn [tx-data] "save transaction")
+      transaction)
+    (do
+      (log/error (str "Invalid transaction data: " (tx-domain/explain-invalid transaction)))
+      (throw (ex-info "Invalid transaction data"
+                      {:validation-errors (tx-domain/explain-invalid transaction)})))))
 
 (defn load-transactions
   "Loads all transactions from the database. Returns a vector."
@@ -310,16 +333,22 @@
       (entity->transaction entity))))
 
 (defn update-transaction!
-  "Updates a transaction. Returns the updated transaction or nil."
+  "Updates a transaction. Returns the updated transaction or nil.
+   Validates merged transaction against spec before updating."
   [conn id updates]
   (let [db (d/db conn)
         eid (find-entity-id db id)]
     (when eid
       (let [current (d/pull db '[*] eid)
-            merged (merge (entity->transaction current) updates)
-            tx-data (transaction->tx-data merged)]
-        @(d/transact conn [tx-data])
-        merged))))
+            merged (merge (entity->transaction current) updates)]
+        (if (tx-domain/valid? merged)
+          (let [tx-data (transaction->tx-data merged)]
+            (safe-transact conn [tx-data] "update transaction")
+            merged)
+          (do
+            (log/error (str "Invalid transaction update: " (tx-domain/explain-invalid merged)))
+            (throw (ex-info "Invalid transaction update"
+                            {:validation-errors (tx-domain/explain-invalid merged)}))))))))
 
 (defn delete-transaction!
   "Deletes a transaction by ID. Returns true if deleted, false otherwise."
@@ -327,7 +356,7 @@
   (let [db (d/db conn)
         eid (find-entity-id db id)]
     (when eid
-      @(d/transact conn [[:db/retractEntity eid]])
+      (safe-transact conn [[:db/retractEntity eid]] "delete transaction")
       true)))
 
 (defn create-conn
@@ -336,10 +365,10 @@
   [uri]
   (d/create-database uri)
   (let [conn (d/connect uri)]
-    @(d/transact conn user-schema)
-    @(d/transact conn schema)
-    @(d/transact conn recurring-schema)
-    @(d/transact conn budget-schema)
+    (safe-transact conn user-schema "install user schema")
+    (safe-transact conn schema "install transaction schema")
+    (safe-transact conn recurring-schema "install recurring schema")
+    (safe-transact conn budget-schema "install budget schema")
     conn))
 
 (defn- entity->user
@@ -358,15 +387,20 @@
       (assoc :user/preferred-currency (:user/preferred-currency entity)))))
 
 (defn save-user!
-  "Saves a user to the database. Returns the saved user."
+  "Saves a user to the database. Returns the saved user.
+   Validates user against spec before saving."
   [conn user]
-  (let [tx-data {:user/id (:user/id user)
-                 :user/email (str/lower-case (:user/email user))
-                 :user/password-hash (:user/password-hash user)
-                 :user/name (:user/name user)
-                 :user/created-at (or (:user/created-at user) (java.util.Date.))}]
-    @(d/transact conn [tx-data])
-    user))
+  (if (user-domain/valid? user)
+    (let [tx-data {:user/id (:user/id user)
+                   :user/email (str/lower-case (:user/email user))
+                   :user/password-hash (:user/password-hash user)
+                   :user/name (:user/name user)
+                   :user/created-at (or (:user/created-at user) (java.util.Date.))}]
+      (safe-transact conn [tx-data] "save user")
+      user)
+    (do
+      (log/error "Invalid user data - validation failed")
+      (throw (ex-info "Invalid user data" {:user user})))))
 
 (defn find-user-by-email
   "Finds a user by email. Returns nil if not found."
@@ -443,7 +477,7 @@
                         (assoc :db/id eid)
                         (assoc :user/updated-at (java.util.Date.)))]
         (when (seq filtered-updates)
-          @(d/transact conn [tx-data])
+          (safe-transact conn [tx-data] "update user")
           (find-user-by-id conn user-id))))))
 
 (defn delete-user!
@@ -458,8 +492,8 @@
                          db user-id)
             retractions (mapv (fn [eid] [:db/retractEntity eid]) tx-eids)]
         (when (seq retractions)
-          @(d/transact conn retractions))
-        @(d/transact conn [[:db/retractEntity user-eid]])
+          (safe-transact conn retractions "delete user transactions"))
+        (safe-transact conn [[:db/retractEntity user-eid]] "delete user")
         true))))
 
 (defn get-user-statistics
@@ -558,7 +592,7 @@
   "Saves a recurring transaction to the database."
   [conn recurring]
   (let [tx-data (recurring->tx-data recurring)]
-    @(d/transact conn [tx-data])
+    (safe-transact conn [tx-data] "save recurring transaction")
     recurring))
 
 (defn load-recurring-for-user
@@ -590,7 +624,7 @@
       (let [current (d/pull db '[*] eid)
             merged (merge (entity->recurring current) updates)
             tx-data (recurring->tx-data merged)]
-        @(d/transact conn [tx-data])
+        (safe-transact conn [tx-data] "update recurring transaction")
         merged))))
 
 (defn delete-recurring!
@@ -599,7 +633,7 @@
   (let [db (d/db conn)
         eid (find-recurring-entity-id db id)]
     (when eid
-      @(d/transact conn [[:db/retractEntity eid]])
+      (safe-transact conn [[:db/retractEntity eid]] "delete recurring transaction")
       true)))
 
 (defn user-owns-recurring?
@@ -667,7 +701,7 @@
   "Saves a budget to the database."
   [conn budget]
   (let [tx-data (budget->tx-data budget)]
-    @(d/transact conn [tx-data])
+    (safe-transact conn [tx-data] "save budget")
     budget))
 
 (defn load-budgets-for-user
@@ -712,7 +746,7 @@
       (let [current (d/pull db '[*] eid)
             merged (merge (entity->budget current) updates)
             tx-data (budget->tx-data merged)]
-        @(d/transact conn [tx-data])
+        (safe-transact conn [tx-data] "update budget")
         merged))))
 
 (defn delete-budget!
@@ -721,7 +755,7 @@
   (let [db (d/db conn)
         eid (find-budget-entity-id db id)]
     (when eid
-      @(d/transact conn [[:db/retractEntity eid]])
+      (safe-transact conn [[:db/retractEntity eid]] "delete budget")
       true)))
 
 (defn user-owns-budget?

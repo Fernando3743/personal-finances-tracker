@@ -15,10 +15,14 @@
             [finance.auth.middleware :refer [wrap-current-user]]
             [nrepl.server :as nrepl]
             [nrepl.cmdline :as nrepl-cmd]
-            [cider.nrepl :refer [cider-nrepl-handler]])
+            [cider.nrepl :refer [cider-nrepl-handler]]
+            [clojure.tools.logging :as log])
   (:gen-class))
 
-(def ^:private db-uri "datomic:dev://localhost:4334/finance?password=admin")
+(defn- get-db-uri
+  "Gets database URI from environment variables."
+  []
+  (config/get-env "DATOMIC_URI"))
 
 (def session-store (redis/create-session-store))
 
@@ -65,33 +69,37 @@
 (defn start-server
   "Starts the Jetty server."
   [port]
-  (let [conn (db/create-conn db-uri)
+  (let [db-uri (get-db-uri)
+        conn (db/create-conn db-uri)
         app (create-app conn)]
-    (println (str "Starting server on http://localhost:" port))
-    (println (str "Database: " db-uri))
+    (log/info (str "Starting server on http://localhost:" port))
+    (log/info "Database connected")
     (jetty/run-jetty app {:port port :join? false})))
 
 (defn start-nrepl
-  "Starts the nREPL server with CIDER middleware."
+  "Starts the nREPL server with CIDER middleware (development only)."
   [port]
   (let [server (nrepl/start-server :port port :handler cider-nrepl-handler)]
     (nrepl-cmd/save-port-file server {})
-    (println (str "nREPL server started on port " port))
+    (log/info (str "nREPL server started on port " port))
     server))
 
 (defn -main
   "Main entry point."
   [& args]
-  (let [port (Integer/parseInt (or (first args) "3000"))]
-    (start-nrepl 7888)
+  (let [port (parse-long (or (first args) "3000"))
+        env (config/get-env-optional "ENV")]
+    (when (= "development" env)
+      (log/info "Starting nREPL in development mode")
+      (start-nrepl 7888))
     (start-server port)
-    (println "Server running. Press Ctrl+C to stop.")))
+    (log/info "Server running. Press Ctrl+C to stop.")))
 
 (comment
   ;; Development helpers
   (def server (start-server 3000))
   (.stop server)
-  (def conn (db/create-conn db-uri))
+  (def conn (db/create-conn (get-db-uri)))
 
   (d/q '[:find (pull ?e [*])
          :where

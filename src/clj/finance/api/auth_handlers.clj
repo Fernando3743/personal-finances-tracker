@@ -2,15 +2,8 @@
   "Authentication request handlers."
   (:require [finance.domain.user :as user]
             [finance.storage.datomic :as db]
-            [ring.util.response :as response]
-            [cheshire.core :as json]))
-
-(defn- json-response
-  ([body] (json-response body 200))
-  ([body status]
-   (-> (response/response (json/generate-string body))
-       (response/status status)
-       (response/content-type "application/json"))))
+            [finance.api.common :as common]
+            [clojure.tools.logging :as log]))
 
 (defn register
   "POST /api/auth/register - Creates a new user."
@@ -18,21 +11,24 @@
   (let [{:keys [email password name]} (:body request)]
     (cond
       (not (and email password name))
-      (json-response {:error "Missing required fields: email, password, name"} 400)
+      (common/error-response "Missing required fields: email, password, name" 400)
 
       (not (user/valid-email? email))
-      (json-response {:error "Invalid email format"} 400)
+      (common/error-response "Invalid email format" 400)
 
       (not (user/valid-password? password))
-      (json-response {:error "Password must be at least 8 characters"} 400)
+      (common/error-response "Password must be at least 8 characters" 400)
 
       (db/email-exists? conn email)
-      (json-response {:error "Email already registered"} 409)
+      (do
+        (log/warn "Registration attempt with existing email:" email)
+        (common/error-response "Email already registered" 409))
 
       :else
       (let [new-user (user/create-user email password name)
             _ (db/save-user! conn new-user)]
-        (-> (json-response {:user (user/sanitize-user new-user)} 201)
+        (log/info "New user registered:" email)
+        (-> (common/json-response {:user (user/sanitize-user new-user)} 201)
             (assoc :session {:user-id (:user/id new-user)}))))))
 
 (defn login
@@ -41,15 +37,23 @@
   (let [{:keys [email password]} (:body request)]
     (if-let [db-user (db/find-user-by-email conn email)]
       (if (user/verify-password password (:user/password-hash db-user))
-        (-> (json-response {:user (user/sanitize-user db-user)})
-            (assoc :session {:user-id (:user/id db-user)}))
-        (json-response {:error "Invalid credentials"} 401))
-      (json-response {:error "Invalid credentials"} 401))))
+        (do
+          (log/info "User logged in:" email)
+          (-> (common/json-response {:user (user/sanitize-user db-user)})
+              (assoc :session {:user-id (:user/id db-user)})))
+        (do
+          (log/warn "Failed login attempt for:" email)
+          (common/error-response "Invalid credentials" 401)))
+      (do
+        (log/warn "Login attempt with non-existent email:" email)
+        (common/error-response "Invalid credentials" 401)))))
 
 (defn logout
   "POST /api/auth/logout - Destroys session."
-  [_conn _request]
-  (-> (json-response {:message "Logged out"})
+  [_conn request]
+  (when-let [user-id (:user-id request)]
+    (log/info "User logged out:" user-id))
+  (-> (common/json-response {:message "Logged out"})
       (assoc :session nil)))
 
 (defn me
@@ -57,6 +61,6 @@
   [conn request]
   (if-let [user-id (:user-id request)]
     (if-let [db-user (db/find-user-by-id conn user-id)]
-      (json-response {:user (user/sanitize-user db-user)})
-      (json-response {:error "User not found"} 404))
-    (json-response {:error "Not authenticated"} 401)))
+      (common/json-response {:user (user/sanitize-user db-user)})
+      (common/error-response "User not found" 404))
+    (common/error-response "Not authenticated" 401)))

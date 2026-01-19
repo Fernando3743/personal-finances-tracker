@@ -2,7 +2,8 @@
   "Redis-backed session store using Carmine."
   (:require [taoensso.carmine :as car]
             [taoensso.carmine.ring :refer [carmine-store]]
-            [finance.config :as config]))
+            [finance.config :as config]
+            [clojure.tools.logging :as log]))
 
 (defn- redis-available?
   "Checks if Redis is available by attempting a PING command."
@@ -11,7 +12,7 @@
     (let [conn (config/redis-config)]
       (= "PONG" (car/wcar conn (car/ping))))
     (catch Exception e
-      (println "Redis connection failed:" (.getMessage e))
+      (log/error e "Redis connection failed")
       false)))
 
 (defn create-session-store
@@ -19,9 +20,8 @@
   []
   (if (redis-available?)
     (do
-      (println "Session store: Redis")
-      (println "Session redis config: " (config/redis-config))
+      (log/info "Session store initialized: Redis")
       (carmine-store (config/redis-config)
                      {:key-prefix "finance:session:"
                       :expiration-secs config/session-ttl-seconds}))
-    (throw (ex-info "Redis unavailable" {}))))
+    (throw (ex-info "Redis unavailable - cannot start server" {}))))

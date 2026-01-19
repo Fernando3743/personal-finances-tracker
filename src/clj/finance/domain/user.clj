@@ -6,7 +6,7 @@
   (:import [at.favre.lib.crypto.bcrypt BCrypt]))
 
 (s/def :user/id uuid?)
-(s/def :user/email (s/and string? #(re-matches #".+@.+\..+" %)))
+(s/def :user/email (s/and string? #(re-matches #"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$" %)))
 (s/def :user/password-hash string?)
 (s/def :user/name (s/and string? #(<= 1 (count %) 100)))
 (s/def :user/created-at inst?)
@@ -29,9 +29,12 @@
 (defn verify-password
   "Verifies a plain-text password against a BCrypt hash."
   [password hash]
-  (-> (BCrypt/verifyer)
-      (.verify (.toCharArray password) hash)
-      (.verified)))
+  (when (and password hash)
+    (try
+      (-> (BCrypt/verifyer)
+          (.verify (.toCharArray password) hash)
+          (.verified))
+      (catch Exception _ false))))
 
 (defn create-user
   "Creates a new user map with hashed password."

@@ -4,7 +4,7 @@
   (:import [java.util Calendar Date]))
 
 (s/def :recurring/id uuid?)
-(s/def :recurring/amount number?)
+(s/def :recurring/amount (s/and number? pos?))
 (s/def :recurring/type #{:income :expense})
 (s/def :recurring/category keyword?)
 (s/def :recurring/description (s/and string? #(<= (count %) 500)))
@@ -33,9 +33,6 @@
                 :recurring/next-occurrence
                 :recurring/last-generated
                 :recurring/payment-method]))
-
-(def frequencies
-  #{:daily :weekly :monthly :yearly})
 
 (defn calculate-next-occurrence
   "Calculates the next occurrence date from a given date based on frequency."

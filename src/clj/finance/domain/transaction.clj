@@ -5,7 +5,7 @@
   (:require [clojure.spec.alpha :as s]))
 
 (s/def :transaction/id uuid?)
-(s/def :transaction/amount number?)
+(s/def :transaction/amount (s/and number? pos?))
 (s/def :transaction/type #{:income :expense})
 (s/def :transaction/category keyword?)
 (s/def :transaction/date inst?)
@@ -72,7 +72,7 @@
 (defn total-balance
   "Calculates total balance from a collection of transactions."
   [transactions]
-  (reduce + 0 (map signed-amount transactions)))
+  (reduce + 0M (map signed-amount transactions)))
 
 (defn total-income
   "Calculates total income from transactions."
@@ -80,7 +80,7 @@
   (->> transactions
        (filter #(= :income (:transaction/type %)))
        (map :transaction/amount)
-       (reduce + 0)))
+       (reduce + 0M)))
 
 (defn total-expenses
   "Calculates total expenses from transactions."
@@ -88,7 +88,7 @@
   (->> transactions
        (filter #(= :expense (:transaction/type %)))
        (map :transaction/amount)
-       (reduce + 0)))
+       (reduce + 0M)))
 
 (defn by-type
   "Filters transactions by type (:income or :expense)."
