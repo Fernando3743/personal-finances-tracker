@@ -11,97 +11,122 @@
     (fn []
       (let [loading? @(rf/subscribe [:auth/loading?])
             error @(rf/subscribe [:auth/error])]
-        [:div.flow-auth-card.flow-auth-card--enhanced
-
-         [:div.flow-auth-mobile-logo
-          [:div.flow-auth-mobile-logo__icon
+        [:div {:class "w-full max-w-md mx-auto p-8 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-700"}
+         [:div {:class "flex justify-center mb-6 lg:hidden"}
+          [:div {:class "w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white"}
            [icon :dollar {:width 32 :height 32}]]]
 
-         [:div.flow-auth-header-text
-          [:h2.flow-auth-title "Welcome back"]
-          [:p.flow-auth-subtitle "Enter your credentials to access your dashboard."]]
+         [:div {:class "text-center mb-8"}
+          [:h2 {:class "text-2xl font-semibold text-neutral-900 dark:text-neutral-50 mb-2"} "Welcome back"]
+          [:p {:class "text-neutral-600 dark:text-neutral-400 text-sm"} "Enter your credentials to access your dashboard."]]
 
          (when error
-           [:div.flow-auth-error
+           [:div {:class "mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-500 text-red-600 dark:text-red-500 text-sm"}
             [:span error]])
 
-         [:form.flow-auth-form
-          {:on-submit (fn [e]
-                        (.preventDefault e)
-                        (rf/dispatch [:auth/login @email @password]))}
-
-          [:div.flow-input-group
-           [:label.flow-label {:for "email"} "Email address"]
-           [:div.flow-input-with-icon
+         [:form {:class "space-y-5"
+                 :on-submit (fn [e]
+                              (.preventDefault e)
+                              (rf/dispatch [:auth/login @email @password]))}
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "email"} "Email address"]
+           [:div {:class "relative"}
             (when (empty? @email)
-              [:div.flow-input-with-icon__icon
+              [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
                [icon :mail {:width 20 :height 20}]])
-            [:input.flow-input
-             {:id "email"
-              :type "email"
-              :placeholder "       you@example.com"
-              :value @email
-              :disabled loading?
-              :on-change #(reset! email (-> % .-target .-value))}]]]
-          [:div.flow-input-group
-           [:label.flow-label {:for "password"} "Password"]
-           [:div.flow-input-with-icon
-            (when (empty? @password)
-              [:div.flow-input-with-icon__icon
-               [icon :lock {:width 20 :height 20}]])
-            [:input.flow-input
-             {:id "password"
-              :type "password"
-              :placeholder "       ••••••••"
-              :value @password
-              :disabled loading?
-              :on-change #(reset! password (-> % .-target .-value))}]]]
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 "disabled:opacity-50 disabled:cursor-not-allowed "
+                                 "transition-all duration-200 "
+                                 (when (empty? @email) "pl-10"))
+                     :id "email"
+                     :type "email"
+                     :placeholder "you@example.com"
+                     :value @email
+                     :disabled loading?
+                     :on-change #(reset! email (-> % .-target .-value))}]]]
 
-          [:div.flow-auth-options
-           [:div.flow-auth-checkbox
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "password"} "Password"]
+           [:div {:class "relative"}
+            (when (empty? @password)
+              [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
+               [icon :lock {:width 20 :height 20}]])
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 "disabled:opacity-50 disabled:cursor-not-allowed "
+                                 "transition-all duration-200 "
+                                 (when (empty? @password) "pl-10"))
+                     :id "password"
+                     :type "password"
+                     :placeholder "••••••••"
+                     :value @password
+                     :disabled loading?
+                     :on-change #(reset! password (-> % .-target .-value))}]]]
+
+          [:div {:class "flex items-center justify-between text-sm"}
+           [:label {:class "flex items-center gap-2 cursor-pointer"}
             [:input {:type "checkbox"
+                     :class "w-4 h-4 rounded border-neutral-200 dark:border-neutral-700 text-purple-700 dark:text-purple-400 focus:ring-purple-700 dark:focus:ring-purple-400 focus:ring-offset-0"
                      :id "remember-me"
                      :checked @remember-me
                      :on-change #(swap! remember-me not)}]
-            [:label {:for "remember-me"} "Remember me"]]
-           [:a.flow-auth-forgot
-            {:on-click #(rf/dispatch [:app/show-toast
-                                      {:type :info
-                                       :title "Coming Soon"
-                                       :message "Password reset will be available soon."}])}
+            [:span {:class "text-neutral-600 dark:text-neutral-400"} "Remember me"]]
+           [:button {:type "button"
+                     :class "text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium transition-colors"
+                     :on-click #(rf/dispatch [:app/show-toast
+                                              {:type :info
+                                               :title "Coming Soon"
+                                               :message "Password reset will be available soon."}])}
             "Forgot password?"]]
 
-          [:button.flow-btn.flow-btn-primary.flow-btn-full.flow-btn--lift
-           {:type "submit"
-            :disabled (or loading? (empty? @email) (empty? @password))}
+          [:button {:class (str "w-full h-11 rounded-lg font-medium text-white "
+                                "bg-gradient-to-r from-purple-700 to-purple-500 "
+                                "hover:shadow-lg hover:-translate-y-0.5 "
+                                "active:scale-[0.98] "
+                                "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none "
+                                "transition-all duration-200")
+                    :type "submit"
+                    :disabled (or loading? (empty? @email) (empty? @password))}
            (if loading? "Signing in..." "Sign In")]]
 
-         [:div.flow-auth-divider
-          [:div.flow-auth-divider__line]
-          [:div.flow-auth-divider__text
-           [:span "Or continue with"]]]
+         [:div {:class "relative my-8"}
+          [:div {:class "absolute inset-0 flex items-center"}
+           [:div {:class "w-full border-t border-neutral-200 dark:border-neutral-700"}]]
+          [:div {:class "relative flex justify-center text-sm"}
+           [:span {:class "px-4 bg-white dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500"} "Or continue with"]]]
 
-         [:div.flow-auth-social
-          [:button.flow-auth-social__btn
-           {:type "button"
-            :on-click #(rf/dispatch [:app/show-toast
-                                     {:type :info
-                                      :title "Coming Soon"
-                                      :message "Google login will be available soon."}])}
+         [:div {:class "grid grid-cols-2 gap-3"}
+          [:button {:type "button"
+                    :class (str "flex items-center justify-center gap-2 h-11 px-4 rounded-lg "
+                                "border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                "hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 "
+                                "transition-all duration-200")
+                    :on-click #(rf/dispatch [:app/show-toast
+                                             {:type :info
+                                              :title "Coming Soon"
+                                              :message "Google login will be available soon."}])}
            [icon :google {:width 20 :height 20}]
            [:span "Google"]]
-          [:button.flow-auth-social__btn
-           {:type "button"
-            :on-click #(rf/dispatch [:app/show-toast
-                                     {:type :info
-                                      :title "Coming Soon"
-                                      :message "GitHub login will be available soon."}])}
+          [:button {:type "button"
+                    :class (str "flex items-center justify-center gap-2 h-11 px-4 rounded-lg "
+                                "border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                "hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 "
+                                "transition-all duration-200")
+                    :on-click #(rf/dispatch [:app/show-toast
+                                             {:type :info
+                                              :title "Coming Soon"
+                                              :message "GitHub login will be available soon."}])}
            [icon :github {:width 20 :height 20}]
            [:span "GitHub"]]]
 
-         [:p.flow-auth-link
+         [:p {:class "mt-8 text-center text-sm text-neutral-600 dark:text-neutral-400"}
           "Don't have an account? "
-          [:a {:on-click #(rf/dispatch [:app/navigate :register])}
+          [:button {:type "button"
+                    :class "text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium transition-colors"
+                    :on-click #(rf/dispatch [:app/navigate :register])}
            "Sign up for free"]]]))))
 
 (defn register-form []
@@ -114,99 +139,120 @@
             error @(rf/subscribe [:auth/error])
             passwords-match? (= @password @confirm-password)
             password-long-enough? (>= (count @password) 8)]
-        [:div.flow-auth-card.flow-auth-card--enhanced
-
-         [:div.flow-auth-mobile-logo
-          [:div.flow-auth-mobile-logo__icon
+        [:div {:class "w-full max-w-md mx-auto p-8 bg-white dark:bg-neutral-800 rounded-2xl shadow-lg border border-neutral-200 dark:border-neutral-700"}
+         [:div {:class "flex justify-center mb-6 lg:hidden"}
+          [:div {:class "w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white"}
            [icon :dollar {:width 32 :height 32}]]]
 
-         [:div.flow-auth-header-text
-          [:h2.flow-auth-title "Create Account"]
-          [:p.flow-auth-subtitle "Start tracking your finances today."]]
+         [:div {:class "text-center mb-8"}
+          [:h2 {:class "text-2xl font-semibold text-neutral-900 dark:text-neutral-50 mb-2"} "Create Account"]
+          [:p {:class "text-neutral-600 dark:text-neutral-400 text-sm"} "Start tracking your finances today."]]
 
          (when error
-           [:div.flow-auth-error
+           [:div {:class "mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-500 text-red-600 dark:text-red-500 text-sm"}
             [:span error]])
 
-         [:form.flow-auth-form
-          {:on-submit (fn [e]
-                        (.preventDefault e)
-                        (when (and passwords-match? password-long-enough?)
-                          (rf/dispatch [:auth/register @email @password @name])))}
-
-          [:div.flow-input-group
-           [:label.flow-label {:for "name"} "Full name"]
-           [:div.flow-input-with-icon
-            [:div.flow-input-with-icon__icon
+         [:form {:class "space-y-5"
+                 :on-submit (fn [e]
+                              (.preventDefault e)
+                              (when (and passwords-match? password-long-enough?)
+                                (rf/dispatch [:auth/register @email @password @name])))}
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "name"} "Full name"]
+           [:div {:class "relative"}
+            [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
              [icon :user {:width 20 :height 20}]]
-            [:input.flow-input
-             {:id "name"
-              :type "text"
-              :placeholder "John Doe"
-              :value @name
-              :disabled loading?
-              :on-change #(reset! name (-> % .-target .-value))}]]]
+            [:input {:class (str "w-full h-11 pl-10 pr-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 "disabled:opacity-50 disabled:cursor-not-allowed "
+                                 "transition-all duration-200")
+                     :id "name"
+                     :type "text"
+                     :placeholder "John Doe"
+                     :value @name
+                     :disabled loading?
+                     :on-change #(reset! name (-> % .-target .-value))}]]]
 
-          [:div.flow-input-group
-           [:label.flow-label {:for "reg-email"} "Email address"]
-           [:div.flow-input-with-icon
-            [:div.flow-input-with-icon__icon
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "reg-email"} "Email address"]
+           [:div {:class "relative"}
+            [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
              [icon :mail {:width 20 :height 20}]]
-            [:input.flow-input
-             {:id "reg-email"
-              :type "email"
-              :placeholder "you@example.com"
-              :value @email
-              :disabled loading?
-              :on-change #(reset! email (-> % .-target .-value))}]]]
+            [:input {:class (str "w-full h-11 pl-10 pr-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 "disabled:opacity-50 disabled:cursor-not-allowed "
+                                 "transition-all duration-200")
+                     :id "reg-email"
+                     :type "email"
+                     :placeholder "you@example.com"
+                     :value @email
+                     :disabled loading?
+                     :on-change #(reset! email (-> % .-target .-value))}]]]
 
-          [:div.flow-input-group
-           [:label.flow-label {:for "reg-password"} "Password"]
-           [:div.flow-input-with-icon
-            [:div.flow-input-with-icon__icon
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "reg-password"} "Password"]
+           [:div {:class "relative"}
+            [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
              [icon :lock {:width 20 :height 20}]]
-            [:input.flow-input
-             {:id "reg-password"
-              :type "password"
-              :placeholder "At least 8 characters"
-              :value @password
-              :disabled loading?
-              :class (when (and (not-empty @password) (not password-long-enough?))
-                       "flow-input-error")
-              :on-change #(reset! password (-> % .-target .-value))}]]
+            [:input {:class (str "w-full h-11 pl-10 pr-4 rounded-lg border bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 "disabled:opacity-50 disabled:cursor-not-allowed "
+                                 "transition-all duration-200 "
+                                 (if (and (not-empty @password) (not password-long-enough?))
+                                   "border-red-500 focus:ring-red-500"
+                                   "border-neutral-200 dark:border-neutral-700"))
+                     :id "reg-password"
+                     :type "password"
+                     :placeholder "At least 8 characters"
+                     :value @password
+                     :disabled loading?
+                     :on-change #(reset! password (-> % .-target .-value))}]]
            (when (and (not-empty @password) (not password-long-enough?))
-             [:span.flow-input-hint.flow-input-hint-error
-              "Password must be at least 8 characters"])]
+             [:span {:class "text-xs text-red-600 dark:text-red-500"} "Password must be at least 8 characters"])]
 
-          [:div.flow-input-group
-           [:label.flow-label {:for "confirm-password"} "Confirm password"]
-           [:div.flow-input-with-icon
-            [:div.flow-input-with-icon__icon
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "confirm-password"} "Confirm password"]
+           [:div {:class "relative"}
+            [:div {:class "absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 pointer-events-none"}
              [icon :lock {:width 20 :height 20}]]
-            [:input.flow-input
-             {:id "confirm-password"
-              :type "password"
-              :placeholder "Re-enter your password"
-              :value @confirm-password
-              :disabled loading?
-              :class (when (and (not-empty @confirm-password) (not passwords-match?))
-                       "flow-input-error")
-              :on-change #(reset! confirm-password (-> % .-target .-value))}]]
+            [:input {:class (str "w-full h-11 pl-10 pr-4 rounded-lg border bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 "disabled:opacity-50 disabled:cursor-not-allowed "
+                                 "transition-all duration-200 "
+                                 (if (and (not-empty @confirm-password) (not passwords-match?))
+                                   "border-red-500 focus:ring-red-500"
+                                   "border-neutral-200 dark:border-neutral-700"))
+                     :id "confirm-password"
+                     :type "password"
+                     :placeholder "Re-enter your password"
+                     :value @confirm-password
+                     :disabled loading?
+                     :on-change #(reset! confirm-password (-> % .-target .-value))}]]
            (when (and (not-empty @confirm-password) (not passwords-match?))
-             [:span.flow-input-hint.flow-input-hint-error
-              "Passwords do not match"])]
+             [:span {:class "text-xs text-red-600 dark:text-red-500"} "Passwords do not match"])]
 
-          [:button.flow-btn.flow-btn-primary.flow-btn-full.flow-btn--lift
-           {:type "submit"
-            :disabled (or loading?
-                          (empty? @name)
-                          (empty? @email)
-                          (empty? @password)
-                          (not passwords-match?)
-                          (not password-long-enough?))}
+          [:button {:class (str "w-full h-11 rounded-lg font-medium text-white "
+                                "bg-gradient-to-r from-purple-700 to-purple-500 "
+                                "hover:shadow-lg hover:-translate-y-0.5 "
+                                "active:scale-[0.98] "
+                                "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none "
+                                "transition-all duration-200")
+                    :type "submit"
+                    :disabled (or loading?
+                                  (empty? @name)
+                                  (empty? @email)
+                                  (empty? @password)
+                                  (not passwords-match?)
+                                  (not password-long-enough?))}
            (if loading? "Creating account..." "Create Account")]]
 
-         [:p.flow-auth-link
+         [:p {:class "mt-8 text-center text-sm text-neutral-600 dark:text-neutral-400"}
           "Already have an account? "
-          [:a {:on-click #(rf/dispatch [:app/navigate :login])}
+          [:button {:type "button"
+                    :class "text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium transition-colors"
+                    :on-click #(rf/dispatch [:app/navigate :login])}
            "Sign in"]]]))))

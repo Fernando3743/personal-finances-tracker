@@ -21,39 +21,49 @@
                         :USD "US Dollar"
                         (name currency))
         trend-percent (if (pos? balance) 2.5 -0.4)
-        trend-positive? (pos? trend-percent)]
-    [:div.currency-card
-     {:class (str "currency-card--" (name currency))}
-     [:div.currency-card__header
-      [:div.currency-card__info
-       [:div.currency-card__badge (name currency)]
-       [:div.currency-card__details
-        [:span.currency-card__name currency-name]
-        [:span.currency-card__balance (currency/format-currency balance currency)]]]
-      [:div.currency-card__trend
-       {:class (if trend-positive? "currency-card__trend--up" "currency-card__trend--down")}
-       [icon (if trend-positive? :trending-up :trending-down) {:width 14 :height 14}]
+        trend-positive? (pos? trend-percent)
+        badge-colors (case currency
+                       :COP {:bg "bg-blue-50 dark:bg-blue-900/20" :text "text-blue-600 dark:text-blue-400"}
+                       :USD {:bg "bg-violet-50 dark:bg-violet-900/20" :text "text-violet-600 dark:text-violet-400"}
+                       {:bg "bg-gray-50 dark:bg-gray-800" :text "text-gray-600 dark:text-gray-400"})]
+    [:div {:class "bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6"}
+     [:div {:class "flex justify-between items-start mb-8"}
+      [:div {:class "flex gap-4"}
+       [:div {:class (str "h-12 w-12 rounded-lg flex items-center justify-center font-bold "
+                          (:bg badge-colors) " " (:text badge-colors))}
+        (name currency)]
+       [:div
+        [:p {:class "text-sm text-gray-500 dark:text-gray-400"} currency-name]
+        [:h3 {:class "text-3xl font-bold text-gray-900 dark:text-gray-50"}
+         (currency/format-currency balance currency)]]]
+      [:div {:class (str "px-2 py-1 rounded text-sm font-medium flex items-center gap-1 "
+                         (if trend-positive?
+                           "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400"
+                           "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"))}
+       [icon (if trend-positive? :trending-up :trending-down) {:width 12 :height 12}]
        [:span (str (when trend-positive? "+") trend-percent "%")]]]
-     [:div.currency-card__footer
-      [:div.currency-card__stat
-       [:div.currency-card__stat-header
-        [:span.currency-card__stat-dot.currency-card__stat-dot--income]
-        [:span.currency-card__stat-label "Income"]]
-       [:span.currency-card__stat-value (currency/format-currency income currency)]]
-      [:div.currency-card__stat
-       [:div.currency-card__stat-header
-        [:span.currency-card__stat-dot.currency-card__stat-dot--expense]
-        [:span.currency-card__stat-label "Expenses"]]
-       [:span.currency-card__stat-value (currency/format-currency expenses currency)]]]]))
+     [:div {:class "flex justify-between items-center"}
+      [:div
+       [:div {:class "flex items-center gap-2 mb-1"}
+        [:div {:class "w-2 h-2 rounded-full bg-emerald-500"}]
+        [:span {:class "text-sm text-gray-500 dark:text-gray-400"} "Income"]]
+       [:p {:class "text-lg font-semibold"}
+        (currency/format-currency income currency)]]
+      [:div {:class "text-right"}
+       [:div {:class "flex items-center gap-2 mb-1 justify-end"}
+        [:div {:class "w-2 h-2 rounded-full bg-red-500"}]
+        [:span {:class "text-sm text-gray-500 dark:text-gray-400"} "Expenses"]]
+       [:p {:class "text-lg font-semibold"}
+        (currency/format-currency expenses currency)]]]]))
 
 (defn balances-section []
   (let [currency-balances @(rf/subscribe [:dashboard/all-currency-balances])
         currencies @(rf/subscribe [:dashboard/available-currencies])]
     [:<>
-     [:div.dashboard-header
-      [:h1.dashboard-header__title "Dashboard"]
-      [:p.dashboard-header__subtitle "Your finances across all currencies"]]
-     [:div.currency-cards-grid
+     [:div {:class "mb-6"}
+      [:h1 {:class "text-2xl font-bold text-gray-900 dark:text-gray-50"} "Dashboard"]
+      [:p {:class "text-gray-500 dark:text-gray-400"} "Your finances across all currencies"]]
+     [:div {:class "grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"}
       (if (seq currency-balances)
         (for [{:keys [currency balance income expenses]} currency-balances]
           ^{:key currency}
@@ -70,43 +80,45 @@
         is-income? (= type :income)
         curr (or currency :COP)
         display-text (or description (str (name (or category :other)) " transaction"))]
-    [:div.transaction-row
-     {:on-click #(rf/dispatch [:app/navigate :transactions])}
-     [:div.transaction-row__date
-      [:span.date-day day]
-      [:span.date-month-year month-year]]
-     [:div.transaction-row__description display-text]
-     [:div.transaction-row__currency
-      [:span.currency-badge (name curr)]]
-     [:div.transaction-row__amount
-      {:class (if is-income? "amount--positive" "amount--negative")}
+    [:div {:class "flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800 rounded-lg cursor-pointer transition-colors"
+           :on-click #(rf/dispatch [:app/navigate :transactions])}
+     [:div {:class "text-center min-w-[3rem]"}
+      [:div {:class "text-lg font-semibold text-gray-900 dark:text-gray-50"} day]
+      [:div {:class "text-xs text-gray-500 dark:text-gray-400"} month-year]]
+     [:div {:class "flex-1 min-w-0 text-sm text-gray-900 dark:text-gray-50 truncate"} display-text]
+     [:div {:class "px-2 py-0.5 rounded bg-gray-100 dark:bg-neutral-800 text-xs font-medium text-gray-600 dark:text-gray-400"} (name curr)]
+     [:div {:class (str "font-mono font-semibold text-sm "
+                        (if is-income? "text-green-600 dark:text-green-500" "text-red-600 dark:text-red-500"))}
       (if is-income?
         (currency/format-currency amount curr)
         (str "-" (currency/format-currency amount curr)))]
-     [:span.transaction-row__chevron ">"]]))
+     [:span {:class "text-gray-400 dark:text-gray-500"} ">"]]))
 
 (defn transactions-panel []
   (let [transactions @(rf/subscribe [:tx/recent-transactions])]
-    [:div.transactions-panel
-     [:div.transactions-panel__header
-      [:div.transactions-panel__header-content
-       [:h2.transactions-panel__title "Transactions"]
-       [:p.transactions-panel__subtitle "Recent activity"]]
-      [:a.view-all-link
-       {:on-click #(rf/dispatch [:app/navigate :transactions])}
+    [:div {:class "bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-5"}
+     [:div {:class "flex items-center justify-between mb-4"}
+      [:div
+       [:h2 {:class "text-lg font-semibold text-gray-900 dark:text-gray-50"} "Transactions"]
+       [:p {:class "text-sm text-gray-600 dark:text-gray-400"} "Recent activity"]]
+      [:button {:class "text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium transition-colors"
+                :on-click #(rf/dispatch [:app/navigate :transactions])}
        "View all >"]]
 
      (if (empty? transactions)
-       [:div.transactions-panel__empty
-        [:p "No transactions yet"]
-        [:button.flow-btn.flow-btn--primary
-         {:on-click #(rf/dispatch [:app/navigate :add-transaction])}
+       [:div {:class "text-center py-12"}
+        [:p {:class "text-gray-600 dark:text-gray-400 mb-4"} "No transactions yet"]
+        [:button {:class (str "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white "
+                              "bg-violet-600 hover:bg-violet-700 "
+                              "transition-all")
+                  :on-click #(rf/dispatch [:app/navigate :add-transaction])}
          "Add Transaction"]]
 
-       [:div.transactions-table
+       [:div {:class "divide-y divide-gray-200 dark:divide-neutral-700 -mx-5"}
         (for [t transactions]
           ^{:key (or (:transaction/id t) (random-uuid))}
-          [transaction-row t])])]))
+          [:div {:class "px-5"}
+           [transaction-row t]])])]))
 
 (def category-colors
   {:housing "#7c3aed"
@@ -156,15 +168,15 @@
         width 500
         height 200
         y-labels [4 3 2 1 0]]
-    [:div.cash-flow-chart
-     [:div.cash-flow-chart__y-axis
+    [:div {:class "flex gap-4"}
+     [:div {:class "flex flex-col justify-between text-xs text-gray-500 dark:text-gray-400 py-2"}
       (for [label y-labels]
         ^{:key label}
-        [:span.cash-flow-chart__y-label (str label "k")])]
-     [:div.cash-flow-chart__graph
+        [:span (str label "k")])]
+     [:div {:class "flex-1 relative"}
       [:svg {:viewBox (str "0 0 " width " " height)
              :preserveAspectRatio "none"
-             :class "cash-flow-chart__svg"}
+             :class "w-full h-48"}
        [:defs
         [:linearGradient {:id "incomeGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
          [:stop {:offset "0%" :stop-color "#10b981" :stop-opacity "0.3"}]
@@ -175,7 +187,7 @@
        (for [i (range 5)]
          ^{:key i}
          [:line {:x1 0 :y1 (* i (/ height 4)) :x2 width :y2 (* i (/ height 4))
-                 :stroke "var(--color-border-subtle)" :stroke-dasharray "4 4"}])
+                 :stroke "currentColor" :stroke-dasharray "4 4" :class "text-gray-200 dark:text-neutral-700"}])
        [:path {:d (str (generate-smooth-path income-data width height rounded-max)
                        " L " width " " height " L 0 " height " Z")
                :fill "url(#incomeGradient)"}]
@@ -189,17 +201,19 @@
 
 (defn cash-flow-widget []
   (let [time-range @(rf/subscribe [:dashboard/chart-time-range])]
-    [:div.chart-panel
-     [:div.chart-panel__header
-      [:div.chart-panel__titles
-       [:h3.chart-panel__title "Monthly Cash Flow"]
-       [:p.chart-panel__subtitle "Income vs Expenses Analysis"]]
-      [:div.time-range-selector
+    [:div {:class "bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-5"}
+     [:div {:class "flex items-center justify-between pb-8"}
+      [:div
+       [:h3 {:class "text-lg font-bold text-gray-900 dark:text-gray-50"} "Monthly Cash Flow"]
+       [:p {:class "text-sm text-gray-500 dark:text-gray-400 mt-1"} "Income vs Expenses Analysis"]]
+      [:div {:class "flex gap-1 p-1 bg-gray-100 dark:bg-neutral-800 rounded-lg"}
        (for [[key label] [[:week "W"] [:month "M"] [:year "Y"]]]
          ^{:key key}
-         [:button.range-btn
-          {:class (when (= time-range key) "range-btn--active")
-           :on-click #(rf/dispatch [:dashboard/set-chart-range key])}
+         [:button {:class (str "px-3 py-1.5 rounded-md text-sm font-medium transition-colors "
+                               (if (= time-range key)
+                                 "bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-50 shadow-sm"
+                                 "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-50"))
+                   :on-click #(rf/dispatch [:dashboard/set-chart-range key])}
           label])]]
      [cash-flow-chart]]))
 
@@ -209,10 +223,10 @@
         radius (/ (- size stroke-width) 2)
         circumference (* 2 js/Math.PI radius)
         center (/ size 2)]
-    [:div.donut-chart
+    [:div {:class "relative inline-flex items-center justify-center"}
      [:svg {:width size :height size :viewBox (str "0 0 " size " " size)}
       [:circle {:cx center :cy center :r radius
-                :fill "none" :stroke "var(--color-border-subtle)" :stroke-width stroke-width}]
+                :fill "none" :stroke "currentColor" :stroke-width stroke-width :class "text-gray-200 dark:text-neutral-700"}]
       (let [offset (atom 0)]
         (for [{:keys [percent color]} segments]
           (let [dash (* (/ percent 100) circumference)
@@ -225,9 +239,9 @@
                       :stroke-dasharray (str dash " " gap)
                       :stroke-dashoffset (- (* 0.25 circumference) current-offset)
                       :style {:transform "rotate(-90deg)" :transform-origin "center"}}])))]
-     [:div.donut-chart__center
-      [:span.donut-chart__label "TOTAL"]
-      [:span.donut-chart__value (currency/format-currency total :USD)]]]))
+     [:div {:class "absolute inset-0 flex flex-col items-center justify-center"}
+      [:span {:class "text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide"} "TOTAL"]
+      [:span {:class "text-lg font-bold text-gray-900 dark:text-gray-50"} (currency/format-currency total :USD)]]]))
 
 (defn category-donut-widget []
   (let [{:keys [categories]} @(rf/subscribe [:dashboard/category-totals])
@@ -249,19 +263,18 @@
                     {:name "Transport" :percent 15 :color "#10B981"}
                     {:name "Others" :percent 15 :color "#EF4444"}])
         display-total (if (pos? total-expenses) total-expenses 2690)]
-    [:div.chart-panel.chart-panel--category
-     [:div.chart-panel__header
-      [:h3.chart-panel__title "Spending by Category"]]
-     [:div.category-chart-content
+    [:div {:class "bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-5"}
+     [:h3 {:class "text-lg font-bold text-gray-900 dark:text-gray-50 mb-6"} "Spending by Category"]
+     [:div {:class "flex flex-col items-center gap-6"}
       [donut-chart {:segments segments :total display-total}]
-      [:div.category-legend
+      [:div {:class "flex-1 space-y-3 w-full"}
        (for [{:keys [name percent color]} segments]
          ^{:key name}
-         [:div.category-legend__item
-          [:div.category-legend__info
-           [:span.category-legend__dot {:style {:background-color color}}]
-           [:span.category-legend__name (str/capitalize name)]]
-          [:span.category-legend__percent (str (js/Math.round percent) "%")]])]]]))
+         [:div {:class "flex items-center justify-between"}
+          [:div {:class "flex items-center gap-2"}
+           [:span {:class "w-3 h-3 rounded-full" :style {:background-color color}}]
+           [:span {:class "text-sm text-gray-600 dark:text-gray-400"} (str/capitalize name)]]
+          [:span {:class "text-sm font-bold text-gray-900 dark:text-gray-50"} (str (js/Math.round percent) "%")]])]]]))
 
 (defn trend-chart-widget []
   [cash-flow-widget])
@@ -270,25 +283,24 @@
   [category-donut-widget])
 
 (defn dashboard-skeleton []
-  [:div.dashboard-skeleton
-   [:div.skeleton-balances
+  [:div {:class "space-y-8"}
+   [:div {:class "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"}
     (for [i (range 3)]
       ^{:key i}
-      [:div.skeleton-card])]
-   [:div.skeleton-content
-    [:div.skeleton-panel]
-    [:div.skeleton-sidebar
-     [:div.skeleton-widget]
-     [:div.skeleton-widget]]]])
+      [:div {:class "h-40 rounded-2xl bg-gray-100 dark:bg-neutral-800 animate-pulse"}])]
+   [:div {:class "grid grid-cols-1 lg:grid-cols-2 gap-6"}
+    [:div {:class "h-80 rounded-xl bg-gray-100 dark:bg-neutral-800 animate-pulse"}]
+    [:div {:class "h-80 rounded-xl bg-gray-100 dark:bg-neutral-800 animate-pulse"}]]])
 
 (defn dashboard-view []
   (let [loading? @(rf/subscribe [:app/loading?])]
-    [:div.dashboard
+    [:div {:class "max-w-7xl mx-auto space-y-8"}
      (if loading?
        [dashboard-skeleton]
        [:<>
         [balances-section]
-        [:div.charts-section
-         [cash-flow-widget]
+        [:div {:class "grid grid-cols-1 lg:grid-cols-3 gap-6"}
+         [:div {:class "lg:col-span-2"}
+          [cash-flow-widget]]
          [category-donut-widget]]
         [transactions-panel]])]))

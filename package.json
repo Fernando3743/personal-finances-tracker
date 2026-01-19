@@ -3,12 +3,21 @@
   "version": "0.1.0",
   "description": "Personal Finance Tracker - Clojure/ClojureScript study project",
   "scripts": {
-    "dev": "shadow-cljs watch app",
-    "release": "shadow-cljs release app",
+    "dev": "npm-run-all --parallel dev:css dev:cljs",
+    "dev:cljs": "shadow-cljs watch app",
+    "dev:css": "postcss resources/public/css/src/main.css -o resources/public/css/output.css --watch",
+    "build:css": "NODE_ENV=production postcss resources/public/css/src/main.css -o resources/public/css/output.css",
+    "release": "npm run build:css && shadow-cljs release app",
     "server": "shadow-cljs server"
   },
   "devDependencies": {
-    "shadow-cljs": "^2.26.0"
+    "shadow-cljs": "^2.26.0",
+    "tailwindcss": "3.4.17",
+    "postcss": "^8.4.35",
+    "postcss-cli": "^11.0.0",
+    "autoprefixer": "^10.4.17",
+    "cssnano": "^7.0.0",
+    "npm-run-all": "^4.1.5"
   },
   "dependencies": {
     "react": "^18.2.0",

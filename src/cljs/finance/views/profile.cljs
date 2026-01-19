@@ -9,13 +9,13 @@
   (let [user @(rf/subscribe [:auth/user])
         user-name (or (:user/name user) "User")
         initial (first user-name)]
-    [:div.profile-avatar-section
-     [:div.profile-avatar
-      [:span.profile-avatar__initial initial]]
-     [:div.profile-avatar-info
-      [:h2.profile-avatar-info__name user-name]
-      [:p.profile-avatar-info__email (:user/email user)]
-      [:p.profile-avatar-coming-soon
+    [:div {:class "flex items-center gap-4 mb-8"}
+     [:div {:class "w-20 h-20 rounded-full bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white text-3xl font-bold"}
+      initial]
+     [:div
+      [:h2 {:class "text-xl font-semibold text-neutral-900 dark:text-neutral-50"} user-name]
+      [:p {:class "text-neutral-600 dark:text-neutral-400"} (:user/email user)]
+      [:p {:class "flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500 mt-2"}
        [icon :upload {:width 14 :height 14}]
        "Custom profile photos coming soon"]]]))
 
@@ -28,36 +28,39 @@
       (let [user @(rf/subscribe [:auth/user])
             changed? (or (not= @name-val (:user/name user))
                          (not= @email-val (:user/email user)))]
-        [:div.profile-section
-         [:div.profile-section__header
-          [:div.profile-section__header-content
-           [:span.profile-section__icon [icon :user {:width 20 :height 20}]]
-           [:div
-            [:h3.profile-section__title "Profile Information"]
-            [:p.profile-section__subtitle "Update your personal details"]]]]
-         [:div.profile-section__body
-          [:div.flow-form
-           [:div.flow-form__row
-            [:div.flow-form__field
-             [:label.flow-label {:for "profile-name"} "Name"]
-             [:input.flow-input
-              {:id "profile-name"
-               :type "text"
-               :value @name-val
-               :on-change #(reset! name-val (-> % .-target .-value))}]]
-            [:div.flow-form__field
-             [:label.flow-label {:for "profile-email"} "Email"]
-             [:input.flow-input
-              {:id "profile-email"
-               :type "email"
-               :value @email-val
-               :on-change #(reset! email-val (-> % .-target .-value))}]]]
-           [:div.flow-form__actions
-            [:button.flow-btn.flow-btn--primary
-             {:disabled (or saving? (not changed?))
-              :on-click #(rf/dispatch [:profile/update {:name @name-val
-                                                        :email @email-val}])}
-             (if saving? "Saving..." "Save Changes")]]]]]))))
+        [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 mb-6"}
+         [:div {:class "flex items-center gap-3 mb-4"}
+          [:div {:class "p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"}
+           [icon :user {:width 20 :height 20}]]
+          [:div
+           [:h3 {:class "text-lg font-semibold text-neutral-900 dark:text-neutral-50"} "Profile Information"]
+           [:p {:class "text-sm text-neutral-600 dark:text-neutral-400"} "Update your personal details"]]]
+         [:div {:class "space-y-4"}
+          [:div {:class "grid grid-cols-1 md:grid-cols-2 gap-4"}
+           [:div {:class "space-y-1.5"}
+            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "profile-name"} "Name"]
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent")
+                     :id "profile-name"
+                     :type "text"
+                     :value @name-val
+                     :on-change #(reset! name-val (-> % .-target .-value))}]]
+           [:div {:class "space-y-1.5"}
+            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "profile-email"} "Email"]
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent")
+                     :id "profile-email"
+                     :type "email"
+                     :value @email-val
+                     :on-change #(reset! email-val (-> % .-target .-value))}]]]
+          [:div {:class "flex justify-end"}
+           [:button {:class (str "px-4 py-2 rounded-lg font-medium text-white "
+                                 "bg-gradient-to-r from-purple-700 to-purple-500 "
+                                 "hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all")
+                     :disabled (or saving? (not changed?))
+                     :on-click #(rf/dispatch [:profile/update {:name @name-val
+                                                               :email @email-val}])}
+            (if saving? "Saving..." "Save Changes")]]]]))))
 
 (defn password-change-section []
   (let [current-pw (r/atom "")
@@ -71,61 +74,65 @@
                              (not-empty @new-pw)
                              passwords-match?
                              password-long-enough?)]
-        [:div.profile-section
-         [:div.profile-section__header
-          [:div.profile-section__header-content
-           [:span.profile-section__icon [icon :key {:width 20 :height 20}]]
-           [:div
-            [:h3.profile-section__title "Change Password"]
-            [:p.profile-section__subtitle "Update your password for better security"]]]]
-         [:div.profile-section__body
-          [:div.flow-form
-           [:div.flow-form__field
-            [:label.flow-label {:for "current-password"} "Current Password"]
-            [:input.flow-input
-             {:id "current-password"
-              :type "password"
-              :value @current-pw
-              :placeholder "Enter current password"
-              :on-change #(reset! current-pw (-> % .-target .-value))}]]
-           [:div.flow-form__row
-            [:div.flow-form__field
-             [:label.flow-label {:for "new-password"} "New Password"]
-             [:input.flow-input
-              {:id "new-password"
-               :type "password"
-               :value @new-pw
-               :placeholder "At least 8 characters"
-               :class (when (and (not-empty @new-pw) (not password-long-enough?))
-                        "flow-input--error")
-               :on-change #(reset! new-pw (-> % .-target .-value))}]
-             (when (and (not-empty @new-pw) (not password-long-enough?))
-               [:span.flow-input-hint.flow-input-hint--error
-                "Password must be at least 8 characters"])]
-            [:div.flow-form__field
-             [:label.flow-label {:for "confirm-password"} "Confirm Password"]
-             [:input.flow-input
-              {:id "confirm-password"
-               :type "password"
-               :value @confirm-pw
-               :placeholder "Re-enter new password"
-               :class (when (and (not-empty @confirm-pw) (not passwords-match?))
-                        "flow-input--error")
-               :on-change #(reset! confirm-pw (-> % .-target .-value))}]
-             (when (and (not-empty @confirm-pw) (not passwords-match?))
-               [:span.flow-input-hint.flow-input-hint--error
-                "Passwords do not match"])]]
-           [:div.flow-form__actions
-            [:button.flow-btn.flow-btn--primary
-             {:disabled (or (not can-submit?) saving?)
-              :on-click #(do
-                           (rf/dispatch [:profile/change-password
-                                         {:current_password @current-pw
-                                          :new_password @new-pw}])
-                           (reset! current-pw "")
-                           (reset! new-pw "")
-                           (reset! confirm-pw ""))}
-             (if saving? "Changing..." "Change Password")]]]]]))))
+        [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 mb-6"}
+         [:div {:class "flex items-center gap-3 mb-4"}
+          [:div {:class "p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"}
+           [icon :key {:width 20 :height 20}]]
+          [:div
+           [:h3 {:class "text-lg font-semibold text-neutral-900 dark:text-neutral-50"} "Change Password"]
+           [:p {:class "text-sm text-neutral-600 dark:text-neutral-400"} "Update your password for better security"]]]
+         [:div {:class "space-y-4"}
+          [:div {:class "space-y-1.5"}
+           [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "current-password"} "Current Password"]
+           [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent")
+                    :id "current-password"
+                    :type "password"
+                    :value @current-pw
+                    :placeholder "Enter current password"
+                    :on-change #(reset! current-pw (-> % .-target .-value))}]]
+          [:div {:class "grid grid-cols-1 md:grid-cols-2 gap-4"}
+           [:div {:class "space-y-1.5"}
+            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "new-password"} "New Password"]
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 (if (and (not-empty @new-pw) (not password-long-enough?))
+                                   "border-red-500"
+                                   "border-neutral-200 dark:border-neutral-700"))
+                     :id "new-password"
+                     :type "password"
+                     :value @new-pw
+                     :placeholder "At least 8 characters"
+                     :on-change #(reset! new-pw (-> % .-target .-value))}]
+            (when (and (not-empty @new-pw) (not password-long-enough?))
+              [:span {:class "text-xs text-red-600 dark:text-red-500"} "Password must be at least 8 characters"])]
+           [:div {:class "space-y-1.5"}
+            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50" :for "confirm-password"} "Confirm Password"]
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-700 dark:focus:ring-purple-400 focus:border-transparent "
+                                 (if (and (not-empty @confirm-pw) (not passwords-match?))
+                                   "border-red-500"
+                                   "border-neutral-200 dark:border-neutral-700"))
+                     :id "confirm-password"
+                     :type "password"
+                     :value @confirm-pw
+                     :placeholder "Re-enter new password"
+                     :on-change #(reset! confirm-pw (-> % .-target .-value))}]
+            (when (and (not-empty @confirm-pw) (not passwords-match?))
+              [:span {:class "text-xs text-red-600 dark:text-red-500"} "Passwords do not match"])]]
+          [:div {:class "flex justify-end"}
+           [:button {:class (str "px-4 py-2 rounded-lg font-medium text-white "
+                                 "bg-gradient-to-r from-purple-700 to-purple-500 "
+                                 "hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all")
+                     :disabled (or (not can-submit?) saving?)
+                     :on-click #(do
+                                  (rf/dispatch [:profile/change-password
+                                                {:current_password @current-pw
+                                                 :new_password @new-pw}])
+                                  (reset! current-pw "")
+                                  (reset! new-pw "")
+                                  (reset! confirm-pw ""))}
+            (if saving? "Changing..." "Change Password")]]]]))))
 
 (defn statistics-section []
   (let [stats @(rf/subscribe [:profile/statistics])
@@ -135,73 +142,72 @@
                        (.toLocaleDateString (js/Date. created-at)
                                             "en-US"
                                             #js {:year "numeric" :month "long" :day "numeric"}))]
-    [:div.profile-section.profile-section--stats
-     [:div.profile-section__header
-      [:div.profile-section__header-content
-       [:span.profile-section__icon [icon :bar-chart {:width 20 :height 20}]]
-       [:div
-        [:h3.profile-section__title "Account Statistics"]
-        [:p.profile-section__subtitle "Your activity overview"]]]]
-     [:div.profile-section__body
-      [:div.profile-stats-grid
-       [:div.profile-stat-card
-        [:div.profile-stat-card__icon
-         [icon :calendar {:width 24 :height 24}]]
-        [:div.profile-stat-card__content
-         [:span.profile-stat-card__label "Member Since"]
-         [:span.profile-stat-card__value (or member-since "N/A")]]]
-       [:div.profile-stat-card
-        [:div.profile-stat-card__icon
-         [icon :list {:width 24 :height 24}]]
-        [:div.profile-stat-card__content
-         [:span.profile-stat-card__label "Total Transactions"]
-         [:span.profile-stat-card__value (or (:total-transactions stats) 0)]]]
-       [:div.profile-stat-card.profile-stat-card--income
-        [:div.profile-stat-card__icon
-         [icon :trending-up {:width 24 :height 24}]]
-        [:div.profile-stat-card__content
-         [:span.profile-stat-card__label "Income Entries"]
-         [:span.profile-stat-card__value (or (:income-count stats) 0)]]]
-       [:div.profile-stat-card.profile-stat-card--expense
-        [:div.profile-stat-card__icon
-         [icon :trending-down {:width 24 :height 24}]]
-        [:div.profile-stat-card__content
-         [:span.profile-stat-card__label "Expense Entries"]
-         [:span.profile-stat-card__value (or (:expense-count stats) 0)]]]]]]))
+    [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 mb-6"}
+     [:div {:class "flex items-center gap-3 mb-4"}
+      [:div {:class "p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"}
+       [icon :bar-chart {:width 20 :height 20}]]
+      [:div
+       [:h3 {:class "text-lg font-semibold text-neutral-900 dark:text-neutral-50"} "Account Statistics"]
+       [:p {:class "text-sm text-neutral-600 dark:text-neutral-400"} "Your activity overview"]]]
+     [:div {:class "grid grid-cols-2 md:grid-cols-4 gap-4"}
+      [:div {:class "p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
+       [:div {:class "flex items-center gap-2 text-neutral-400 dark:text-neutral-500 mb-2"}
+        [icon :calendar {:width 20 :height 20}]]
+       [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Member Since"]
+       [:div {:class "text-sm font-semibold text-neutral-900 dark:text-neutral-50"} (or member-since "N/A")]]
+      [:div {:class "p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
+       [:div {:class "flex items-center gap-2 text-neutral-400 dark:text-neutral-500 mb-2"}
+        [icon :list {:width 20 :height 20}]]
+       [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Total Transactions"]
+       [:div {:class "text-lg font-semibold text-neutral-900 dark:text-neutral-50"} (or (:total-transactions stats) 0)]]
+      [:div {:class "p-4 bg-green-100/50 dark:bg-green-900/20 rounded-lg"}
+       [:div {:class "flex items-center gap-2 text-green-600 dark:text-green-500 mb-2"}
+        [icon :trending-up {:width 20 :height 20}]]
+       [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Income Entries"]
+       [:div {:class "text-lg font-semibold text-green-600 dark:text-green-500"} (or (:income-count stats) 0)]]
+      [:div {:class "p-4 bg-red-100/50 dark:bg-red-900/20 rounded-lg"}
+       [:div {:class "flex items-center gap-2 text-red-600 dark:text-red-500 mb-2"}
+        [icon :trending-down {:width 20 :height 20}]]
+       [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Expense Entries"]
+       [:div {:class "text-lg font-semibold text-red-600 dark:text-red-500"} (or (:expense-count stats) 0)]]]]))
 
 (defn preferences-section []
   (let [user @(rf/subscribe [:auth/user])
         theme @(rf/subscribe [:app/theme])
         current-currency (or (some-> (:user/preferred-currency user) keyword) :COP)]
-    [:div.profile-section
-     [:div.profile-section__header
-      [:div.profile-section__header-content
-       [:span.profile-section__icon [icon :dashboard {:width 20 :height 20}]]
+    [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 mb-6"}
+     [:div {:class "flex items-center gap-3 mb-4"}
+      [:div {:class "p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"}
+       [icon :dashboard {:width 20 :height 20}]]
+      [:div
+       [:h3 {:class "text-lg font-semibold text-neutral-900 dark:text-neutral-50"} "Preferences"]
+       [:p {:class "text-sm text-neutral-600 dark:text-neutral-400"} "Customize your experience"]]]
+     [:div {:class "space-y-4"}
+      [:div {:class "flex items-center justify-between p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
        [:div
-        [:h3.profile-section__title "Preferences"]
-        [:p.profile-section__subtitle "Customize your experience"]]]]
-     [:div.profile-section__body
-      [:div.profile-preference
-       [:div.profile-preference__info
-        [:span.profile-preference__label "Default Currency"]
-        [:span.profile-preference__desc "Currency used for new transactions"]]
-       [:div.flow-segmented
+        [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} "Default Currency"]
+        [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Currency used for new transactions"]]
+       [:div {:class "flex gap-1 p-1 bg-white dark:bg-neutral-800 rounded-lg"}
         (for [curr [:COP :USD]]
           ^{:key curr}
-          [:button.flow-segmented__option
-           {:class (when (= curr current-currency) "flow-segmented__option--active")
-            :on-click #(rf/dispatch [:profile/update-preferences {:currency curr}])}
+          [:button {:class (str "px-3 py-1.5 rounded-md text-sm font-medium transition-colors "
+                                (if (= curr current-currency)
+                                  "bg-purple-700 dark:bg-purple-400 text-white"
+                                  "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50"))
+                    :on-click #(rf/dispatch [:profile/update-preferences {:currency curr}])}
            (name curr)])]]
-      [:div.profile-preference
-       [:div.profile-preference__info
-        [:span.profile-preference__label "Theme"]
-        [:span.profile-preference__desc "Choose light or dark mode"]]
-       [:div.flow-segmented
+      [:div {:class "flex items-center justify-between p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
+       [:div
+        [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} "Theme"]
+        [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Choose light or dark mode"]]
+       [:div {:class "flex gap-1 p-1 bg-white dark:bg-neutral-800 rounded-lg"}
         (for [[key label] [[:light "Light"] [:dark "Dark"]]]
           ^{:key key}
-          [:button.flow-segmented__option
-           {:class (when (= key theme) "flow-segmented__option--active")
-            :on-click #(rf/dispatch [:app/toggle-theme])}
+          [:button {:class (str "px-3 py-1.5 rounded-md text-sm font-medium transition-colors "
+                                (if (= key theme)
+                                  "bg-purple-700 dark:bg-purple-400 text-white"
+                                  "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50"))
+                    :on-click #(rf/dispatch [:app/toggle-theme])}
            label])]]]]))
 
 (defn danger-zone-section []
@@ -209,70 +215,71 @@
         delete-password (r/atom "")
         deleting? @(rf/subscribe [:profile/deleting?])]
     (fn []
-      [:div.profile-section.profile-section--danger
-       [:div.profile-section__header
-        [:div.profile-section__header-content
-         [:span.profile-section__icon.profile-section__icon--danger
-          [icon :shield {:width 20 :height 20}]]
+      [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-red-500/30 p-5"}
+       [:div {:class "flex items-center gap-3 mb-4"}
+        [:div {:class "p-2 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-500"}
+         [icon :shield {:width 20 :height 20}]]
+        [:div
+         [:h3 {:class "text-lg font-semibold text-red-600 dark:text-red-500"} "Danger Zone"]
+         [:p {:class "text-sm text-neutral-600 dark:text-neutral-400"} "Irreversible actions"]]]
+       [:div {:class "space-y-3"}
+        [:div {:class "flex items-center justify-between p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
          [:div
-          [:h3.profile-section__title.profile-section__title--danger "Danger Zone"]
-          [:p.profile-section__subtitle "Irreversible actions"]]]]
-       [:div.profile-section__body
-        [:div.profile-danger-action
-         [:div.profile-danger-action__info
-          [:span.profile-danger-action__label "Export Data"]
-          [:span.profile-danger-action__desc
-           "Download all your data as a JSON file"]]
-         [:button.flow-btn.flow-btn--secondary
-          {:on-click #(rf/dispatch [:profile/export-data])}
+          [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} "Export Data"]
+          [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Download all your data as a JSON file"]]
+         [:button {:class "inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-50 hover:bg-white dark:hover:bg-neutral-800 transition-colors"
+                   :on-click #(rf/dispatch [:profile/export-data])}
           [icon :download {:width 16 :height 16}]
           [:span "Export"]]]
-        [:div.profile-danger-action
-         [:div.profile-danger-action__info
-          [:span.profile-danger-action__label "Delete Account"]
-          [:span.profile-danger-action__desc
-           "Permanently delete your account and all data"]]
-         [:button.flow-btn.flow-btn--danger
-          {:on-click #(reset! show-delete-modal? true)}
+        [:div {:class "flex items-center justify-between p-4 bg-red-100/30 dark:bg-red-900/20 rounded-lg"}
+         [:div
+          [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} "Delete Account"]
+          [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} "Permanently delete your account and all data"]]
+         [:button {:class "inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                   :on-click #(reset! show-delete-modal? true)}
           [icon :trash {:width 16 :height 16}]
           [:span "Delete Account"]]]]
 
        (when @show-delete-modal?
-         [:div.flow-modal-overlay
-          {:on-click #(reset! show-delete-modal? false)}
-          [:div.flow-modal
-           {:on-click #(.stopPropagation %)}
-           [:div.flow-modal__header
-            [:h3.flow-modal__title "Delete Account"]
-            [:button.flow-modal__close
-             {:on-click #(reset! show-delete-modal? false)}
+         [:div {:class "fixed inset-0 bg-black/50 z-modal flex items-center justify-center p-4"
+                :on-click #(reset! show-delete-modal? false)}
+          [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 w-full max-w-md p-6"
+                 :on-click #(.stopPropagation %)}
+           [:div {:class "flex items-center justify-between mb-4"}
+            [:h3 {:class "text-lg font-semibold text-neutral-900 dark:text-neutral-50"} "Delete Account"]
+            [:button {:class "p-2 rounded-lg text-neutral-400 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      :on-click #(reset! show-delete-modal? false)}
              [icon :x {:width 20 :height 20}]]]
-           [:div.flow-modal__body
-            [:p.flow-modal__warning
-             "This action cannot be undone. All your data will be permanently deleted."]
-            [:div.flow-form__field
-             [:label.flow-label "Enter your password to confirm"]
-             [:input.flow-input
-              {:type "password"
-               :placeholder "Your password"
-               :value @delete-password
-               :on-change #(reset! delete-password (-> % .-target .-value))}]]]
-           [:div.flow-modal__footer
-            [:button.flow-btn.flow-btn--secondary
-             {:on-click #(do (reset! show-delete-modal? false)
-                             (reset! delete-password ""))}
+           [:p {:class "text-red-600 dark:text-red-500 text-sm mb-4"}
+            "This action cannot be undone. All your data will be permanently deleted."]
+           [:div {:class "space-y-1.5 mb-4"}
+            [:label {:class "block text-sm font-medium text-neutral-900 dark:text-neutral-50"} "Enter your password to confirm"]
+            [:input {:class (str "w-full h-11 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 "
+                                 "placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent")
+                     :type "password"
+                     :placeholder "Your password"
+                     :value @delete-password
+                     :on-change #(reset! delete-password (-> % .-target .-value))}]]
+           [:div {:class "flex gap-3"}
+            [:button {:class "flex-1 h-10 rounded-lg font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      :on-click #(do (reset! show-delete-modal? false)
+                                     (reset! delete-password ""))}
              "Cancel"]
-            [:button.flow-btn.flow-btn--danger
-             {:disabled (or (empty? @delete-password) deleting?)
-              :on-click #(rf/dispatch [:profile/delete-account @delete-password])}
+            [:button {:class "flex-1 h-10 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      :disabled (or (empty? @delete-password) deleting?)
+                      :on-click #(rf/dispatch [:profile/delete-account @delete-password])}
              (if deleting? "Deleting..." "Delete Account")]]]])])))
 
 (defn profile-skeleton []
-  [:div.profile-skeleton
-   [:div.profile-skeleton__avatar]
+  [:div {:class "space-y-6 animate-pulse"}
+   [:div {:class "flex items-center gap-4"}
+    [:div {:class "w-20 h-20 rounded-full bg-neutral-100 dark:bg-neutral-800"}]
+    [:div {:class "space-y-2"}
+     [:div {:class "h-5 bg-neutral-100 dark:bg-neutral-800 rounded w-32"}]
+     [:div {:class "h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-48"}]]]
    (for [i (range 4)]
      ^{:key i}
-     [:div.profile-skeleton__section])])
+     [:div {:class "h-40 bg-neutral-100 dark:bg-neutral-800 rounded-xl"}])])
 
 (defn profile-view []
   (r/create-class
@@ -284,16 +291,15 @@
     (fn []
       (let [loading? @(rf/subscribe [:profile/loading?])
             user @(rf/subscribe [:auth/user])]
-        [:div.profile-page
-         [:div.profile-header
-          [:h1.profile-header__title "Profile"]
-          [:p.profile-header__subtitle
-           (str "Manage your account settings")]]
+        [:div {:class "max-w-3xl mx-auto"}
+         [:div {:class "mb-6"}
+          [:h1 {:class "text-2xl font-bold text-neutral-900 dark:text-neutral-50"} "Profile"]
+          [:p {:class "text-neutral-600 dark:text-neutral-400 text-sm mt-1"} "Manage your account settings"]]
 
          (if loading?
            [profile-skeleton]
 
-           [:div.profile-content
+           [:div
             [avatar-section]
             [profile-edit-section]
             [password-change-section]
