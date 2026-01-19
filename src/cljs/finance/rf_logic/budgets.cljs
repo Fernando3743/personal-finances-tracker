@@ -89,6 +89,8 @@
  (fn [{:keys [db]} _]
    {:db (-> db
             (assoc-in [:budgets :loading?] false)
+            (assoc-in [:budgets-panel :open?] false)
+            (assoc-in [:budgets-panel :mode] nil)
             (assoc :budget-form (:budget-form db/default-db)))
     :dispatch-n [[:budgets/fetch]
                  [:budgets/fetch-status]
@@ -124,7 +126,12 @@
 (rf/reg-event-fx
  :budgets/update-success
  (fn [{:keys [db]} _]
-   {:db (assoc-in db [:budgets :loading?] false)
+   {:db (-> db
+            (assoc-in [:budgets :loading?] false)
+            (assoc-in [:budgets-panel :open?] false)
+            (assoc-in [:budgets-panel :mode] nil)
+            (assoc-in [:budgets :selected-budget-id] nil)
+            (assoc :budget-form (:budget-form db/default-db)))
     :dispatch-n [[:budgets/fetch]
                  [:budgets/fetch-status]
                  [:app/show-toast
@@ -186,6 +193,66 @@
  :budgets/reset-form
  (fn [db _]
    (assoc db :budget-form (:budget-form db/default-db))))
+
+;; Panel Management Events
+(rf/reg-event-fx
+ :budgets/open-panel
+ (fn [{:keys [db]} [_ mode budget-id]]
+   (let [fx {:db (-> db
+                     (assoc-in [:budgets-panel :open?] true)
+                     (assoc-in [:budgets-panel :mode] mode)
+                     (assoc-in [:budgets :selected-budget-id] budget-id))}]
+     (if (and (= mode :edit) budget-id)
+       (assoc fx :dispatch [:budgets/prepare-edit budget-id])
+       fx))))
+
+(rf/reg-event-db
+ :budgets/close-panel
+ (fn [db _]
+   (-> db
+       (assoc-in [:budgets-panel :open?] false)
+       (assoc-in [:budgets-panel :mode] nil)
+       (assoc-in [:budgets :selected-budget-id] nil)
+       (assoc :budget-form (:budget-form db/default-db)))))
+
+;; View & Filter Management Events
+(rf/reg-event-db
+ :budgets/set-view-mode
+ (fn [db [_ mode]]
+   (assoc-in db [:budgets :view-mode] mode)))
+
+(rf/reg-event-db
+ :budgets/set-search-query
+ (fn [db [_ query]]
+   (assoc-in db [:budgets :search-query] query)))
+
+(rf/reg-event-db
+ :budgets/set-filter-status
+ (fn [db [_ status]]
+   (assoc-in db [:budgets :filter-status] status)))
+
+(rf/reg-event-db
+ :budgets/set-time-period
+ (fn [db [_ period]]
+   (assoc-in db [:budgets :time-period] period)))
+
+(rf/reg-event-db
+ :budgets/set-comparison-month
+ (fn [db [_ month]]
+   (assoc-in db [:budgets :comparison-month] month)))
+
+;; Edit Preparation Event
+(rf/reg-event-db
+ :budgets/prepare-edit
+ (fn [db [_ budget-id]]
+   (let [budget (some #(when (= (:budget/id %) budget-id) %) (get-in db [:budgets :items] []))
+         form {:category (:budget/category budget)
+               :amount (str (:budget/amount budget))
+               :currency (:budget/currency budget)
+               :alert-threshold (int (* 100 (or (:budget/alert-threshold budget) 0.8)))
+               :budget-type (or (:budget/budget-type budget) :fixed)
+               :notes (or (:budget/notes budget) "")}]
+     (assoc db :budget-form form))))
 
 (rf/reg-sub
  :budgets/items
@@ -304,3 +371,114 @@
         vals
         (mapcat :budgets)
         (sort-by :percentage >))))
+
+;; View State Subscriptions
+(rf/reg-sub
+ :budgets/view-mode
+ (fn [db _]
+   (get-in db [:budgets :view-mode] :grid)))
+
+(rf/reg-sub
+ :budgets/search-query
+ (fn [db _]
+   (get-in db [:budgets :search-query] "")))
+
+(rf/reg-sub
+ :budgets/filter-status
+ (fn [db _]
+   (get-in db [:budgets :filter-status] :all)))
+
+(rf/reg-sub
+ :budgets/time-period
+ (fn [db _]
+   (get-in db [:budgets :time-period] :this-month)))
+
+(rf/reg-sub
+ :budgets/panel-open?
+ (fn [db _]
+   (get-in db [:budgets-panel :open?] false)))
+
+(rf/reg-sub
+ :budgets/panel-mode
+ (fn [db _]
+   (get-in db [:budgets-panel :mode])))
+
+(rf/reg-sub
+ :budgets/selected-budget-id
+ (fn [db _]
+   (get-in db [:budgets :selected-budget-id])))
+
+(rf/reg-sub
+ :budgets/selected-budget
+ :<- [:budgets/all-budgets]
+ :<- [:budgets/selected-budget-id]
+ (fn [[budgets id] _]
+   (some #(when (= (:budget/id %) id) %) budgets)))
+
+;; Filtered & Sorted Data Subscriptions
+(rf/reg-sub
+ :budgets/filtered-budgets
+ :<- [:budgets/budget-summaries]
+ :<- [:budgets/search-query]
+ :<- [:budgets/filter-status]
+ (fn [[summaries query filter-status] _]
+   (let [filtered (if (and query (not (empty? query)))
+                    (filter #(clojure.string/includes?
+                              (clojure.string/lower-case (name (get-in % [:budget :budget/category])))
+                              (clojure.string/lower-case query))
+                            summaries)
+                    summaries)
+         status-filtered (case filter-status
+                           :on-track (filter #(= :ok (:status %)) filtered)
+                           :near-limit (filter #(= :warning (:status %)) filtered)
+                           :over-budget (filter #(= :exceeded (:status %)) filtered)
+                           :all filtered)]
+     status-filtered)))
+
+(rf/reg-sub
+ :budgets/by-status
+ :<- [:budgets/budget-summaries]
+ (fn [summaries _]
+   (group-by :status summaries)))
+
+;; Insights & Analytics Subscriptions
+(rf/reg-sub
+ :budgets/top-saver
+ :<- [:budgets/budget-summaries]
+ (fn [summaries _]
+   (->> summaries
+        (filter #(and (= :ok (:status %))
+                      (pos? (:remaining %))))
+        (sort-by :remaining >)
+        first)))
+
+(rf/reg-sub
+ :budgets/watch-out
+ :<- [:budgets/budget-summaries]
+ (fn [summaries _]
+   (->> summaries
+        (filter #(or (= :exceeded (:status %))
+                     (= :warning (:status %))))
+        (sort-by :percentage >)
+        first)))
+
+(rf/reg-sub
+ :budgets/days-left-in-month
+ (fn [_ _]
+   (let [now (js/Date.)
+         year (.getFullYear now)
+         month (.getMonth now)
+         last-day (.getDate (js/Date. year (inc month) 0))
+         current-day (.getDate now)]
+     (- last-day current-day))))
+
+(rf/reg-sub
+ :budgets/daily-avg-remaining
+ :<- [:budgets/total-budgeted]
+ :<- [:budgets/total-spent]
+ :<- [:budgets/days-left-in-month]
+ (fn [[total-budgeted total-spent days-left] _]
+   (let [remaining (- total-budgeted total-spent)]
+     (if (pos? days-left)
+       (/ remaining days-left)
+       0))))

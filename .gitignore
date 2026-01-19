@@ -15,6 +15,7 @@ checkouts/
 .lsp/
 
 # Node/npm
+node_modules
 node_modules/
 package-lock.json
 yarn.lock
@@ -56,6 +57,7 @@ Desktop.ini
 
 # Environment
 .env
+.env/
 .env.*
 *.local
 

@@ -132,13 +132,25 @@
    :budgets {:items []
              :status {}
              :loading? false
-             :error nil}
+             :error nil
+             :view-mode :grid        ; :table, :grid, :envelope
+             :search-query ""
+             :filter-status :all     ; :all, :on-track, :near-limit, :over-budget
+             :selected-budget-id nil
+             :time-period :this-month
+             :comparison-month nil}
+
+   ;; Budgets panel state
+   :budgets-panel {:open? false
+                   :mode nil}  ; :create or :edit
 
    ;; Budget form state
    :budget-form {:category nil
                  :amount ""
                  :currency :COP
-                 :alert-threshold 80}
+                 :alert-threshold 80
+                 :budget-type :fixed  ; :fixed or :variable
+                 :notes ""}
 
    ;; Analytics state
    :analytics {:loading? false
