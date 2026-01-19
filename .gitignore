@@ -79,3 +79,5 @@ logs/
 coverage/
 .coverage
 dump.rdb
+plans/
+CLAUDE.md

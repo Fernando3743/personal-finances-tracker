@@ -4,7 +4,8 @@
             [reagent.core :as r]
             ["react-dom" :as react-dom]
             [finance.views.dashboard :as dashboard]
-            [finance.views.transactions :as transactions]
+            [finance.views.transactions.analytics-table :as analytics-table]
+            [finance.views.transactions.activity-feed :as activity-feed]
             [finance.views.incomes :as incomes]
             [finance.views.expenses :as expenses]
             [finance.views.recurring :as recurring]
@@ -70,17 +71,19 @@
       [icon :logout {:width 20 :height 20}]]]))
 
 (defn header []
-  [:header {:class "h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-20 hidden lg:flex dark:bg-neutral-800 dark:border-neutral-700"}
-   [breadcrumbs]
-   [:div {:class "flex items-center gap-4"}
-    [theme-toggle]
-    [:button {:class (str "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white "
-                          "bg-violet-600 hover:bg-violet-700 "
-                          "active:scale-[0.98] transition-all duration-200")
-              :on-click #(rf/dispatch [:app/open-panel :add-transaction])}
-     [icon :plus {:width 16 :height 16}]
-     [:span "Add Transaction"]]
-    [user-profile]]])
+  (let [active-view @(rf/subscribe [:app/current-route])]
+    [:header {:class "h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-20 hidden lg:flex dark:bg-neutral-800 dark:border-neutral-700"}
+     [breadcrumbs]
+     [:div {:class "flex items-center gap-4"}
+      [theme-toggle]
+      (when (= active-view :dashboard)
+        [:button {:class (str "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white "
+                              "bg-violet-600 hover:bg-violet-700 "
+                              "active:scale-[0.98] transition-all duration-200")
+                  :on-click #(rf/dispatch [:app/open-panel :add-transaction])}
+         [icon :plus {:width 16 :height 16}]
+         [:span "Add Transaction"]])
+      [user-profile]]]))
 
 (defn mobile-header []
   (let [user @(rf/subscribe [:auth/user])
@@ -220,6 +223,39 @@
    [:div {:class "w-10 h-10 border-4 border-violet-600 dark:border-violet-400 border-t-transparent rounded-full animate-spin"}]
    [:p {:class "text-gray-600 dark:text-gray-400"}  "Loading..."]])
 
+(defn view-mode-toggle []
+  (let [view-mode @(rf/subscribe [:tx/view-mode])]
+    [:div {:class "flex items-center gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
+     [:button {:class (str "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all "
+                           (if (= view-mode :table)
+                             "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-50 shadow-sm"
+                             "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50"))
+               :on-click #(rf/dispatch [:tx/set-view-mode :table])}
+      [icon :list {:width 16 :height 16}]
+      [:span "Table"]]
+     [:button {:class (str "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all "
+                           (if (= view-mode :feed)
+                             "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-50 shadow-sm"
+                             "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50"))
+               :on-click #(rf/dispatch [:tx/set-view-mode :feed])}
+      [icon :activity {:width 16 :height 16}]
+      [:span "Feed"]]]))
+
+(defn transactions-view []
+  (let [view-mode @(rf/subscribe [:tx/view-mode])]
+    [:div {:class "space-y-6"}
+     ;; Header with title and view toggle
+     [:div {:class "flex items-center justify-between"}
+      [:div
+       [:h1 {:class "text-2xl font-bold text-neutral-900 dark:text-neutral-50"} "Transactions"]
+       [:p {:class "text-sm text-neutral-500 dark:text-neutral-400 mt-1"} "Monitor your cash flow and daily expenses."]]
+      [view-mode-toggle]]
+
+     ;; Conditional view
+     (case view-mode
+       :feed [activity-feed/activity-feed-view]
+       [analytics-table/analytics-table-view])]))
+
 (defn main-content []
   (let [active-view @(rf/subscribe [:app/current-route])]
     [:main {:class "flex-1 p-8 animate-fade-in overflow-y-auto"}
@@ -227,7 +263,7 @@
        :dashboard [dashboard/dashboard-view]
        :incomes [incomes/incomes-view]
        :expenses [expenses/expenses-view]
-       :transactions [transactions/transaction-list]
+       :transactions [transactions-view]
        :recurring [recurring/recurring-view]
        :budgets [budgets/budgets-view]
        :analytics [analytics/analytics-view]

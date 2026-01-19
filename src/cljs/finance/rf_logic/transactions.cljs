@@ -282,3 +282,183 @@
  :<- [:tx/transaction-form]
  (fn [form _]
    (boolean (:is-recurring form))))
+
+(rf/reg-sub
+ :tx/grouped-by-date-feed
+ :<- [:tx/filtered-transactions]
+ (fn [transactions _]
+   (let [grouped (group-by #(date-utils/format-date (:transaction/date %)) transactions)
+         sorted-dates (sort > (keys grouped))]
+     (mapv (fn [date]
+             {:label date
+              :date date
+              :transactions (get grouped date [])})
+           sorted-dates))))
+
+(rf/reg-sub
+ :tx/daily-totals
+ :<- [:tx/filtered-transactions]
+ (fn [transactions _]
+   (reduce (fn [acc tx]
+             (let [date (date-utils/format-date (:transaction/date tx))
+                   amount (:transaction/amount tx)
+                   signed-amount (if (= :income (:transaction/type tx))
+                                   amount
+                                   (- amount))]
+               (update acc date (fnil + 0) signed-amount)))
+           {}
+           transactions)))
+
+(def category-colors
+  {:food "#ef4444"
+   :transport "#f97316"
+   :entertainment "#eab308"
+   :shopping "#22c55e"
+   :health "#14b8a6"
+   :education "#3b82f6"
+   :bills "#8b5cf6"
+   :salary "#10b981"
+   :freelance "#06b6d4"
+   :investment "#6366f1"
+   :other "#94a3b8"})
+
+(rf/reg-sub
+ :tx/top-categories-data
+ :<- [:tx/filtered-transactions]
+ (fn [transactions _]
+   (let [expenses (filter #(= :expense (:transaction/type %)) transactions)
+         by-category (group-by :transaction/category expenses)
+         totals (map (fn [[cat txs]]
+                       {:category cat
+                        :amount (reduce + 0 (map :transaction/amount txs))})
+                     by-category)
+         sorted (sort-by :amount > totals)
+         total (reduce + 0 (map :amount sorted))
+         with-percent (mapv (fn [{:keys [category amount]}]
+                              {:category category
+                               :amount amount
+                               :percent (if (pos? total)
+                                          (* 100 (/ amount total))
+                                          0)
+                               :color (get category-colors category "#94a3b8")})
+                            sorted)]
+     {:segments with-percent
+      :total total})))
+
+(def page-size 10)
+
+(rf/reg-sub
+ :tx/current-page
+ (fn [db _]
+   (get-in db [:pagination :current-page] 1)))
+
+(rf/reg-sub
+ :tx/total-pages
+ :<- [:tx/filtered-transactions]
+ (fn [transactions _]
+   (let [total (count transactions)]
+     (max 1 (js/Math.ceil (/ total page-size))))))
+
+(rf/reg-sub
+ :tx/pagination-info
+ :<- [:tx/filtered-transactions]
+ :<- [:tx/current-page]
+ (fn [[transactions current-page] _]
+   (let [total (count transactions)
+         start (* (dec current-page) page-size)
+         end (min total (* current-page page-size))]
+     {:showing (if (zero? total)
+                 "0"
+                 (str (inc start) "-" end " of " total))
+      :start start
+      :end end
+      :total total})))
+
+(rf/reg-event-db
+ :tx/set-page
+ (fn [db [_ page]]
+   (assoc-in db [:pagination :current-page] page)))
+
+(rf/reg-event-db
+ :tx/next-page
+ (fn [db _]
+   (update-in db [:pagination :current-page] (fnil inc 1))))
+
+(rf/reg-event-db
+ :tx/prev-page
+ (fn [db _]
+   (update-in db [:pagination :current-page] (fn [p] (max 1 (dec (or p 1)))))))
+
+(rf/reg-sub
+ :tx/paginated-transactions
+ :<- [:tx/filtered-transactions]
+ :<- [:tx/current-page]
+ (fn [[transactions current-page] _]
+   (let [start (* (dec current-page) page-size)]
+     (->> transactions
+          (drop start)
+          (take page-size)))))
+
+;; JS .getDay() returns 0=Sunday, 1=Monday, etc.
+(def day-labels ["S" "M" "T" "W" "T" "F" "S"])
+
+(rf/reg-sub
+ :tx/daily-spending-data
+ :<- [:tx/filtered-transactions]
+ (fn [transactions _]
+   (let [expenses (filter #(= :expense (:transaction/type %)) transactions)
+         by-day (group-by #(-> (:transaction/date %)
+                               js/Date.
+                               .getDay)
+                          expenses)
+         daily-totals (mapv (fn [day-idx]
+                              {:label (nth day-labels day-idx)
+                               :amount (reduce + 0 (map :transaction/amount (get by-day day-idx [])))
+                               :day day-idx})
+                            (range 7))]
+     (if (every? #(zero? (:amount %)) daily-totals)
+       [{:label "M" :amount 0 :day 0}
+        {:label "T" :amount 0 :day 1}
+        {:label "W" :amount 0 :day 2}
+        {:label "T" :amount 0 :day 3}
+        {:label "F" :amount 0 :day 4}
+        {:label "S" :amount 0 :day 5}
+        {:label "S" :amount 0 :day 6}]
+       daily-totals))))
+
+(rf/reg-sub
+ :tx/net-cash-flow-data
+ :<- [:tx/filtered-transactions]
+ (fn [transactions _]
+   (let [by-week (group-by #(let [date (js/Date. (:transaction/date %))
+                                  week-num (js/Math.ceil (/ (.getDate date) 7))]
+                              week-num)
+                           transactions)
+         weeks (sort (keys by-week))
+         week-totals (mapv (fn [week]
+                             (let [txs (get by-week week [])
+                                   income (reduce + 0 (map :transaction/amount
+                                                          (filter #(= :income (:transaction/type %)) txs)))
+                                   expenses (reduce + 0 (map :transaction/amount
+                                                            (filter #(= :expense (:transaction/type %)) txs)))]
+                               (- income expenses)))
+                           (or (seq weeks) [1 2 3 4]))
+         labels (mapv #(str "Week " %) (or (seq weeks) [1 2 3 4]))]
+     {:data (if (empty? week-totals) [0 0 0 0] week-totals)
+      :labels (if (empty? labels) ["Week 1" "Week 2" "Week 3" "Week 4"] labels)})))
+
+;; View mode: :table or :feed
+(rf/reg-sub
+ :tx/view-mode
+ (fn [db _]
+   (get db :tx-view-mode :table)))
+
+(rf/reg-event-db
+ :tx/set-view-mode
+ (fn [db [_ mode]]
+   (assoc db :tx-view-mode mode)))
+
+(rf/reg-event-db
+ :tx/toggle-view-mode
+ (fn [db _]
+   (update db :tx-view-mode #(if (= % :feed) :table :feed))))
