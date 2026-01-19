@@ -5,8 +5,6 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]))
 
-(def api-base "http://localhost:3000/api")
-
 (rf/reg-event-fx
  :budgets/init
  (fn [_ _]
@@ -18,7 +16,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:budgets :loading?] true)
     :http-xhrio {:method :get
-                 :uri (str api-base "/budgets")
+                 :uri "/api/budgets"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:budgets/fetch-success]
@@ -47,7 +45,7 @@
                   month (assoc :month month))]
      {:db (assoc-in db [:budgets :loading?] true)
       :http-xhrio {:method :get
-                   :uri (str api-base "/budgets/status")
+                   :uri "/api/budgets/status"
                    :params params
                    :with-credentials true
                    :response-format (ajax/json-response-format {:keywords? true})
@@ -78,7 +76,7 @@
                   :alert-threshold (/ (:alert-threshold form) 100)}]
      {:db (assoc-in db [:budgets :loading?] true)
       :http-xhrio {:method :post
-                   :uri (str api-base "/budgets")
+                   :uri "/api/budgets"
                    :params payload
                    :format (ajax/json-request-format)
                    :with-credentials true
@@ -115,7 +113,7 @@
  (fn [{:keys [db]} [_ id updates]]
    {:db (assoc-in db [:budgets :loading?] true)
     :http-xhrio {:method :put
-                 :uri (str api-base "/budgets/" id)
+                 :uri (str "/api/budgets/" id)
                  :params updates
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -150,7 +148,7 @@
  (fn [{:keys [db]} [_ id]]
    {:db (assoc-in db [:budgets :loading?] true)
     :http-xhrio {:method :delete
-                 :uri (str api-base "/budgets/" id)
+                 :uri (str "/api/budgets/" id)
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})

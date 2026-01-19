@@ -6,8 +6,6 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]))
 
-(def api-base "http://localhost:3000/api")
-
 (rf/reg-event-fx
  :transactions/init
  (fn [_ _]
@@ -18,7 +16,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc db :loading? true)
     :http-xhrio {:method :get
-                 :uri (str api-base "/transactions")
+                 :uri "/api/transactions"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:tx/fetch-transactions-success]
@@ -51,7 +49,7 @@
               (assoc :loading? true)
               (assoc-in [:transaction-form :pending-recurring?] is-recurring?))
       :http-xhrio {:method :post
-                   :uri (str api-base "/transactions")
+                   :uri "/api/transactions"
                    :params payload
                    :format (ajax/json-request-format)
                    :with-credentials true
@@ -83,7 +81,7 @@
  (fn [{:keys [db]} [_ id]]
    {:db (assoc db :loading? true)
     :http-xhrio {:method :delete
-                 :uri (str api-base "/transactions/" id)
+                 :uri (str "/api/transactions/" id)
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})

@@ -3,8 +3,6 @@
   (:require [re-frame.core :as rf]
             [ajax.core :as ajax]))
 
-(def api-base "http://localhost:3000/api")
-
 (rf/reg-event-fx
  :profile/init
  (fn [_ _]
@@ -15,7 +13,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:profile :loading?] true)
     :http-xhrio {:method :get
-                 :uri (str api-base "/profile")
+                 :uri "/api/profile"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:profile/fetch-success]
@@ -43,7 +41,7 @@
  (fn [{:keys [db]} [_ updates]]
    {:db (assoc-in db [:profile :saving?] true)
     :http-xhrio {:method :put
-                 :uri (str api-base "/profile")
+                 :uri "/api/profile"
                  :params updates
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -73,7 +71,7 @@
  (fn [{:keys [db]} [_ passwords]]
    {:db (assoc-in db [:profile :saving?] true)
     :http-xhrio {:method :put
-                 :uri (str api-base "/profile/password")
+                 :uri "/api/profile/password"
                  :params passwords
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -101,7 +99,7 @@
  :profile/update-preferences
  (fn [{:keys [db]} [_ preferences]]
    {:http-xhrio {:method :put
-                 :uri (str api-base "/profile/preferences")
+                 :uri "/api/profile/preferences"
                  :params preferences
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -127,7 +125,7 @@
                      (.append "avatar" file))]
      {:db (assoc-in db [:profile :uploading-avatar?] true)
       :http-xhrio {:method :post
-                   :uri (str api-base "/profile/avatar")
+                   :uri "/api/profile/avatar"
                    :body form-data
                    :with-credentials true
                    :response-format (ajax/json-response-format {:keywords? true})
@@ -153,7 +151,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:profile :uploading-avatar?] true)
     :http-xhrio {:method :delete
-                 :uri (str api-base "/profile/avatar")
+                 :uri "/api/profile/avatar"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:profile/avatar-delete-success]
@@ -186,7 +184,7 @@
  (fn [_ _]
    {:fx [[:dispatch [:app/show-toast {:type :info :message "Preparing export..."}]]]
     :http-xhrio {:method :get
-                 :uri (str api-base "/profile/export")
+                 :uri "/api/profile/export"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:profile/export-success]
@@ -215,7 +213,7 @@
  (fn [{:keys [db]} [_ password]]
    {:db (assoc-in db [:profile :deleting?] true)
     :http-xhrio {:method :delete
-                 :uri (str api-base "/profile")
+                 :uri "/api/profile"
                  :params {:password password}
                  :format (ajax/json-request-format)
                  :with-credentials true

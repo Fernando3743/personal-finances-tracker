@@ -4,8 +4,6 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]))
 
-(def api-base "http://localhost:3000/api")
-
 (rf/reg-event-fx
  :dashboard/init
  (fn [_ _]
@@ -20,7 +18,7 @@
  :dashboard/fetch-summary
  (fn [{:keys [_db]} _]
    {:http-xhrio {:method :get
-                 :uri (str api-base "/summary")
+                 :uri "/api/summary"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:dashboard/fetch-summary-success]
@@ -36,7 +34,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc db :loading? true)
     :http-xhrio {:method :get
-                 :uri (str api-base "/dashboard")
+                 :uri "/api/dashboard"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:dashboard/fetch-dashboard-success]

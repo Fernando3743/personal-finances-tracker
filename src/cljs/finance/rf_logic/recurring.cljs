@@ -5,8 +5,6 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]))
 
-(def api-base "http://localhost:3000/api")
-
 (rf/reg-event-fx
  :recurring/init
  (fn [_ _]
@@ -17,7 +15,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:recurring :loading?] true)
     :http-xhrio {:method :get
-                 :uri (str api-base "/recurring")
+                 :uri "/api/recurring"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:recurring/fetch-success]
@@ -54,7 +52,7 @@
                   :payment-method (:payment-method form)}]
      {:db (assoc-in db [:recurring :loading?] true)
       :http-xhrio {:method :post
-                   :uri (str api-base "/recurring")
+                   :uri "/api/recurring"
                    :params payload
                    :format (ajax/json-request-format)
                    :with-credentials true
@@ -74,7 +72,7 @@
                   :start-date (.getTime (js/Date.))
                   :active true}]
      {:http-xhrio {:method :post
-                   :uri (str api-base "/recurring")
+                   :uri "/api/recurring"
                    :params payload
                    :format (ajax/json-request-format)
                    :with-credentials true
@@ -120,7 +118,7 @@
  (fn [{:keys [db]} [_ id updates]]
    {:db (assoc-in db [:recurring :loading?] true)
     :http-xhrio {:method :put
-                 :uri (str api-base "/recurring/" id)
+                 :uri (str "/api/recurring/" id)
                  :params updates
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -154,7 +152,7 @@
  (fn [{:keys [db]} [_ id]]
    {:db (assoc-in db [:recurring :loading?] true)
     :http-xhrio {:method :delete
-                 :uri (str api-base "/recurring/" id)
+                 :uri (str "/api/recurring/" id)
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
@@ -186,7 +184,7 @@
  :recurring/toggle-active
  (fn [_ [_ id]]
    {:http-xhrio {:method :post
-                 :uri (str api-base "/recurring/" id "/toggle")
+                 :uri (str "/api/recurring/" id "/toggle")
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
@@ -215,7 +213,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:recurring :loading?] true)
     :http-xhrio {:method :post
-                 :uri (str api-base "/recurring/generate")
+                 :uri "/api/recurring/generate"
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
@@ -394,7 +392,7 @@
  (fn [{:keys [db]} [_ id]]
    {:db (assoc-in db [:recurring :loading?] true)
     :http-xhrio {:method :post
-                 :uri (str api-base "/recurring/" id "/pay")
+                 :uri (str "/api/recurring/" id "/pay")
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
@@ -427,7 +425,7 @@
  (fn [{:keys [db]} [_ id]]
    {:db (assoc-in db [:recurring :loading?] true)
     :http-xhrio {:method :post
-                 :uri (str api-base "/recurring/" id "/skip")
+                 :uri (str "/api/recurring/" id "/skip")
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})

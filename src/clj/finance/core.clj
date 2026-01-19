@@ -26,29 +26,6 @@
 
 (def session-store (redis/create-session-store))
 
-(def ^:private allowed-origins
-  #{"http://localhost:8280" "http://localhost:3000"})
-
-(defn- wrap-cors
-  "Simple CORS middleware that properly handles credentials."
-  [handler]
-  (fn [request]
-    (let [origin (get-in request [:headers "origin"])]
-      (if (and origin (contains? allowed-origins origin))
-        (if (= :options (:request-method request))
-          {:status 200
-           :headers {"Access-Control-Allow-Origin" origin
-                     "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS"
-                     "Access-Control-Allow-Headers" "Content-Type, Accept, Authorization"
-                     "Access-Control-Allow-Credentials" "true"
-                     "Access-Control-Max-Age" "86400"}
-           :body ""}
-          (let [response (handler request)]
-            (-> response
-                (assoc-in [:headers "Access-Control-Allow-Origin"] origin)
-                (assoc-in [:headers "Access-Control-Allow-Credentials"] "true"))))
-        (handler request)))))
-
 (defn create-app
   "Creates the Ring application with all middleware."
   [conn]
@@ -62,7 +39,6 @@
       wrap-multipart-params
       (wrap-json-body {:keywords? true})
       wrap-json-response
-      wrap-cors
       (wrap-resource "public")
       wrap-content-type))
 

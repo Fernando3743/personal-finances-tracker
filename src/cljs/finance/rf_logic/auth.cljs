@@ -4,14 +4,12 @@
             [ajax.core :as ajax]
             [finance.routes :as routes]))
 
-(def api-base "http://localhost:3000/api")
-
 (rf/reg-event-fx
  :auth/check-session
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:auth :loading?] true)
     :http-xhrio {:method :get
-                 :uri (str api-base "/auth/me")
+                 :uri "/api/auth/me"
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:auth/check-session-success]
@@ -45,7 +43,7 @@
             (assoc-in [:auth :loading?] true)
             (assoc-in [:auth :error] nil))
     :http-xhrio {:method :post
-                 :uri (str api-base "/auth/login")
+                 :uri "/api/auth/login"
                  :params {:email email :password password}
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -77,7 +75,7 @@
             (assoc-in [:auth :loading?] true)
             (assoc-in [:auth :error] nil))
     :http-xhrio {:method :post
-                 :uri (str api-base "/auth/register")
+                 :uri "/api/auth/register"
                  :params {:email email :password password :name name}
                  :format (ajax/json-request-format)
                  :with-credentials true
@@ -107,7 +105,7 @@
  (fn [{:keys [db]} _]
    {:db (assoc-in db [:auth :loading?] true)
     :http-xhrio {:method :post
-                 :uri (str api-base "/auth/logout")
+                 :uri "/api/auth/logout"
                  :format (ajax/json-request-format)
                  :with-credentials true
                  :response-format (ajax/json-response-format {:keywords? true})
