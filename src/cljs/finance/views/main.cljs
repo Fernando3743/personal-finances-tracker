@@ -14,6 +14,7 @@
             [finance.views.profile :as profile]
             [finance.views.auth :as auth]
             [finance.views.transaction-panel :as tx-panel]
+            [finance.views.recurring-panel :as recurring-panel]
             [finance.routes :as routes]
             [finance.components.icons :refer [icon]]))
 
@@ -269,7 +270,8 @@
     [header]
     [main-content]]
    [tab-bar]
-   [tx-panel/transaction-panel]])
+   [tx-panel/transaction-panel]
+   [recurring-panel/recurring-panel]])
 
 (defn main-panel []
   (let [authenticated? @(rf/subscribe [:auth/authenticated?])

@@ -109,12 +109,16 @@
                :loading? false
                :error nil}
 
+   ;; Recurring panel state
+   :recurring-panel {:open? false}
+
    ;; Recurring form state
-   :recurring-form {:amount ""
+   :recurring-form {:name ""
+                    :amount ""
                     :type :expense
-                    :category :other
+                    :category :entertainment
                     :description ""
-                    :currency :COP
+                    :currency :USD
                     :frequency :monthly
                     :start-date nil
                     :end-date nil

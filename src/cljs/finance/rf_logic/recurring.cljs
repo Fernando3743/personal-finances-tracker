@@ -45,8 +45,8 @@
          payload {:amount (js/parseFloat (:amount form))
                   :type (name (:type form))
                   :category (name (:category form))
-                  :description (:description form)
-                  :currency (name (or (:currency form) :COP))
+                  :description (or (:name form) (:description form))
+                  :currency (name (or (:currency form) :USD))
                   :frequency (name (:frequency form))
                   :start-date (when (:start-date form) (.getTime (js/Date. (:start-date form))))
                   :end-date (when (:end-date form) (.getTime (js/Date. (:end-date form))))
@@ -95,6 +95,7 @@
  (fn [{:keys [db]} _]
    {:db (-> db
             (assoc-in [:recurring :loading?] false)
+            (assoc-in [:recurring-panel :open?] false)
             (assoc :recurring-form (:recurring-form db/default-db)))
     :dispatch-n [[:recurring/fetch]
                  [:app/show-toast
@@ -252,6 +253,17 @@
  (fn [db _]
    (assoc db :recurring-form (:recurring-form db/default-db))))
 
+(rf/reg-event-fx
+ :recurring/open-panel
+ (fn [{:keys [db]} _]
+   {:db (assoc-in db [:recurring-panel :open?] true)
+    :dispatch [:recurring/reset-form]}))
+
+(rf/reg-event-db
+ :recurring/close-panel
+ (fn [db _]
+   (assoc-in db [:recurring-panel :open?] false)))
+
 (rf/reg-sub
  :recurring/items
  (fn [db _]
@@ -336,3 +348,8 @@
  :<- [:recurring/sorted-by-next]
  (fn [items _]
    (take 5 items)))
+
+(rf/reg-sub
+ :recurring/panel-open?
+ (fn [db _]
+   (get-in db [:recurring-panel :open?] false)))
