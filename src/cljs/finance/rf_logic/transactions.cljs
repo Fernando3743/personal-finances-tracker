@@ -41,13 +41,22 @@
                 :title "Error"
                 :message "Failed to load transactions. Please try again."}]}))
 
+(defn- parse-transaction
+  "Converts API response transaction to proper Clojure data types.
+   JSON parsing only converts keys to keywords, not values."
+  [tx]
+  (-> tx
+      (update :transaction/type keyword)
+      (update :transaction/category keyword)
+      (update :transaction/currency #(keyword (or % "COP")))))
+
 (rf/reg-event-db
  :tx/fetch-transactions-success
  (fn [db [_ response]]
    (-> db
        (assoc :loading? false)
        (assoc :error nil)
-       (assoc :transactions (:transactions response)))))
+       (assoc :transactions (mapv parse-transaction (:transactions response))))))
 
 (rf/reg-event-fx
  :tx/create-transaction
@@ -310,17 +319,37 @@
            transactions)))
 
 (def category-colors
-  {:food "#ef4444"
-   :transport "#f97316"
-   :entertainment "#eab308"
-   :shopping "#22c55e"
-   :health "#14b8a6"
-   :education "#3b82f6"
-   :bills "#8b5cf6"
-   :salary "#10b981"
-   :freelance "#06b6d4"
-   :investment "#6366f1"
-   :other "#94a3b8"})
+  {:groceries "#22c55e"       ; green
+   :restaurants "#f97316"     ; orange
+   :transportation "#3b82f6"  ; blue
+   :utilities "#eab308"       ; yellow
+   :entertainment "#ec4899"   ; pink
+   :healthcare "#14b8a6"      ; teal
+   :shopping "#8b5cf6"        ; violet
+   :salary "#10b981"          ; emerald
+   :freelance "#06b6d4"       ; cyan
+   :investments "#6366f1"     ; indigo
+   :gifts "#f43f5e"           ; rose
+   :food "#ef4444"            ; red
+   :transport "#0ea5e9"       ; sky
+   :health "#14b8a6"          ; teal
+   :education "#a855f7"       ; purple
+   :bills "#f59e0b"           ; amber
+   :investment "#6366f1"      ; indigo
+   :rent "#64748b"            ; slate
+   :subscriptions "#d946ef"   ; fuchsia
+   :travel "#0891b2"          ; cyan
+   :other "#78716c"})         ; stone
+
+(def fallback-colors
+  ["#ef4444" "#f97316" "#eab308" "#22c55e" "#14b8a6"
+   "#3b82f6" "#8b5cf6" "#ec4899" "#f43f5e" "#06b6d4"])
+
+(defn get-category-color
+  "Gets color for a category, using fallback palette for unknown categories."
+  [category idx]
+  (or (get category-colors category)
+      (nth fallback-colors (mod idx (count fallback-colors)))))
 
 (rf/reg-sub
  :tx/top-categories-data
@@ -334,15 +363,16 @@
                      by-category)
          sorted (sort-by :amount > totals)
          total (reduce + 0 (map :amount sorted))
-         with-percent (mapv (fn [{:keys [category amount]}]
-                              {:category category
-                               :amount amount
-                               :percent (if (pos? total)
-                                          (* 100 (/ amount total))
-                                          0)
-                               :color (get category-colors category "#94a3b8")})
-                            sorted)]
-     {:segments with-percent
+         with-percent (map-indexed
+                       (fn [idx {:keys [category amount]}]
+                         {:category category
+                          :amount amount
+                          :percent (if (pos? total)
+                                     (* 100 (/ amount total))
+                                     0)
+                          :color (get-category-color category idx)})
+                       sorted)]
+     {:segments (vec with-percent)
       :total total})))
 
 (def page-size 10)
@@ -438,9 +468,9 @@
          week-totals (mapv (fn [week]
                              (let [txs (get by-week week [])
                                    income (reduce + 0 (map :transaction/amount
-                                                          (filter #(= :income (:transaction/type %)) txs)))
+                                                           (filter #(= :income (:transaction/type %)) txs)))
                                    expenses (reduce + 0 (map :transaction/amount
-                                                            (filter #(= :expense (:transaction/type %)) txs)))]
+                                                             (filter #(= :expense (:transaction/type %)) txs)))]
                                (- income expenses)))
                            (or (seq weeks) [1 2 3 4]))
          labels (mapv #(str "Week " %) (or (seq weeks) [1 2 3 4]))]

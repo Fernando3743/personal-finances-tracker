@@ -4,6 +4,15 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]))
 
+(defn- parse-transaction
+  "Converts API response transaction to proper Clojure data types.
+   JSON parsing only converts keys to keywords, not values."
+  [tx]
+  (-> tx
+      (update :transaction/type keyword)
+      (update :transaction/category keyword)
+      (update :transaction/currency #(keyword (or % "COP")))))
+
 (rf/reg-event-fx
  :dashboard/init
  (fn [_ _]
@@ -46,7 +55,7 @@
    (-> db
        (assoc :loading? false)
        (assoc :summary (:balance response))
-       (assoc :transactions (:recent-transactions response))
+       (assoc :transactions (mapv parse-transaction (:recent-transactions response)))
        (assoc :category-breakdown (:category-breakdown response))
        (assoc :monthly-report (:monthly-trend response)))))
 
@@ -93,8 +102,7 @@
  :dashboard/category-totals
  :<- [:dashboard/categories-list]
  (fn [categories _]
-   (let [total-expense (reduce + 0 (map #(or (:total %) 0)
-                                        (filter #(= (:type %) :expense) categories)))]
+   (let [total-expense (reduce + 0 (map #(or (:expenses %) 0) categories))]
      {:categories categories
       :total-expense total-expense})))
 

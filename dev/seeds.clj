@@ -1,7 +1,9 @@
 (ns seeds
   "Development seed data for testing.
    Usage: (seed!) or (seed! {:clear? true :months 6})"
-  (:require [finance.storage.datomic :as db]
+  (:require [datomic.api :as d]
+            [finance.storage.datomic :as db]
+            [finance.core :refer [get-db-uri]]
             [finance.domain.user :as user]
             [finance.domain.transaction :as tx-domain]
             [finance.domain.wallet :as wallet-domain]
@@ -231,9 +233,7 @@
    - :months  - Number of months of transaction history (default: 6)"
   ([] (seed! {}))
   ([{:keys [clear? months] :or {clear? false months 6}}]
-   (let [db-uri (or (System/getenv "DATOMIC_URI")
-                    (throw (ex-info "DATOMIC_URI environment variable not set" {})))
-         conn (db/create-conn db-uri)
+   (let [conn (d/connect (get-db-uri))
          {:keys [email password name]} demo-user]
 
      (when clear?
@@ -283,9 +283,7 @@
 (defn clear!
   "Clears the demo user and all associated data."
   []
-  (let [db-uri (or (System/getenv "DATOMIC_URI")
-                   (throw (ex-info "DATOMIC_URI environment variable not set" {})))
-        conn (db/create-conn db-uri)
+  (let [conn (d/connect (get-db-uri))
         email (:email demo-user)]
     (if-let [existing (db/find-user-by-email conn email)]
       (do
@@ -294,7 +292,8 @@
       (println "Demo user not found"))))
 
 (comment
-  ;; Usage examples:sts
+  ;; Usage examples
+  (seed!)
   (seed! {:clear? true})            ;; Clear and recreate
   (seed! {:clear? true :months 12}) ;; 12 months of history
   (clear!)                          ;; Just clear demo user

@@ -218,8 +218,8 @@
      [cash-flow-chart]]))
 
 (defn donut-chart [{:keys [segments total]}]
-  (let [size 160
-        stroke-width 24
+  (let [size 200
+        stroke-width 28
         radius (/ (- size stroke-width) 2)
         circumference (* 2 js/Math.PI radius)
         center (/ size 2)]
@@ -239,23 +239,24 @@
                       :stroke-dasharray (str dash " " gap)
                       :stroke-dashoffset (- (* 0.25 circumference) current-offset)
                       :style {:transform "rotate(-90deg)" :transform-origin "center"}}])))]
-     [:div {:class "absolute inset-0 flex flex-col items-center justify-center"}
-      [:span {:class "text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide"} "TOTAL"]
-      [:span {:class "text-lg font-bold text-gray-900 dark:text-gray-50"} (currency/format-currency total :USD)]]]))
+     [:div {:class "absolute inset-0 flex flex-col items-center justify-center px-4"}
+      [:span {:class "text-sm text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide"} "TOTAL"]
+      [:span {:class "text-base font-bold text-gray-900 dark:text-gray-50 text-center"} (currency/format-currency total :COP)]]]))
 
 (defn category-donut-widget []
   (let [{:keys [categories]} @(rf/subscribe [:dashboard/category-totals])
         expense-cats (->> categories
-                          (filter #(= (:type %) :expense))
-                          (sort-by :total >)
+                          (filter #(pos? (:expenses %)))
+                          (sort-by :expenses >)
                           (take 4))
-        total-expenses (reduce + 0 (map :total expense-cats))
+        total-expenses (reduce + 0 (map :expenses expense-cats))
         has-data? (and (seq expense-cats) (pos? total-expenses))
         segments (when has-data?
-                   (map (fn [{:keys [category total]}]
-                          {:name (name category)
-                           :percent (* 100 (/ total total-expenses))
-                           :color (get category-colors category "#6B7280")})
+                   (map (fn [{:keys [category expenses]}]
+                          (let [cat-kw (if (keyword? category) category (keyword category))]
+                            {:name (name cat-kw)
+                             :percent (* 100 (/ expenses total-expenses))
+                             :color (get category-colors cat-kw "#6B7280")}))
                         expense-cats))]
     [:div {:class "bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-5"}
      [:h3 {:class "text-lg font-bold text-gray-900 dark:text-gray-50 mb-6"} "Spending by Category"]

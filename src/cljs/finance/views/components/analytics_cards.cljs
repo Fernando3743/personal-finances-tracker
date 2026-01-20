@@ -48,7 +48,7 @@
        [:h3 {:class "text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"} "Top Categories"]
        [:div {:class "flex items-baseline gap-2 mt-1"}
         [:span {:class "text-2xl font-bold text-neutral-900 dark:text-neutral-50"}
-         (currency/format-currency total :COP)]
+         (currency/format-currency total :USD)]
         [:span {:class "text-xs font-medium text-neutral-500 dark:text-neutral-400"} "total"]]]
       [:button {:class "text-neutral-400 dark:text-neutral-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
                 :title "Filter"}
@@ -57,16 +57,14 @@
      ;; Content: Show either data or empty state
      (if has-data?
        ;; Donut chart + Legend
-       [:div {:class "flex items-center gap-4 h-32"}
+       [:div {:class "flex items-center gap-6 h-36"}
         [:div {:class "flex-shrink-0"}
          [donut-chart {:segments segments
-                       :size 96
-                       :stroke-width 20
-                       :center-icon "🛒"
-                       :total-amount total
-                       :currency :COP}]]
+                       :size 128
+                       :stroke-width 24
+                       :center-icon "📊"}]]
         [:div {:class "flex flex-col gap-2 flex-1 min-w-0"}
-         (for [{:keys [category amount percent color]} (take 3 segments)]
+         (for [{:keys [category percent color]} (take 3 segments)]
            ^{:key category}
            [:div {:class "flex items-center justify-between text-xs"}
             [:div {:class "flex items-center gap-2 min-w-0"}

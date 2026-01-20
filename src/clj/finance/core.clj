@@ -19,7 +19,7 @@
             [clojure.tools.logging :as log])
   (:gen-class))
 
-(defn- get-db-uri
+(defn get-db-uri
   "Gets database URI from environment variables."
   []
   (config/get-env "DATOMIC_URI"))

@@ -26,11 +26,11 @@
              :expenses expenses
              :count count
              :expense-percentage (if (zero? total-expenses)
-                                   0
-                                   (* 100 (/ expenses total-expenses)))
+                                   0.0
+                                   (* 100.0 (/ (double expenses) (double total-expenses))))
              :income-percentage (if (zero? total-income)
-                                  0
-                                  (* 100 (/ income total-income)))})
+                                  0.0
+                                  (* 100.0 (/ (double income) (double total-income))))})
           summary)
      :totals {:income total-income
               :expenses total-expenses
@@ -56,9 +56,9 @@
   (let [monthly (tx/monthly-summary transactions)]
     {:months monthly
      :averages (when (seq monthly)
-                 {:avg-income (/ (reduce + (map :income monthly)) (count monthly))
-                  :avg-expenses (/ (reduce + (map :expenses monthly)) (count monthly))
-                  :avg-balance (/ (reduce + (map :balance monthly)) (count monthly))})}))
+                 {:avg-income (/ (double (reduce + (map :income monthly))) (count monthly))
+                  :avg-expenses (/ (double (reduce + (map :expenses monthly))) (count monthly))
+                  :avg-balance (/ (double (reduce + (map :balance monthly))) (count monthly))})}))
 
 (defn monthly-report
   "Generates a monthly trend report, grouped by currency."
