@@ -13,26 +13,31 @@
         {:keys [amount type category description currency date]} preview
         is-income? (= type :income)
         display-amount (if is-income? amount (- amount))
-        icon-key (const/get-category-icon category)]
-    [:div {:class "rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 p-6 mb-8 text-white shadow-lg relative overflow-hidden"}
+        icon-key (const/get-category-icon category)
+        gradient-classes (if is-income?
+                           "from-emerald-500 via-green-600 to-teal-700"
+                           "from-rose-500 via-red-600 to-pink-700")
+        text-secondary (if is-income? "text-emerald-200" "text-rose-200")
+        text-primary (if is-income? "text-emerald-100" "text-rose-100")]
+    [:div {:class (str "rounded-2xl bg-gradient-to-br " gradient-classes " p-6 mb-8 text-white shadow-lg relative overflow-hidden transition-all duration-300")}
      [:div {:class "absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"}]
      [:div {:class "absolute -bottom-10 -left-10 h-24 w-24 rounded-full bg-white/10 blur-xl"}]
      [:div {:class "relative z-10"}
-      [:p {:class "text-xs font-medium uppercase tracking-wider text-purple-200 mb-1"} "Preview"]
+      [:p {:class (str "text-xs font-medium uppercase tracking-wider " text-secondary " mb-1")} "Preview"]
       [:div {:class "flex items-start justify-between"}
        [:div
         [:h3 {:class "text-3xl font-bold tracking-tight mb-0.5"}
          (currency/format-currency display-amount currency {:show-sign? true})]
-        [:p {:class "text-purple-100 font-medium opacity-90 text-lg"}
+        [:p {:class (str text-primary " font-medium opacity-90 text-lg")}
          (if (str/blank? description) "Transaction Name" description)]]
        [:div {:class "h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner border border-white/10"}
         [icon icon-key {:width 20 :height 20}]]]
-      [:div {:class "mt-6 flex items-center justify-between text-sm text-purple-100"}
+      [:div {:class (str "mt-6 flex items-center justify-between text-sm " text-primary)}
        [:div {:class "flex items-center bg-black/20 px-3 py-1 rounded-full backdrop-blur-md"}
         [icon :calendar {:width 14 :height 14 :class "mr-1.5"}]
         [:span (or date "Today")]]
        [:div {:class "flex items-center"}
-        [:span {:class "h-2 w-2 rounded-full bg-green-400 mr-2"}]
+        [:span {:class "h-2 w-2 rounded-full bg-white/80 mr-2"}]
         [:span (str/capitalize (name category))]]]]]))
 
 (defn type-toggle []
