@@ -158,4 +158,45 @@
                :category-trends []
                :budget-comparison []
                :date-range {:start nil :end nil}
-               :selected-view :overview}})
+               :selected-view :overview}
+
+   ;; Wallets state
+   :wallets {:accounts []
+             :loading? false
+             :error nil
+             :view-mode :grid        ; :grid, :list, :portfolio
+             :filter :all            ; :all, :bank, :card, :crypto, :investment
+             :selected-wallet-id nil}
+
+   ;; Wallet summary
+   :wallet-summary {:total-wallets 0
+                    :by-type {:bank 0 :card 0 :crypto 0 :investment 0}
+                    :total-by-currency {}
+                    :fiat-total 0
+                    :crypto-total 0}
+
+   ;; Wallet panel state
+   :wallet-panel {:open? false
+                  :mode nil}  ; :create or :edit
+
+   ;; Wallet form state
+   :wallet-form {:name ""
+                 :type :bank           ; :bank, :card, :crypto, :investment
+                 :institution ""
+                 :account-number ""
+                 :balance ""
+                 :currency :USD
+                 :color nil
+                 :balance-label "Current Balance"}
+
+   ;; Currency converter (for portfolio view)
+   :currency-converter {:from-amount 1000
+                        :from-currency :USD
+                        :to-currency :BTC
+                        :result nil
+                        :loading? false}
+
+   ;; Market data (for portfolio view)
+   :market-data {:rates {}
+                 :loading? false
+                 :last-updated nil}})

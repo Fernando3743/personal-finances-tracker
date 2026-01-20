@@ -16,6 +16,7 @@
             [finance.views.auth :as auth]
             [finance.views.transaction-panel :as tx-panel]
             [finance.views.recurring-panel :as recurring-panel]
+            [finance.views.wallets-panel :as wallets-panel]
             [finance.routes :as routes]
             [finance.components.icons :refer [icon]]
             [finance.utils.validation :as validation]))
@@ -308,7 +309,8 @@
     [main-content]]
    [tab-bar]
    [tx-panel/transaction-panel]
-   [recurring-panel/recurring-panel]])
+   [recurring-panel/recurring-panel]
+   [wallets-panel/wallets-panel]])
 
 (defn main-panel []
   (let [authenticated? @(rf/subscribe [:auth/authenticated?])

@@ -9,6 +9,7 @@
             [finance.api.profile-handlers :as profile]
             [finance.api.recurring-handlers :as recurring]
             [finance.api.budget-handlers :as budget]
+            [finance.api.wallet-handlers :as wallet]
             [finance.auth.middleware :refer [wrap-auth-required]]))
 
 (defn auth-routes
@@ -126,7 +127,32 @@
           (profile/export-data conn request))
 
         (DELETE "/" request
-          (profile/delete-account conn request))))
+          (profile/delete-account conn request)))
+
+      (context "/wallets" []
+        (GET "/" request
+          (wallet/list-wallets conn request))
+
+        (POST "/" request
+          (wallet/create-wallet conn request))
+
+        (GET "/summary" request
+          (wallet/get-wallet-summary conn request))
+
+        (POST "/refresh" request
+          (wallet/refresh-all-wallets conn request))
+
+        (GET "/:id" [id :as request]
+          (wallet/get-wallet conn id request))
+
+        (PUT "/:id" [id :as request]
+          (wallet/update-wallet conn id request))
+
+        (DELETE "/:id" [id :as request]
+          (wallet/delete-wallet conn id request))
+
+        (POST "/:id/sync" [id :as request]
+          (wallet/sync-wallet conn id request))))
     wrap-auth-required))
 
 (defn- spa-fallback

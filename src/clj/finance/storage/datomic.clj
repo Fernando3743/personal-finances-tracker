@@ -138,6 +138,80 @@
     :db/cardinality :db.cardinality/one
     :db/doc "Payment method (e.g., 'Visa ****4242', 'Wells Fargo')"}])
 
+(def wallet-schema
+  "Datomic schema for wallets/accounts."
+  [{:db/ident :wallet/id
+    :db/valueType :db.type/uuid
+    :db/unique :db.unique/identity
+    :db/cardinality :db.cardinality/one
+    :db/doc "Unique identifier for the wallet"}
+
+   {:db/ident :wallet/name
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Display name for the wallet (e.g., 'Chase Sapphire Reserve')"}
+
+   {:db/ident :wallet/type
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Wallet type: :bank, :card, :crypto, :investment"}
+
+   {:db/ident :wallet/institution
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Institution name (e.g., 'Chase', 'Coinbase')"}
+
+   {:db/ident :wallet/account-number
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Last 4 digits of account number for display"}
+
+   {:db/ident :wallet/balance
+    :db/valueType :db.type/bigdec
+    :db/cardinality :db.cardinality/one
+    :db/doc "Current balance (can be negative for credit cards)"}
+
+   {:db/ident :wallet/currency
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Currency: :USD, :COP, :BTC, :ETH, etc."}
+
+   {:db/ident :wallet/status
+    :db/valueType :db.type/keyword
+    :db/cardinality :db.cardinality/one
+    :db/doc "Sync status: :active, :synced, :updating, :error"}
+
+   {:db/ident :wallet/color
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Hex color code for UI theming"}
+
+   {:db/ident :wallet/icon-url
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Optional URL for institution icon"}
+
+   {:db/ident :wallet/balance-label
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "Custom label for balance (e.g., 'Current Balance', 'Available')"}
+
+   {:db/ident :wallet/user-id
+    :db/valueType :db.type/uuid
+    :db/cardinality :db.cardinality/one
+    :db/index true
+    :db/doc "Owner user ID"}
+
+   {:db/ident :wallet/created-at
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Creation timestamp"}
+
+   {:db/ident :wallet/last-updated
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "Last balance update timestamp"}])
+
 (def budget-schema
   "Datomic schema for budgets."
   [{:db/ident :budget/id
@@ -369,6 +443,7 @@
     (safe-transact conn schema "install transaction schema")
     (safe-transact conn recurring-schema "install recurring schema")
     (safe-transact conn budget-schema "install budget schema")
+    (safe-transact conn wallet-schema "install wallet schema")
     conn))
 
 (defn- entity->user
@@ -782,3 +857,169 @@
                      (= year (.get cal java.util.Calendar/YEAR))
                      (= (dec month) (.get cal java.util.Calendar/MONTH)))))
             all-txs)))
+
+;; ============================================================================
+;; Wallet Functions
+;; ============================================================================
+
+(defn- entity->wallet
+  "Converts a Datomic entity to a wallet map."
+  [entity]
+  (when entity
+    (let [base {:wallet/id (:wallet/id entity)
+                :wallet/name (:wallet/name entity)
+                :wallet/type (:wallet/type entity)
+                :wallet/institution (:wallet/institution entity)
+                :wallet/balance (or (:wallet/balance entity) 0M)
+                :wallet/currency (or (:wallet/currency entity) :USD)
+                :wallet/status (or (:wallet/status entity) :active)
+                :wallet/user-id (:wallet/user-id entity)}]
+      (cond-> base
+        (:wallet/account-number entity)
+        (assoc :wallet/account-number (:wallet/account-number entity))
+
+        (:wallet/color entity)
+        (assoc :wallet/color (:wallet/color entity))
+
+        (:wallet/icon-url entity)
+        (assoc :wallet/icon-url (:wallet/icon-url entity))
+
+        (:wallet/balance-label entity)
+        (assoc :wallet/balance-label (:wallet/balance-label entity))
+
+        (:wallet/created-at entity)
+        (assoc :wallet/created-at (:wallet/created-at entity))
+
+        (:wallet/last-updated entity)
+        (assoc :wallet/last-updated (:wallet/last-updated entity))))))
+
+(defn- wallet->tx-data
+  "Converts a wallet map to Datomic transaction data."
+  [wallet]
+  (let [base {:wallet/id (:wallet/id wallet)
+              :wallet/name (:wallet/name wallet)
+              :wallet/type (:wallet/type wallet)
+              :wallet/institution (:wallet/institution wallet)
+              :wallet/balance (bigdec (or (:wallet/balance wallet) 0))
+              :wallet/currency (:wallet/currency wallet)
+              :wallet/status (:wallet/status wallet)
+              :wallet/user-id (:wallet/user-id wallet)
+              :wallet/created-at (or (:wallet/created-at wallet) (java.util.Date.))
+              :wallet/last-updated (or (:wallet/last-updated wallet) (java.util.Date.))}]
+    (cond-> base
+      (:wallet/account-number wallet)
+      (assoc :wallet/account-number (:wallet/account-number wallet))
+
+      (:wallet/color wallet)
+      (assoc :wallet/color (:wallet/color wallet))
+
+      (:wallet/icon-url wallet)
+      (assoc :wallet/icon-url (:wallet/icon-url wallet))
+
+      (:wallet/balance-label wallet)
+      (assoc :wallet/balance-label (:wallet/balance-label wallet)))))
+
+(defn- find-wallet-entity-id
+  "Finds the Datomic entity ID for a wallet by its UUID."
+  [db uuid]
+  (ffirst
+   (d/q '[:find ?e
+          :in $ ?id
+          :where [?e :wallet/id ?id]]
+        db uuid)))
+
+(defn save-wallet!
+  "Saves a wallet to the database."
+  [conn wallet]
+  (let [tx-data (wallet->tx-data wallet)]
+    (safe-transact conn [tx-data] "save wallet")
+    wallet))
+
+(defn load-wallets-for-user
+  "Loads all wallets for a specific user."
+  [conn user-id]
+  (let [db (d/db conn)
+        entities (d/q '[:find [(pull ?e [*]) ...]
+                        :in $ ?user-id
+                        :where [?e :wallet/user-id ?user-id]]
+                      db user-id)]
+    (mapv entity->wallet entities)))
+
+(defn load-wallets-by-type
+  "Loads wallets of a specific type for a user."
+  [conn user-id wallet-type]
+  (let [db (d/db conn)
+        entities (d/q '[:find [(pull ?e [*]) ...]
+                        :in $ ?user-id ?type
+                        :where
+                        [?e :wallet/user-id ?user-id]
+                        [?e :wallet/type ?type]]
+                      db user-id wallet-type)]
+    (mapv entity->wallet entities)))
+
+(defn load-wallet-by-id
+  "Loads a single wallet by ID."
+  [conn id]
+  (let [db (d/db conn)
+        entity (d/q '[:find (pull ?e [*]) .
+                      :in $ ?id
+                      :where [?e :wallet/id ?id]]
+                    db id)]
+    (entity->wallet entity)))
+
+(defn update-wallet!
+  "Updates a wallet. Returns the updated record or nil."
+  [conn id updates]
+  (let [db (d/db conn)
+        eid (find-wallet-entity-id db id)]
+    (when eid
+      (let [current (d/pull db '[*] eid)
+            merged (-> (entity->wallet current)
+                       (merge updates)
+                       (assoc :wallet/last-updated (java.util.Date.)))
+            tx-data (wallet->tx-data merged)]
+        (safe-transact conn [tx-data] "update wallet")
+        merged))))
+
+(defn delete-wallet!
+  "Deletes a wallet by ID."
+  [conn id]
+  (let [db (d/db conn)
+        eid (find-wallet-entity-id db id)]
+    (when eid
+      (safe-transact conn [[:db/retractEntity eid]] "delete wallet")
+      true)))
+
+(defn user-owns-wallet?
+  "Checks if a wallet belongs to a user."
+  [conn user-id wallet-id]
+  (let [db (d/db conn)]
+    (some?
+     (d/q '[:find ?e .
+            :in $ ?wallet-id ?user-id
+            :where
+            [?e :wallet/id ?wallet-id]
+            [?e :wallet/user-id ?user-id]]
+          db wallet-id user-id))))
+
+(defn get-wallet-summary
+  "Returns aggregated wallet summary for a user."
+  [conn user-id]
+  (let [wallets (load-wallets-for-user conn user-id)
+        by-type (group-by :wallet/type wallets)
+        total-by-currency (reduce (fn [acc w]
+                                    (let [curr (:wallet/currency w)
+                                          bal (:wallet/balance w)]
+                                      (update acc curr (fnil + 0M) bal)))
+                                  {}
+                                  wallets)
+        fiat-currencies #{:USD :COP :EUR :GBP}
+        crypto-currencies #{:BTC :ETH :SOL}]
+    {:total-wallets (count wallets)
+     :by-type {:bank (count (:bank by-type))
+               :card (count (:card by-type))
+               :crypto (count (:crypto by-type))
+               :investment (count (:investment by-type))}
+     :total-by-currency total-by-currency
+     :fiat-total (reduce + 0M (vals (select-keys total-by-currency fiat-currencies)))
+     :crypto-total (reduce + 0M (vals (select-keys total-by-currency crypto-currencies)))}))

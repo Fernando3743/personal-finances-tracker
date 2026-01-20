@@ -43,7 +43,8 @@
   {:dashboard       :dashboard/init
    :transactions    :transactions/init
    :add-transaction :transactions/init
-   :profile         :profile/init})
+   :profile         :profile/init
+   :wallets         :wallets/init})
 
 (rf/reg-event-fx
  :app/set-route
