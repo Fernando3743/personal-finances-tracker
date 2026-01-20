@@ -3,28 +3,28 @@
   (:require [re-frame.core :as rf]
             [finance.views.components.analytics-cards :refer [analytics-cards-row]]
             [finance.views.transactions.pagination :refer [pagination]]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.components.category-icon :refer [category-icon category-badge]]))
 
 (defn format-date-short [date-str]
   (when date-str
     (let [date (js/Date. date-str)]
       (.toLocaleDateString date "en-US" #js {:month "short"
-                                              :day "numeric"}))))
+                                             :day "numeric"}))))
 
 (defn table-controls []
   "Month selector and Add Transaction button."
   [:div {:class "flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4"}
    [:div {:class "flex items-center gap-3"}
      ;; Month selector
-     [:button {:class (str "flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 "
-                           "bg-white dark:bg-neutral-800 text-sm font-semibold "
-                           "hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors shadow-sm")
-               :title "Select month"}
-      [icon :calendar {:width 18 :height 18}]
-      [:span "This Month"]
-      [icon :chevron-down {:width 18 :height 18}]]]
+    [:button {:class (str "flex items-center gap-2 h-10 px-4 rounded-lg border border-neutral-200 dark:border-neutral-700 "
+                          "bg-white dark:bg-neutral-800 text-sm font-semibold "
+                          "hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors shadow-sm")
+              :title "Select month"}
+     [icon :calendar {:width 18 :height 18}]
+     [:span "This Month"]
+     [icon :chevron-down {:width 18 :height 18}]]]
 
    ;; Add Transaction button
    [:button {:class (str "h-10 px-5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold "
@@ -37,8 +37,7 @@
   [{:keys [transaction/id transaction/amount transaction/type
            transaction/category transaction/description
            transaction/date transaction/currency]}]
-  (let [cat-icon (get db/category-icons category "📦")
-        is-income? (= type :income)
+  (let [is-income? (= type :income)
         curr (or currency :COP)
         display-amount (if is-income? amount (- amount))]
     [:tr {:class "group border-b border-neutral-200 dark:border-neutral-700 last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"}
@@ -49,18 +48,13 @@
      ;; Description with icon
      [:td {:class "py-4 px-6"}
       [:div {:class "flex items-center gap-3"}
-       [:div {:class (str "w-8 h-8 rounded-full flex items-center justify-center text-lg "
-                          (if is-income?
-                            "bg-green-100 dark:bg-green-900/20"
-                            "bg-red-100 dark:bg-red-900/20"))}
-        cat-icon]
+       [category-icon category {:size :sm}]
        [:span {:class "text-sm font-semibold text-neutral-900 dark:text-neutral-50"}
         (or description "No description")]]]
 
      ;; Category badge
      [:td {:class "py-4 px-6"}
-      [:span {:class "inline-flex px-2.5 py-1 rounded-md text-xs font-medium bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400"}
-       (name (or category :other))]]
+      [category-badge category]]
 
      ;; Payment method (placeholder)
      [:td {:class "py-4 px-6 text-neutral-600 dark:text-neutral-400 flex items-center gap-2 text-sm"}

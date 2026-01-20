@@ -2,18 +2,18 @@
   "Slide-in panel for adding transactions."
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
             [finance.components.icons :refer [icon]]
             [finance.utils.validation :as validation]
-            [finance.constants :as const]))
+            [finance.constants :as const]
+            [finance.components.category-icon :refer [category-icon]]))
 
 (defn preview-card []
   (let [preview @(rf/subscribe [:tx/form-preview])
         {:keys [amount type category description currency date]} preview
-        cat-icon (get db/category-icons category "📦")
         is-income? (= type :income)
-        display-amount (if is-income? amount (- amount))]
+        display-amount (if is-income? amount (- amount))
+        icon-key (const/get-category-icon category)]
     [:div {:class "rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 p-6 mb-8 text-white shadow-lg relative overflow-hidden"}
      [:div {:class "absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl"}]
      [:div {:class "absolute -bottom-10 -left-10 h-24 w-24 rounded-full bg-white/10 blur-xl"}]
@@ -26,7 +26,7 @@
         [:p {:class "text-purple-100 font-medium opacity-90 text-lg"}
          (if (str/blank? description) "Transaction Name" description)]]
        [:div {:class "h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner border border-white/10"}
-        [:span {:class "text-xl"} cat-icon]]]
+        [icon icon-key {:width 20 :height 20}]]]
       [:div {:class "mt-6 flex items-center justify-between text-sm text-purple-100"}
        [:div {:class "flex items-center bg-black/20 px-3 py-1 rounded-full backdrop-blur-md"}
         [icon :calendar {:width 14 :height 14 :class "mr-1.5"}]
@@ -98,20 +98,17 @@
                                   cleaned (validation/clean-amount val)]
                               (rf/dispatch [:tx/update-form-field :amount cleaned]))}]]]]))
 
-
 (defn category-dropdown []
   (let [categories @(rf/subscribe [:tx/categories])
-        selected @(rf/subscribe [:tx/form-field :category])
-        selected-icon (get db/category-icons selected "📦")
-        colors (const/get-category-colors selected)]
+        selected @(rf/subscribe [:tx/form-field :category])]
     [:div {:class "space-y-2 relative"}
      [:label {:class "block text-sm font-medium text-gray-500 dark:text-gray-400"} "Category"]
      [:button {:class (str "w-full flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-left "
                            "focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent shadow-sm group transition-all")
                :type "button"}
       [:span {:class "flex items-center"}
-       [:span {:class (str "h-8 w-8 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform " (:bg colors) " " (:text colors))}
-        [:span {:class "text-sm"} selected-icon]]
+       [:span {:class "mr-3 group-hover:scale-110 transition-transform"}
+        [category-icon selected {:size :sm}]]
        [:span {:class "font-medium text-gray-900 dark:text-gray-50"} (str/capitalize (name selected))]]
       [icon :chevron-down {:width 16 :height 16 :class "text-gray-400"}]]
      [:select {:class "absolute inset-0 w-full h-full opacity-0 cursor-pointer"

@@ -1,9 +1,9 @@
 (ns finance.views.analytics
   "Analytics page view - reports and visualizations."
   (:require [re-frame.core :as rf]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.components.category-icon :refer [category-icon]]))
 
 (defn stat-card [{:keys [title value subtitle icon-name variant]}]
   (let [variant-classes (case variant
@@ -91,7 +91,7 @@
          (for [{:keys [category total count]} expense-cats]
            ^{:key category}
            [:div {:class "flex items-center gap-3 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
-            [:span {:class "text-xl"} (get db/category-icons category "📦")]
+            [category-icon category {:size :sm}]
             [:div {:class "flex-1 min-w-0"}
              [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} (name category)]
              [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} (str count " transactions")]]
@@ -106,7 +106,7 @@
          (for [{:keys [category total count]} income-sources]
            ^{:key category}
            [:div {:class "flex items-center gap-3 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg"}
-            [:span {:class "text-xl"} (get db/category-icons category "💰")]
+            [category-icon category {:size :sm}]
             [:div {:class "flex-1 min-w-0"}
              [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} (name category)]
              [:div {:class "text-xs text-neutral-400 dark:text-neutral-500"} (str count " transactions")]]
@@ -126,7 +126,7 @@
                              (case status :exceeded "border-red-500 bg-red-100/30 dark:bg-red-900/20" :warning "border-amber-500 bg-amber-100/30 dark:bg-amber-900/20" "border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800"))}
            [:div {:class "flex items-center justify-between mb-2"}
             [:div {:class "flex items-center gap-2"}
-             [:span {:class "text-lg"} (get db/category-icons category "📦")]
+             [category-icon category {:size :sm}]
              [:span {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50"} (name category)]]
             [:span {:class "text-sm font-medium text-neutral-600 dark:text-neutral-400"} (str (.toFixed percentage 0) "%")]]
            [:div {:class "h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden mb-2"}

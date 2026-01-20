@@ -2,9 +2,9 @@
   "Budget Analysis page with three switchable view modes: Table, Grid, Envelope."
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.components.category-icon :refer [category-icon]]))
 
 (defn add-trend-data
   "Adds trend data to budget items for table view display."
@@ -221,23 +221,12 @@
   (let [cat (or (:budget/category budget) :other)
         amount (or (:budget/amount budget) 0)
         curr (or (:budget/currency budget) :COP)
-        cat-icon (get db/category-icons cat "📦")
         colors (status-color status)]
     [:tr {:class "group border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"}
      ;; Category
      [:td {:class "py-4 pl-6 pr-4"}
       [:div {:class "flex items-center gap-3"}
-       [:div {:class (str "w-10 h-10 rounded-full flex items-center justify-center text-lg "
-                          (case cat
-                            :groceries "bg-orange-100 dark:bg-orange-900/30"
-                            :restaurants "bg-purple-100 dark:bg-purple-900/30"
-                            :transportation "bg-teal-100 dark:bg-teal-900/30"
-                            :utilities "bg-indigo-100 dark:bg-indigo-900/30"
-                            :entertainment "bg-pink-100 dark:bg-pink-900/30"
-                            :healthcare "bg-red-100 dark:bg-red-900/30"
-                            :shopping "bg-blue-100 dark:bg-blue-900/30"
-                            "bg-gray-100 dark:bg-gray-800"))}
-        cat-icon]
+       [category-icon cat {:size :md}]
        [:div
         [:div {:class "font-bold text-gray-900 dark:text-gray-50 text-sm"} (str/capitalize (name cat))]
         [:div {:class "text-xs text-gray-500 dark:text-gray-500"} "Monthly"]]]]
@@ -424,7 +413,6 @@
   (let [cat (or (:budget/category budget) :other)
         amount (or (:budget/amount budget) 0)
         curr (or (:budget/currency budget) :COP)
-        cat-icon (get db/category-icons cat "📦")
         colors (status-color status)
         pct (int (* 100 (or percentage 0)))]
     [:article {:class (str "flex flex-col bg-white dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700 "
@@ -432,12 +420,7 @@
                            "transition-all border-l-4 " (:accent colors))}
      [:div {:class "flex items-start justify-between mb-4"}
       [:div {:class "flex items-center gap-3"}
-       [:div {:class (str "w-12 h-12 rounded-full flex items-center justify-center text-xl "
-                          (case status
-                            :exceeded "bg-red-100 dark:bg-red-900/30"
-                            :warning "bg-amber-100 dark:bg-amber-900/30"
-                            "bg-violet-100 dark:bg-violet-900/30"))}
-        cat-icon]
+       [category-icon cat {:size :lg}]
        [:div
         [:h3 {:class "font-bold text-lg text-gray-900 dark:text-gray-50"} (str/capitalize (name cat))]
         [:p {:class "text-xs text-gray-500 font-medium uppercase tracking-wider"} "MONTHLY"]]]
@@ -567,7 +550,6 @@
   (let [cat (or (:budget/category budget) :other)
         amount (or (:budget/amount budget) 0)
         curr (or (:budget/currency budget) :COP)
-        cat-icon (get db/category-icons cat "📦")
         fill-height (min 100 (int (* 100 (or percentage 0))))
         fill-color (case status
                      :exceeded "bg-gradient-to-t from-red-500 to-red-400"
@@ -576,8 +558,7 @@
     [:div {:class "bg-white dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-700 p-4 shadow-sm hover:shadow-md transition-all"}
      ;; Header
      [:div {:class "flex flex-col items-center mb-3"}
-      [:div {:class "w-12 h-12 rounded-full bg-white dark:bg-neutral-700 border-2 border-gray-100 dark:border-neutral-600 shadow-sm flex items-center justify-center mb-2"}
-       [:span {:class "text-2xl"} cat-icon]]
+      [category-icon cat {:size :lg}]
       [:h4 {:class "font-bold text-gray-800 dark:text-gray-50 text-lg text-center"} (str/capitalize (name cat))]
       [:p {:class "text-xs text-gray-400 font-medium uppercase tracking-wide"}
        (str "Limit: " (currency/format-currency amount curr))]]
@@ -665,8 +646,7 @@
        (for [tx (take 3 (or recent-transactions []))]
          ^{:key (or (:transaction/id tx) (random-uuid))}
          [:div {:class "flex items-center gap-3"}
-          [:div {:class "w-10 h-10 rounded-full bg-gray-50 dark:bg-neutral-700 flex items-center justify-center"}
-           [:span {:class "text-lg"} (get db/category-icons (:transaction/category tx) "📦")]]
+          [category-icon (:transaction/category tx) {:size :md}]
           [:div {:class "flex-1 min-w-0"}
            [:p {:class "text-sm font-bold text-gray-800 dark:text-gray-200 truncate"}
             (or (:transaction/description tx) "Transaction")]

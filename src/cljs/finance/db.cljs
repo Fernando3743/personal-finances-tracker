@@ -6,20 +6,6 @@
    :entertainment :healthcare :shopping :salary
    :freelance :investments :gifts :other])
 
-(def category-icons
-  {:groceries "🛒"
-   :restaurants "🍽️"
-   :transportation "🚗"
-   :utilities "💡"
-   :entertainment "🎬"
-   :healthcare "🏥"
-   :shopping "🛍️"
-   :salary "💰"
-   :freelance "💼"
-   :investments "📈"
-   :gifts "🎁"
-   :other "📦"})
-
 (def default-db
   {;; Authentication state
    :auth {:user nil              ; Current user map or nil

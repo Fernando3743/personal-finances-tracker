@@ -2,9 +2,9 @@
   "Expenses page view - display expense transactions."
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.components.category-icon :refer [category-icon category-badge]]))
 
 (defn format-date-short [date-str]
   (when date-str
@@ -93,17 +93,16 @@
 (defn expense-table-row [{:keys [transaction/id transaction/amount
                                  transaction/category transaction/description
                                  transaction/date transaction/currency]}]
-  (let [cat-icon (get db/category-icons category "📦")
-        curr (or currency :COP)]
+  (let [curr (or currency :COP)]
     [:tr {:class "border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 transition-colors"}
      [:td {:class "py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap"}
       (format-date-short date)]
      [:td {:class "py-3 px-4"}
       [:div {:class "flex items-center gap-2"}
-       [:span {:class "text-xl"} cat-icon]
+       [category-icon category {:size :sm}]
        [:span {:class "text-sm text-neutral-900 dark:text-neutral-50 truncate max-w-[200px]"} (or description "No description")]]]
      [:td {:class "py-3 px-4"}
-      [:span {:class "px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"} (name (or category :other))]]
+      [category-badge category]]
      [:td {:class "py-3 px-4"}
       [:span {:class "px-2 py-0.5 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"} (name curr)]]
      [:td {:class "py-3 px-4 text-right font-mono font-semibold text-red-600 dark:text-red-500"}
@@ -133,11 +132,10 @@
 (defn expense-card [{:keys [transaction/id transaction/amount
                             transaction/category transaction/description
                             transaction/date transaction/currency]}]
-  (let [cat-icon (get db/category-icons category "📦")
-        curr (or currency :COP)]
+  (let [curr (or currency :COP)]
     [:div {:class "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-4"}
      [:div {:class "flex items-center gap-3"}
-      [:span {:class "text-2xl"} cat-icon]
+      [category-icon category {:size :md}]
       [:div {:class "flex-1 min-w-0"}
        [:div {:class "text-sm font-medium text-neutral-900 dark:text-neutral-50 truncate"} (or description "No description")]
        [:div {:class "flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500 mt-0.5"}
@@ -168,7 +166,7 @@
         (for [{:keys [category amount percentage]} (take 5 breakdown)]
           ^{:key category}
           [:div {:class "flex items-center gap-3"}
-           [:span {:class "text-xl w-8"} (get db/category-icons category "📦")]
+           [category-icon category {:size :sm}]
            [:span {:class "text-sm text-neutral-900 dark:text-neutral-50 w-24 truncate"} (name category)]
            [:div {:class "flex-1 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden"}
             [:div {:class "h-full bg-red-500 rounded-full transition-all"

@@ -3,16 +3,16 @@
   (:require [re-frame.core :as rf]
             [finance.views.transactions.pagination :refer [pagination]]
             [finance.views.components.charts.donut-chart :refer [donut-chart]]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.components.category-icon :refer [category-icon category-badge]]))
 
 (defn format-time [date-str]
   (when date-str
     (let [date (js/Date. date-str)]
       (.toLocaleTimeString date "en-US" #js {:hour "numeric"
-                                              :minute "2-digit"
-                                              :hour12 true}))))
+                                             :minute "2-digit"
+                                             :hour12 true}))))
 
 (defn current-month-label []
   (let [now (js/Date.)]
@@ -46,19 +46,13 @@
   [{:keys [transaction/id transaction/amount transaction/type
            transaction/category transaction/description
            transaction/date transaction/currency]}]
-  (let [cat-icon (get db/category-icons category "📦")
-        is-income? (= type :income)
+  (let [is-income? (= type :income)
         curr (or currency :COP)
         display-amount (if is-income? amount (- amount))]
     [:div {:class (str "group relative flex items-center gap-5 p-5 bg-white dark:bg-neutral-800 rounded-2xl "
                        "border border-transparent hover:border-violet-600/20 hover:shadow-lg "
                        "transition-all duration-300 cursor-pointer")}
-     ;; Icon
-     [:div {:class (str "w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 "
-                        (if is-income?
-                          "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-500"
-                          "bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-500"))}
-      cat-icon]
+     [category-icon category {:size :xl}]
 
      ;; Details
      [:div {:class "flex-1 min-w-0 flex flex-col justify-center"}
@@ -75,8 +69,7 @@
        [:div {:class "flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400"}
         [:span (format-time date)]
         [:span {:class "w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600"}]
-        [:span {:class "px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-700 text-xs font-medium text-neutral-600 dark:text-neutral-300"}
-         (name (or category :other))]]
+        [category-badge category]]
 
        ;; Arrow indicator (shows on hover)
        [:div {:class "opacity-0 group-hover:opacity-100 transition-opacity text-violet-600"}

@@ -1,10 +1,10 @@
 (ns finance.views.budgets
   "Budgets page view with three view modes: table, grid, and envelope."
   (:require [re-frame.core :as rf]
-            [finance.db :as db]
             [finance.utils.currency :as currency]
             [finance.components.icons :refer [icon]]
-            [finance.views.budgets-panel :refer [budgets-panel]]))
+            [finance.views.budgets-panel :refer [budgets-panel]]
+            [finance.components.category-icon :refer [category-icon]]))
 
 ;; Utility Functions
 (defn status-color [status]
@@ -68,8 +68,8 @@
       [:div {:class "flex items-center justify-between mb-2"}
        [:span {:class "text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-semibold"} "Left to Spend"]
        [:span {:class (str "text-xs font-semibold " (status-color (cond (> percentage 100) :exceeded
-                                                                          (> percentage 80) :warning
-                                                                          :else :ok)))}
+                                                                        (> percentage 80) :warning
+                                                                        :else :ok)))}
         (str (.toFixed percentage 0) "% Used")]]
       [:div {:class "text-2xl font-bold text-gray-900 dark:text-gray-50"}
        (currency/format-currency remaining :COP)]
@@ -186,13 +186,12 @@
   (let [cat (:budget/category budget)
         amount (:budget/amount budget)
         curr (:budget/currency budget)
-        cat-icon (get db/category-icons cat "📦")
         id (:budget/id budget)]
     [:div {:class (str "grid grid-cols-6 gap-4 px-6 py-4 border-b border-gray-200 dark:border-gray-700 "
                        "hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors")}
      ;; Category
      [:div {:class "flex items-center gap-3"}
-      [:span {:class "text-xl"} cat-icon]
+      [category-icon cat {:size :sm}]
       [:div
        [:div {:class "font-medium text-gray-900 dark:text-gray-50"} (name cat)]
        [:div {:class "text-xs text-gray-500 dark:text-gray-400"} "Fixed"]]]
@@ -254,13 +253,12 @@
   (let [cat (:budget/category budget)
         amount (:budget/amount budget)
         curr (:budget/currency budget)
-        cat-icon (get db/category-icons cat "📦")
         id (:budget/id budget)
         border-class (status-border status)]
     [:div {:class (str "relative bg-white dark:bg-gray-800 rounded-xl border p-5 transition-all hover:shadow-lg " border-class)}
      [:div {:class "flex items-center justify-between mb-3"}
       [:div {:class "flex items-center gap-2"}
-       [:span {:class "text-xl"} cat-icon]
+       [category-icon cat {:size :sm}]
        [:span {:class "font-medium text-gray-900 dark:text-gray-50"} (name cat)]]
       [:div
        (case status
@@ -371,16 +369,10 @@
   (let [cat (:budget/category budget)
         amount (:budget/amount budget)
         curr (:budget/currency budget)
-        cat-icon (get db/category-icons cat "📦")
         fill-percentage (min 100 (* 100 (or percentage 0)))]
     [:div {:class "bg-white dark:bg-gray-800 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all"}
      [:div {:class "flex items-center justify-between mb-4"}
-      [:div {:class (str "h-12 w-12 rounded-full flex items-center justify-center "
-                         (case status
-                           :exceeded "bg-red-100 dark:bg-red-900/30"
-                           :warning "bg-amber-100 dark:bg-amber-900/30"
-                           "bg-violet-100 dark:bg-violet-900/30"))}
-       [:span {:class "text-2xl"} cat-icon]]
+      [category-icon cat {:size :lg}]
       [:div {:class "text-right"}
        [:p {:class "text-xs text-gray-500 dark:text-gray-400"} "LIMIT"]
        [:p {:class "text-sm font-semibold text-gray-900 dark:text-gray-50"}

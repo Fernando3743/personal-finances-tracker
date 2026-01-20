@@ -73,6 +73,28 @@
   [category]
   (get category-colors category (:other category-colors)))
 
+(def category-icons
+  "Maps category keywords to their SVG icon keywords."
+  {:groceries      :shopping-cart
+   :restaurants    :utensils
+   :transportation :car
+   :utilities      :zap
+   :entertainment  :film
+   :healthcare     :activity
+   :shopping       :shopping-bag
+   :salary         :dollar-sign
+   :freelance      :briefcase
+   :investments    :trending-up
+   :gifts          :gift
+   :other          :package
+   :food           :utensils
+   :housing        :home})
+
+(defn get-category-icon
+  "Gets the icon keyword for a category, with fallback to :package."
+  [category]
+  (get category-icons category :package))
+
 (def budget-status-colors
   "Colors for budget status indicators."
   {:on-track {:bg "bg-green-100 dark:bg-green-900/30"
