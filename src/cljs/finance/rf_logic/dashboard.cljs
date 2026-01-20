@@ -140,11 +140,13 @@
 (rf/reg-sub
  :dashboard/all-currency-balances
  :<- [:dashboard/summary-by-currency]
- (fn [by-currency _]
-   (mapv (fn [[currency data]]
-           {:currency currency
-            :balance (or (:balance data) 0)
-            :income (or (:income data) 0)
-            :expenses (or (:expenses data) 0)
-            :count (or (:count data) 0)})
-         by-currency)))
+ :<- [:dashboard/available-currencies]
+ (fn [[by-currency available-currencies] _]
+   (mapv (fn [currency]
+           (let [data (get by-currency currency {})]
+             {:currency currency
+              :balance (or (:balance data) 0)
+              :income (or (:income data) 0)
+              :expenses (or (:expenses data) 0)
+              :count (or (:count data) 0)}))
+         available-currencies)))

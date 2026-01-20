@@ -215,7 +215,7 @@
   (let [toasts @(rf/subscribe [:app/toast-queue])]
     (react-dom/createPortal
       (r/as-element
-        [:div {:class "fixed top-4 right-4 z-80 flex flex-col gap-2 max-w-sm w-full"}
+        [:div {:class "fixed top-[72px] lg:top-20 right-4 z-50 flex flex-col gap-2 max-w-sm w-full"}
          (for [t toasts]
            ^{:key (:id t)}
            [toast t])])

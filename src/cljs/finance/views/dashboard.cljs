@@ -57,20 +57,15 @@
         (currency/format-currency expenses currency)]]]]))
 
 (defn balances-section []
-  (let [currency-balances @(rf/subscribe [:dashboard/all-currency-balances])
-        currencies @(rf/subscribe [:dashboard/available-currencies])]
+  (let [currency-balances @(rf/subscribe [:dashboard/all-currency-balances])]
     [:<>
      [:div {:class "mb-6"}
       [:h1 {:class "text-2xl font-bold text-gray-900 dark:text-gray-50"} "Dashboard"]
       [:p {:class "text-gray-500 dark:text-gray-400"} "Your finances across all currencies"]]
      [:div {:class "grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"}
-      (if (seq currency-balances)
-        (for [{:keys [currency balance income expenses]} currency-balances]
-          ^{:key currency}
-          [currency-card {:currency currency :balance balance :income income :expenses expenses}])
-        (for [curr currencies]
-          ^{:key curr}
-          [currency-card {:currency curr :balance 0 :income 0 :expenses 0}]))]]))
+      (for [{:keys [currency balance income expenses]} currency-balances]
+        ^{:key currency}
+        [currency-card {:currency currency :balance balance :income income :expenses expenses}])]]))
 
 (defn transaction-row [{:keys [transaction/id transaction/date transaction/description
                                transaction/amount transaction/type transaction/category
