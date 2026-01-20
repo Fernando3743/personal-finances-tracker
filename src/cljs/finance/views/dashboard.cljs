@@ -154,47 +154,50 @@
 (defn cash-flow-chart []
   (let [monthly-report @(rf/subscribe [:dashboard/monthly-report])
         months (or (:months monthly-report) [])
-        income-data (if (seq months)
-                      (mapv #(or (:income %) 0) months)
-                      [800 1200 1800 2400 2800 3200])
-        expense-data (if (seq months)
-                       (mapv #(or (:expenses %) 0) months)
-                       [600 800 1200 1600 1800 2000])
-        max-val (max 1 (apply max (concat income-data expense-data)))
+        income-data (mapv #(or (:income %) 0) months)
+        expense-data (mapv #(or (:expenses %) 0) months)
+        has-data? (seq months)
+        max-val (if has-data? (max 1 (apply max (concat income-data expense-data))) 4000)
         rounded-max (* 1000 (js/Math.ceil (/ max-val 1000)))
         width 500
         height 200
         y-labels [4 3 2 1 0]]
-    [:div {:class "flex gap-4"}
-     [:div {:class "flex flex-col justify-between text-xs text-gray-500 dark:text-gray-400 py-2"}
-      (for [label y-labels]
-        ^{:key label}
-        [:span (str label "k")])]
-     [:div {:class "flex-1 relative"}
-      [:svg {:viewBox (str "0 0 " width " " height)
-             :preserveAspectRatio "none"
-             :class "w-full h-48"}
-       [:defs
-        [:linearGradient {:id "incomeGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
-         [:stop {:offset "0%" :stop-color "#10b981" :stop-opacity "0.3"}]
-         [:stop {:offset "100%" :stop-color "#10b981" :stop-opacity "0"}]]
-        [:linearGradient {:id "expenseGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
-         [:stop {:offset "0%" :stop-color "#ef4444" :stop-opacity "0.3"}]
-         [:stop {:offset "100%" :stop-color "#ef4444" :stop-opacity "0"}]]]
-       (for [i (range 5)]
-         ^{:key i}
-         [:line {:x1 0 :y1 (* i (/ height 4)) :x2 width :y2 (* i (/ height 4))
-                 :stroke "currentColor" :stroke-dasharray "4 4" :class "text-gray-200 dark:text-neutral-700"}])
-       [:path {:d (str (generate-smooth-path income-data width height rounded-max)
-                       " L " width " " height " L 0 " height " Z")
-               :fill "url(#incomeGradient)"}]
-       [:path {:d (generate-smooth-path income-data width height rounded-max)
-               :fill "none" :stroke "#10b981" :stroke-width "2.5"}]
-       [:path {:d (str (generate-smooth-path expense-data width height rounded-max)
-                       " L " width " " height " L 0 " height " Z")
-               :fill "url(#expenseGradient)"}]
-       [:path {:d (generate-smooth-path expense-data width height rounded-max)
-               :fill "none" :stroke "#ef4444" :stroke-width "2.5"}]]]]))
+    (if has-data?
+      [:div {:class "flex gap-4"}
+       [:div {:class "flex flex-col justify-between text-xs text-gray-500 dark:text-gray-400 py-2"}
+        (for [label y-labels]
+          ^{:key label}
+          [:span (str label "k")])]
+       [:div {:class "flex-1 relative"}
+        [:svg {:viewBox (str "0 0 " width " " height)
+               :preserveAspectRatio "none"
+               :class "w-full h-48"}
+         [:defs
+          [:linearGradient {:id "incomeGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
+           [:stop {:offset "0%" :stop-color "#10b981" :stop-opacity "0.3"}]
+           [:stop {:offset "100%" :stop-color "#10b981" :stop-opacity "0"}]]
+          [:linearGradient {:id "expenseGradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"}
+           [:stop {:offset "0%" :stop-color "#ef4444" :stop-opacity "0.3"}]
+           [:stop {:offset "100%" :stop-color "#ef4444" :stop-opacity "0"}]]]
+         (for [i (range 5)]
+           ^{:key i}
+           [:line {:x1 0 :y1 (* i (/ height 4)) :x2 width :y2 (* i (/ height 4))
+                   :stroke "currentColor" :stroke-dasharray "4 4" :class "text-gray-200 dark:text-neutral-700"}])
+         [:path {:d (str (generate-smooth-path income-data width height rounded-max)
+                         " L " width " " height " L 0 " height " Z")
+                 :fill "url(#incomeGradient)"}]
+         [:path {:d (generate-smooth-path income-data width height rounded-max)
+                 :fill "none" :stroke "#10b981" :stroke-width "2.5"}]
+         [:path {:d (str (generate-smooth-path expense-data width height rounded-max)
+                         " L " width " " height " L 0 " height " Z")
+                 :fill "url(#expenseGradient)"}]
+         [:path {:d (generate-smooth-path expense-data width height rounded-max)
+                 :fill "none" :stroke "#ef4444" :stroke-width "2.5"}]]]]
+      [:div {:class "flex items-center justify-center h-48 text-gray-500 dark:text-gray-400"}
+       [:div {:class "text-center"}
+        [icon :bar-chart {:width 32 :height 32 :class "mx-auto mb-2 opacity-50"}]
+        [:p {:class "text-sm"} "No transaction data yet"]
+        [:p {:class "text-xs mt-1"} "Add transactions to see your cash flow trends"]]])))
 
 (defn cash-flow-widget []
   (let [time-range @(rf/subscribe [:dashboard/chart-time-range])]
@@ -247,31 +250,30 @@
                           (sort-by :total >)
                           (take 4))
         total-expenses (reduce + 0 (map :total expense-cats))
-        segments (if (seq expense-cats)
+        has-data? (and (seq expense-cats) (pos? total-expenses))
+        segments (when has-data?
                    (map (fn [{:keys [category total]}]
                           {:name (name category)
-                           :percent (if (pos? total-expenses)
-                                      (* 100 (/ total total-expenses))
-                                      0)
+                           :percent (* 100 (/ total total-expenses))
                            :color (get category-colors category "#6B7280")})
-                        expense-cats)
-                   [{:name "Housing" :percent 45 :color "#7c3aed"}
-                    {:name "Food" :percent 25 :color "#F59E0B"}
-                    {:name "Transport" :percent 15 :color "#10B981"}
-                    {:name "Others" :percent 15 :color "#EF4444"}])
-        display-total (if (pos? total-expenses) total-expenses 2690)]
+                        expense-cats))]
     [:div {:class "bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-5"}
      [:h3 {:class "text-lg font-bold text-gray-900 dark:text-gray-50 mb-6"} "Spending by Category"]
-     [:div {:class "flex flex-col items-center gap-6"}
-      [donut-chart {:segments segments :total display-total}]
-      [:div {:class "flex-1 space-y-3 w-full"}
-       (for [{:keys [name percent color]} segments]
-         ^{:key name}
-         [:div {:class "flex items-center justify-between"}
-          [:div {:class "flex items-center gap-2"}
-           [:span {:class "w-3 h-3 rounded-full" :style {:background-color color}}]
-           [:span {:class "text-sm text-gray-600 dark:text-gray-400"} (str/capitalize name)]]
-          [:span {:class "text-sm font-bold text-gray-900 dark:text-gray-50"} (str (js/Math.round percent) "%")]])]]]))
+     (if has-data?
+       [:div {:class "flex flex-col items-center gap-6"}
+        [donut-chart {:segments segments :total total-expenses}]
+        [:div {:class "flex-1 space-y-3 w-full"}
+         (for [{:keys [name percent color]} segments]
+           ^{:key name}
+           [:div {:class "flex items-center justify-between"}
+            [:div {:class "flex items-center gap-2"}
+             [:span {:class "w-3 h-3 rounded-full" :style {:background-color color}}]
+             [:span {:class "text-sm text-gray-600 dark:text-gray-400"} (str/capitalize name)]]
+            [:span {:class "text-sm font-bold text-gray-900 dark:text-gray-50"} (str (js/Math.round percent) "%")]])]]
+       [:div {:class "flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400"}
+        [icon :pie-chart {:width 32 :height 32 :class "mb-2 opacity-50"}]
+        [:p {:class "text-sm"} "No spending data yet"]
+        [:p {:class "text-xs mt-1 text-center"} "Add expense transactions to see your spending breakdown"]])]))
 
 (defn trend-chart-widget []
   [cash-flow-widget])

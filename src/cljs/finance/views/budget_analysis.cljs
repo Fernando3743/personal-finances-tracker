@@ -6,111 +6,6 @@
             [finance.utils.currency :as currency]
             [finance.components.icons :refer [icon]]))
 
-;; =============================================================================
-;; Mock Data for Development
-;; =============================================================================
-
-(def mock-budget-summaries
-  "Mock budget data for testing the UI when no real data is available."
-  [{:budget {:budget/id (random-uuid)
-             :budget/category :groceries
-             :budget/amount 800000
-             :budget/currency :COP}
-    :spent 648000
-    :remaining 152000
-    :percentage 0.81
-    :status :warning}
-   {:budget {:budget/id (random-uuid)
-             :budget/category :restaurants
-             :budget/amount 400000
-             :budget/currency :COP}
-    :spent 460000
-    :remaining -60000
-    :percentage 1.15
-    :status :exceeded}
-   {:budget {:budget/id (random-uuid)
-             :budget/category :transportation
-             :budget/amount 300000
-             :budget/currency :COP}
-    :spent 135000
-    :remaining 165000
-    :percentage 0.45
-    :status :ok}
-   {:budget {:budget/id (random-uuid)
-             :budget/category :utilities
-             :budget/amount 250000
-             :budget/currency :COP}
-    :spent 150000
-    :remaining 100000
-    :percentage 0.60
-    :status :ok}
-   {:budget {:budget/id (random-uuid)
-             :budget/category :entertainment
-             :budget/amount 200000
-             :budget/currency :COP}
-    :spent 170000
-    :remaining 30000
-    :percentage 0.85
-    :status :warning}
-   {:budget {:budget/id (random-uuid)
-             :budget/category :healthcare
-             :budget/amount 150000
-             :budget/currency :COP}
-    :spent 45000
-    :remaining 105000
-    :percentage 0.30
-    :status :ok}
-   {:budget {:budget/id (random-uuid)
-             :budget/category :shopping
-             :budget/amount 350000
-             :budget/currency :COP}
-    :spent 437500
-    :remaining -87500
-    :percentage 1.25
-    :status :exceeded}])
-
-(def mock-total-budgeted
-  "Sum of all mock budget amounts."
-  (reduce + 0 (map #(get-in % [:budget :budget/amount]) mock-budget-summaries)))
-
-(def mock-total-spent
-  "Sum of all mock spent amounts."
-  (reduce + 0 (map :spent mock-budget-summaries)))
-
-;; =============================================================================
-;; Helper Functions for Data Access
-;; =============================================================================
-
-(defn get-budget-data
-  "Returns budget data from API if available, otherwise returns mock data."
-  []
-  (let [api-data @(rf/subscribe [:budget-analysis/budget-data])]
-    (if (seq api-data)
-      api-data
-      mock-budget-summaries)))
-
-(defn get-total-budgeted
-  "Returns total budgeted amount from API if available, otherwise mock total."
-  []
-  (let [api-total @(rf/subscribe [:budgets/total-budgeted])]
-    (if (pos? api-total)
-      api-total
-      mock-total-budgeted)))
-
-(defn get-total-spent
-  "Returns total spent amount from API if available, otherwise mock total."
-  []
-  (let [api-total @(rf/subscribe [:budgets/total-spent])]
-    (if (pos? api-total)
-      api-total
-      mock-total-spent)))
-
-(defn has-budget-data?
-  "Returns true if there is any budget data (real or mock) to display."
-  []
-  (or (seq @(rf/subscribe [:budgets/all-budgets]))
-      (seq mock-budget-summaries)))
-
 (defn add-trend-data
   "Adds trend data to budget items for table view display."
   [items]
@@ -132,53 +27,24 @@
 (defn get-budget-data-with-trends
   "Returns budget data with trend information added."
   []
-  (let [api-trends @(rf/subscribe [:budget-analysis/category-trends])]
+  (let [api-trends @(rf/subscribe [:budget-analysis/category-trends])
+        budget-data @(rf/subscribe [:budget-analysis/budget-data])]
     (if (seq api-trends)
       api-trends
-      (add-trend-data mock-budget-summaries))))
+      (add-trend-data budget-data))))
 
 (defn get-status-counts
-  "Returns status counts for filter tabs, using mock data if needed."
+  "Returns status counts for filter tabs."
   []
   (let [api-counts @(rf/subscribe [:budget-analysis/status-counts])
-        data (get-budget-data)]
+        budget-data @(rf/subscribe [:budget-analysis/budget-data])]
     (if (pos? (:all api-counts 0))
       api-counts
-      (let [grouped (group-by :status data)]
-        {:all (count data)
+      (let [grouped (group-by :status budget-data)]
+        {:all (count budget-data)
          :on-track (count (get grouped :ok []))
          :near-limit (count (get grouped :warning []))
          :over-budget (count (get grouped :exceeded []))}))))
-
-(defn get-top-saver
-  "Returns the best performing budget category (most remaining), using mock data if needed."
-  []
-  (let [api-saver @(rf/subscribe [:budgets/top-saver])
-        data (get-budget-data)]
-    (if api-saver
-      api-saver
-      (->> data
-           (filter #(and (= :ok (:status %))
-                         (pos? (:remaining %))))
-           (sort-by :remaining >)
-           first))))
-
-(defn get-watch-out
-  "Returns the category near/over limit, using mock data if needed."
-  []
-  (let [api-watch @(rf/subscribe [:budgets/watch-out])
-        data (get-budget-data)]
-    (if api-watch
-      api-watch
-      (->> data
-           (filter #(or (= :exceeded (:status %))
-                        (= :warning (:status %))))
-           (sort-by :percentage >)
-           first))))
-
-;; ============================================
-;; UTILITY FUNCTIONS
-;; ============================================
 
 (defn status-color [status]
   (case status
@@ -215,10 +81,6 @@
     :up :trending-up
     :down :trending-down
     :minus))
-
-;; ============================================
-;; COMMON COMPONENTS
-;; ============================================
 
 (defn view-mode-toggle []
   (let [view-mode @(rf/subscribe [:budget-analysis/view-mode])]
@@ -269,10 +131,6 @@
                 :on-click #(rf/dispatch [:budgets/open-panel :create])}
        [icon :plus {:width 16 :height 16}]
        [:span "Create New Budget"]]]]))
-
-;; ============================================
-;; FILTER TOOLBAR
-;; ============================================
 
 (defn time-period-dropdown []
   (let [time-period @(rf/subscribe [:budget-analysis/time-period])]
@@ -339,10 +197,6 @@
    [:div {:class "flex justify-end"}
     [view-mode-toggle]]])
 
-;; ============================================
-;; TABLE VIEW
-;; ============================================
-
 (defn trend-indicator [{:keys [direction percent]}]
   [:div {:class (str "flex items-center gap-1 text-xs font-semibold " (trend-color direction))}
    [icon (trend-icon-name direction) {:width 14 :height 14}]
@@ -406,8 +260,8 @@
       [trend-indicator {:direction trend-direction :percent trend-percent}]]]))
 
 (defn totals-row []
-  (let [total-budgeted (get-total-budgeted)
-        total-spent (get-total-spent)
+  (let [total-budgeted @(rf/subscribe [:budgets/total-budgeted])
+        total-spent @(rf/subscribe [:budgets/total-spent])
         remaining (- total-budgeted total-spent)
         over? (neg? remaining)]
     [:tr {:class "bg-gray-50 dark:bg-neutral-900/50 font-semibold border-t-2 border-gray-200 dark:border-neutral-700"}
@@ -485,10 +339,6 @@
         [totals-row]]]]
      [table-pagination {:total total :page page :page-size page-size :total-pages total-pages}]]))
 
-;; ============================================
-;; GRID VIEW
-;; ============================================
-
 (defn summary-card [{:keys [title value subtitle icon-name icon-color progress]}]
   [:div {:class "group relative overflow-hidden bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-100 dark:border-neutral-700 shadow-sm hover:shadow-md transition-all"}
    ;; Decorative icon
@@ -513,8 +363,8 @@
           [:span {:class "text-xs font-semibold text-gray-600 dark:text-gray-300"} subtitle]])])]])
 
 (defn grid-summary-row []
-  (let [total-budgeted (get-total-budgeted)
-        total-spent (get-total-spent)
+  (let [total-budgeted @(rf/subscribe [:budgets/total-budgeted])
+        total-spent @(rf/subscribe [:budgets/total-spent])
         remaining (- total-budgeted total-spent)
         percentage (if (pos? total-budgeted) (int (* 100 (/ total-spent total-budgeted))) 0)
         days-left @(rf/subscribe [:budgets/days-left-in-month])
@@ -637,7 +487,7 @@
     "Create a budget for a new category to stay on top of your spending."]])
 
 (defn grid-view []
-  (let [budgets (get-budget-data)]
+  (let [budgets @(rf/subscribe [:budget-analysis/budget-data])]
     [:div
      [grid-summary-row]
      [grid-filter-tabs]
@@ -646,10 +496,6 @@
         ^{:key (get-in item [:budget :budget/id] (random-uuid))}
         [budget-grid-card item])
       [add-category-card]]]))
-
-;; ============================================
-;; ENVELOPE VIEW
-;; ============================================
 
 (defn semi-circular-gauge [{:keys [percentage]}]
   (let [clamped (min 100 (max 0 percentage))
@@ -680,8 +526,8 @@
       [:div {:class "text-xs text-gray-500 dark:text-gray-400 font-medium"} "Utilized"]]]))
 
 (defn envelope-master-header []
-  (let [total-budgeted (get-total-budgeted)
-        total-spent (get-total-spent)
+  (let [total-budgeted @(rf/subscribe [:budgets/total-budgeted])
+        total-spent @(rf/subscribe [:budgets/total-spent])
         remaining (- total-budgeted total-spent)
         percentage (if (pos? total-budgeted) (* 100 (/ total-spent total-budgeted)) 0)
         days-left @(rf/subscribe [:budgets/days-left-in-month])
@@ -764,8 +610,8 @@
    [:p {:class "text-gray-500 font-medium group-hover:text-violet-600"} "Add Category"]])
 
 (defn quick-insights-sidebar []
-  (let [top-saver (get-top-saver)
-        watch-out (get-watch-out)
+  (let [top-saver @(rf/subscribe [:budgets/top-saver])
+        watch-out @(rf/subscribe [:budgets/watch-out])
         recent-transactions @(rf/subscribe [:tx/recent-transactions])]
     [:div {:class "space-y-6"}
      ;; Quick Insights Header
@@ -842,7 +688,7 @@
       [:span "Add Transaction"]]]))
 
 (defn envelope-view []
-  (let [budgets (get-budget-data)]
+  (let [budgets @(rf/subscribe [:budget-analysis/budget-data])]
     [:div {:class "grid grid-cols-1 lg:grid-cols-12 gap-6"}
      ;; Main content (8 cols)
      [:div {:class "lg:col-span-8 space-y-6"}
@@ -859,10 +705,6 @@
      ;; Sidebar (4 cols)
      [:aside {:class "lg:col-span-4"}
       [quick-insights-sidebar]]]))
-
-;; ============================================
-;; MAIN VIEW
-;; ============================================
 
 (defn empty-state []
   [:div {:class "text-center py-16 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700"}
@@ -889,7 +731,7 @@
 (defn budget-analysis-view []
   (let [view-mode @(rf/subscribe [:budget-analysis/view-mode])
         loading? @(rf/subscribe [:budgets/loading?])
-        has-data? (has-budget-data?)]
+        has-data? (seq @(rf/subscribe [:budgets/all-budgets]))]
     [:div {:class "space-y-6"}
      [page-header]
      [filter-toolbar]

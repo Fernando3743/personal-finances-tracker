@@ -351,7 +351,7 @@
  :budgets/total-budgeted
  :<- [:budgets/all-budgets]
  (fn [budgets _]
-   (reduce + 0 (map :budget/amount budgets))))
+   (reduce + 0 (keep :budget/amount budgets))))
 
 (rf/reg-sub
  :budgets/total-spent

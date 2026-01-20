@@ -4,10 +4,6 @@
             [finance.db :as db]
             [clojure.string :as str]))
 
-;; ============================================
-;; EVENTS
-;; ============================================
-
 (rf/reg-event-fx
  :budget-analysis/init
  (fn [_ _]
@@ -78,10 +74,6 @@
                   :title "Export Started"
                   :message "Your CSV file is being generated..."}]})))
 
-;; ============================================
-;; BASIC SUBSCRIPTIONS
-;; ============================================
-
 (rf/reg-sub
  :budget-analysis/view-mode
  (fn [db _]
@@ -132,10 +124,6 @@
  (fn [db _]
    (get-in db [:budget-analysis :loading?] false)))
 
-;; ============================================
-;; PERIOD LABELS
-;; ============================================
-
 (rf/reg-sub
  :budget-analysis/current-period-label
  :<- [:budget-analysis/time-period]
@@ -163,10 +151,6 @@
        :two-months-ago (let [d (js/Date. year (- (.getMonth now) 2) 1)]
                          (str (.toLocaleString d "en-US" #js {:month "long"}) " " (.getFullYear d)))
        "Previous Period"))))
-
-;; ============================================
-;; BUDGET DATA (FILTERED/SORTED)
-;; ============================================
 
 (rf/reg-sub
  :budget-analysis/budget-data
@@ -224,10 +208,6 @@
       :near-limit (count (get grouped :warning []))
       :over-budget (count (get grouped :exceeded []))})))
 
-;; ============================================
-;; TREND DATA (Mock - would come from API)
-;; ============================================
-
 (rf/reg-sub
  :budget-analysis/category-trends
  :<- [:budget-analysis/budget-data]
@@ -249,10 +229,6 @@
                    :trend-percent trend-percent
                    :last-month-spent (* (:spent item) last-month-factor))))
         data)))
-
-;; ============================================
-;; RECENT TRANSACTIONS (for envelope view sidebar)
-;; ============================================
 
 (rf/reg-sub
  :tx/recent-transactions

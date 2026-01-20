@@ -6,91 +6,6 @@
             [finance.utils.currency :as currency]
             [clojure.string :as str]))
 
-;; =============================================================================
-;; Mock Data for Development
-;; =============================================================================
-
-(def mock-wallets
-  [{:wallet/id "1"
-    :wallet/name "Chase Sapphire Reserve"
-    :wallet/type :card
-    :wallet/institution "Chase"
-    :wallet/account-number "4422"
-    :wallet/balance 4250.00
-    :wallet/currency :USD
-    :wallet/status :active
-    :wallet/balance-label "Current Balance"
-    :wallet/color "#1a56db"
-    :trend-data [4100 4150 4200 4180 4220 4250]
-    :change 2.4}
-   {:wallet/id "2"
-    :wallet/name "Main Checking"
-    :wallet/type :bank
-    :wallet/institution "Bank of America"
-    :wallet/account-number "7891"
-    :wallet/balance 12580.45
-    :wallet/currency :USD
-    :wallet/status :synced
-    :wallet/balance-label "Available Balance"
-    :trend-data [12000 12200 12100 12400 12300 12580]
-    :change 4.8}
-   {:wallet/id "3"
-    :wallet/name "Bitcoin Wallet"
-    :wallet/type :crypto
-    :wallet/institution "Coinbase"
-    :wallet/account-number ""
-    :wallet/balance 45890.00
-    :wallet/currency :BTC
-    :wallet/status :active
-    :wallet/balance-label "Total Portfolio"
-    :wallet/color "#f7931a"
-    :trend-data [44000 44500 45000 45200 45500 45890]
-    :change 4.3}
-   {:wallet/id "4"
-    :wallet/name "Investment Account"
-    :wallet/type :investment
-    :wallet/institution "Fidelity"
-    :wallet/account-number "3456"
-    :wallet/balance 78170.10
-    :wallet/currency :USD
-    :wallet/status :synced
-    :wallet/balance-label "Total Value"
-    :trend-data [75000 76000 77000 77500 78000 78170]
-    :change 4.2}
-   {:wallet/id "5"
-    :wallet/name "Savings Account"
-    :wallet/type :bank
-    :wallet/institution "Wells Fargo"
-    :wallet/account-number "2468"
-    :wallet/balance 25000.00
-    :wallet/currency :USD
-    :wallet/status :active
-    :wallet/balance-label "Current Balance"
-    :trend-data [24500 24600 24700 24800 24900 25000]
-    :change 2.0}
-   {:wallet/id "6"
-    :wallet/name "Ethereum Wallet"
-    :wallet/type :crypto
-    :wallet/institution "Coinbase"
-    :wallet/account-number ""
-    :wallet/balance 8500.00
-    :wallet/currency :ETH
-    :wallet/status :updating
-    :wallet/balance-label "Total Portfolio"
-    :wallet/color "#627eea"
-    :trend-data [8000 8100 8200 8300 8400 8500]
-    :change 6.25}])
-
-;; =============================================================================
-;; Helper Functions
-;; =============================================================================
-
-(defn get-wallets []
-  (let [api-wallets @(rf/subscribe [:wallets/accounts])]
-    (if (seq api-wallets)
-      api-wallets
-      mock-wallets)))
-
 (defn filter-wallets [wallets filter-type]
   (if (= filter-type :all)
     wallets
@@ -116,10 +31,6 @@
         (< hours 24) (str hours " hours ago")
         :else "Yesterday"))
     "Unknown"))
-
-;; =============================================================================
-;; Card Grid View Components
-;; =============================================================================
 
 (defn wallet-card
   "Renders a single wallet card for the grid view."
@@ -180,7 +91,7 @@
 (defn card-grid-view
   "Renders the wallet cards in a responsive grid."
   []
-  (let [wallets (get-wallets)
+  (let [wallets @(rf/subscribe [:wallets/accounts])
         current-filter @(rf/subscribe [:wallets/filter])
         filtered (filter-wallets wallets current-filter)
         loading? @(rf/subscribe [:wallets/loading?])
@@ -231,10 +142,6 @@
                           "No wallets match the current filter. Try selecting a different category.")
            :action-label "Add Your First Wallet"
            :on-action #(rf/dispatch [:wallets/open-panel :create nil])}]))]))
-
-;; =============================================================================
-;; List View Components
-;; =============================================================================
 
 (defn account-list-row
   "Renders a single wallet row for the list view."
@@ -314,7 +221,7 @@
 (defn list-view
   "Renders the detailed asset performance list view."
   []
-  (let [wallets (get-wallets)
+  (let [wallets @(rf/subscribe [:wallets/accounts])
         loading? @(rf/subscribe [:wallets/loading?])
         total-balance (reduce + 0 (map #(or (:wallet/balance %) 0) wallets))
         monthly-change 8.4
@@ -393,10 +300,6 @@
           :icon-name :trending-up
           :total-balance investment-total
           :wallets (:investment grouped)}]])]))
-
-;; =============================================================================
-;; Portfolio View Components
-;; =============================================================================
 
 (defn net-worth-chart
   "Renders the portfolio net worth chart with time range toggles."
@@ -484,7 +387,7 @@
 (defn fiat-accounts-table
   "Renders the fiat accounts table for portfolio view."
   []
-  (let [wallets (get-wallets)
+  (let [wallets @(rf/subscribe [:wallets/accounts])
         fiat-wallets (filter #(#{:USD :COP :EUR :GBP} (:wallet/currency %)) wallets)]
     [:div {:class "bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"}
      [:div {:class "p-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"}
@@ -512,7 +415,7 @@
 (defn crypto-assets-table
   "Renders the crypto assets table for portfolio view."
   []
-  (let [wallets (get-wallets)
+  (let [wallets @(rf/subscribe [:wallets/accounts])
         crypto-wallets (filter #(#{:BTC :ETH :SOL} (:wallet/currency %)) wallets)]
     [:div {:class "bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"}
      [:div {:class "p-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"}
@@ -591,10 +494,6 @@
 
    ;; Market Ticker
    [market-ticker]])
-
-;; =============================================================================
-;; Main Wallets Page
-;; =============================================================================
 
 (defn wallets-view
   "Main wallets page with view mode toggle."
