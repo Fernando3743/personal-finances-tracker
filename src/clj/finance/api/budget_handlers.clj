@@ -5,7 +5,6 @@
             [finance.api.common :as common]
             [clojure.tools.logging :as log]))
 
-
 (defn list-budgets
   "GET /api/budgets - Returns current user's budgets."
   [conn request]
@@ -136,9 +135,10 @@
                                              (update-in acc [curr cat] (fnil + 0M) amt)))
                                          {}
                                          expenses)
+            budgets-by-currency (group-by :budget/currency budgets)
             status-by-currency (reduce-kv
-                                (fn [acc currency cat-spending]
-                                  (let [currency-budgets (budget/by-currency budgets currency)
+                                (fn [acc currency currency-budgets]
+                                  (let [cat-spending (get spending-by-category currency {})
                                         summaries (budget/budgets-status currency-budgets cat-spending)]
                                     (assoc acc currency
                                            {:budgets (budget/sort-by-percentage summaries)
@@ -147,17 +147,11 @@
                                             :exceeded-count (count (budget/exceeded-budgets summaries))
                                             :warning-count (count (budget/warning-budgets summaries))})))
                                 {}
-                                spending-by-category)
-            budgets-without-spending (filter (fn [b]
-                                               (not (get-in spending-by-category
-                                                            [(:budget/currency b) (:budget/category b)])))
-                                             budgets)
-            zero-summaries (map #(budget/budget-summary % 0M) budgets-without-spending)]
+                                budgets-by-currency)]
         (log/info "Retrieved budget status for user" user-id "year" query-year "month" query-month)
         (common/json-response {:year query-year
                                :month query-month
                                :status status-by-currency
-                               :budgets-with-no-spending zero-summaries
                                :all-budgets budgets}))
       (common/error-response "Invalid year or month parameters" 400))))
 

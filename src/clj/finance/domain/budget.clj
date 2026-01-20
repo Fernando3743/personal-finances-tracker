@@ -77,9 +77,10 @@
 (defn calculate-percentage
   "Calculates percentage of budget used."
   [budget spent]
-  (if (zero? (:budget/amount budget))
-    0
-    (/ spent (:budget/amount budget))))
+  (let [amount (:budget/amount budget)]
+    (if (zero? amount)
+      0.0
+      (/ (double spent) (double amount)))))
 
 (defn budget-status
   "Returns the status of a budget: :ok, :warning, or :exceeded."

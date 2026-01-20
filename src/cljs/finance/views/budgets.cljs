@@ -316,11 +316,13 @@
         total-spent @(rf/subscribe [:budgets/total-spent])
         percentage (if (pos? total-budgeted) (* 100 (/ total-spent total-budgeted)) 0)
         remaining (- total-budgeted total-spent)
-        days-left @(rf/subscribe [:budgets/days-left-in-month])]
+        days-left @(rf/subscribe [:budgets/days-left-in-month])
+        now (js/Date.)
+        month-name (.toLocaleString now "en-US" #js {:month "long"})]
     [:div {:class "bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-6"}
      [:div {:class "flex items-center justify-between mb-6"}
       [:div
-       [:h2 {:class "text-xl font-bold text-gray-900 dark:text-gray-50"} "October Budget"]
+       [:h2 {:class "text-xl font-bold text-gray-900 dark:text-gray-50"} (str month-name " Budget")]
        [:p {:class "text-sm text-gray-600 dark:text-gray-400"}
         (str "You have " (currency/format-currency remaining :COP) " left to spend this month.")]]
       [:div {:class "text-right"}
@@ -354,11 +356,11 @@
       [:div {:class "flex-1"}
        [:div {:class "grid grid-cols-2 gap-4"}
         [:div
-         [:div {:class "text-xs text-gray-500 dark:text-gray-400 mb-1"} "65% Used"]
+         [:div {:class "text-xs text-gray-500 dark:text-gray-400 mb-1"} (str (.toFixed percentage 0) "% Used")]
          [:div {:class "flex items-center gap-2"}
           [:div {:class "flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"}
-           [:div {:class "h-full bg-violet-500" :style {:width "65%"}}]]
-          [:span {:class "text-xs font-medium text-violet-600 dark:text-violet-400"} "65%"]]]
+           [:div {:class "h-full bg-violet-500" :style {:width (str (.toFixed percentage 0) "%")}}]]
+          [:span {:class "text-xs font-medium text-violet-600 dark:text-violet-400"} (str (.toFixed percentage 0) "%")]]]
         [:div
          [:div {:class "text-xs text-gray-500 dark:text-gray-400 mb-1"}
           (str days-left " days left")]

@@ -45,7 +45,9 @@
    :add-transaction :transactions/init
    :profile         :profile/init
    :analytics       :budget-analysis/init
-   :wallets         :wallets/init})
+   :wallets         :wallets/init
+   :recurring       :recurring/init
+   :budgets         :budgets/init})
 
 (rf/reg-event-fx
  :app/set-route

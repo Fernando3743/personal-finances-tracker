@@ -3,7 +3,8 @@
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
             [finance.utils.currency :as currency]
-            [finance.components.icons :refer [icon]]))
+            [finance.components.icons :refer [icon]]
+            [finance.components.category-icon :refer [category-icon]]))
 
 (defn format-date [date-str]
   (when date-str
@@ -22,24 +23,12 @@
       (max 0 (js/Math.ceil (/ diff-ms 86400000))))))
 
 (defn frequency-label [freq]
-  (case freq
+  (case (keyword freq)
     :daily "Daily"
     :weekly "Weekly"
     :monthly "Monthly"
     :yearly "Yearly"
     "Unknown"))
-
-(def category-styles
-  {:entertainment {:icon :film :bg "bg-red-100 dark:bg-red-900/30" :text "text-red-600 dark:text-red-400"}
-   :utilities {:icon :zap :bg "bg-yellow-100 dark:bg-yellow-900/30" :text "text-yellow-600 dark:text-yellow-400"}
-   :housing {:icon :home :bg "bg-blue-100 dark:bg-blue-900/30" :text "text-blue-600 dark:text-blue-400"}
-   :transportation {:icon :car :bg "bg-indigo-100 dark:bg-indigo-900/30" :text "text-indigo-600 dark:text-indigo-400"}
-   :restaurants {:icon :utensils :bg "bg-orange-100 dark:bg-orange-900/30" :text "text-orange-600 dark:text-orange-400"}
-   :healthcare {:icon :dumbbell :bg "bg-teal-100 dark:bg-teal-900/30" :text "text-teal-600 dark:text-teal-400"}
-   :groceries {:icon :utensils :bg "bg-green-100 dark:bg-green-900/30" :text "text-green-600 dark:text-green-400"}
-   :shopping {:icon :tag :bg "bg-purple-100 dark:bg-purple-900/30" :text "text-purple-600 dark:text-purple-400"}
-   :salary {:icon :dollar :bg "bg-emerald-100 dark:bg-emerald-900/30" :text "text-emerald-600 dark:text-emerald-400"}
-   :other {:icon :tag :bg "bg-gray-100 dark:bg-gray-800" :text "text-gray-600 dark:text-gray-400"}})
 
 (defn frequency-badge [freq]
   (let [is-yearly? (= freq :yearly)]
@@ -56,12 +45,22 @@
                         "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"))}
    (if active? "Active" "Paused")])
 
-(defn summary-card [{:keys [title value subtitle badge icon-name variant]}]
-  (let [variant-styles {:primary {:bg "bg-violet-100 dark:bg-violet-900/30" :text "text-violet-600 dark:text-violet-400"}
-                        :warning {:bg "bg-orange-100 dark:bg-orange-900/30" :text "text-orange-600 dark:text-orange-400"}
-                        :success {:bg "bg-green-100 dark:bg-green-900/30" :text "text-green-600 dark:text-green-400"}}
+(defn type-badge [type]
+  (let [is-income? (= (keyword type) :income)]
+    [:span {:class (str "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium "
+                        (if is-income?
+                          "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                          "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"))}
+     (if is-income? "Income" "Expense")]))
+
+(defn summary-card [{:keys [title value subtitle badge icon-name variant value-class]}]
+  (let [variant-styles {:primary {:bg "bg-violet-100 dark:bg-violet-900/30" :text "text-violet-600 dark:text-violet-400" :border ""}
+                        :warning {:bg "bg-orange-100 dark:bg-orange-900/30" :text "text-orange-600 dark:text-orange-400" :border ""}
+                        :success {:bg "bg-green-100 dark:bg-green-900/30" :text "text-green-600 dark:text-green-400" :border ""}
+                        :income {:bg "bg-green-100 dark:bg-green-900/30" :text "text-green-600 dark:text-green-400" :border "border-l-4 border-l-green-500"}
+                        :expense {:bg "bg-red-100 dark:bg-red-900/30" :text "text-red-600 dark:text-red-400" :border "border-l-4 border-l-red-500"}}
         style (get variant-styles (or variant :primary))]
-    [:div {:class "bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700"}
+    [:div {:class (str "bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 " (:border style))}
      [:div {:class "flex items-start justify-between"}
       [:div {:class (str "h-10 w-10 rounded-xl flex items-center justify-center " (:bg style) " " (:text style))}
        [icon icon-name {:width 20 :height 20}]]
@@ -73,31 +72,46 @@
          badge])]
      [:div {:class "mt-4"}
       [:p {:class "text-sm text-gray-500 dark:text-gray-400"} title]
-      [:p {:class "text-2xl font-bold text-gray-900 dark:text-gray-50 mt-1"}
+      [:p {:class (str "text-2xl font-bold mt-1 " (or value-class "text-gray-900 dark:text-gray-50"))}
        value
        (when subtitle
          [:span {:class "text-sm font-normal text-gray-400 dark:text-gray-500 ml-1"} subtitle])]]]))
 
 (defn summary-cards-row []
-  (let [total-monthly @(rf/subscribe [:recurring/total-monthly-cost])
-        next-payment @(rf/subscribe [:recurring/next-payment])
-        active-count @(rf/subscribe [:recurring/active-count])
-        days-left (when next-payment (days-until (:recurring/next-occurrence next-payment)))]
-    [:div {:class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"}
-     [summary-card {:title "Total Monthly Cost"
-                    :value (currency/format-currency total-monthly :USD)
+  (let [monthly-expenses @(rf/subscribe [:recurring/total-monthly-cost])
+        monthly-income @(rf/subscribe [:recurring/total-monthly-income])
+        expense-count @(rf/subscribe [:recurring/expense-count])
+        income-count @(rf/subscribe [:recurring/income-count])
+        net-monthly (- monthly-income monthly-expenses)
+        net-positive? (>= net-monthly 0)]
+    [:div {:class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"}
+     [summary-card {:title "Monthly Expenses"
+                    :value (currency/format-currency monthly-expenses :USD)
+                    :subtitle "/mo"
+                    :badge (str expense-count " active")
+                    :icon-name :trending-down
+                    :variant :expense
+                    :value-class "text-red-600 dark:text-red-500"}]
+     [summary-card {:title "Monthly Income"
+                    :value (str "+" (currency/format-currency monthly-income :USD))
+                    :subtitle "/mo"
+                    :badge (str income-count " active")
+                    :icon-name :trending-up
+                    :variant :income
+                    :value-class "text-green-600 dark:text-green-500"}]
+     [summary-card {:title "Net Monthly"
+                    :value (str (when net-positive? "+") (currency/format-currency net-monthly :USD))
                     :subtitle "/mo"
                     :icon-name :dollar
-                    :variant :primary}]
-     [summary-card {:title "Next Payment"
-                    :value (or (:recurring/description next-payment) "None")
-                    :subtitle (when days-left (str "Due in " days-left " days"))
-                    :icon-name :calendar
-                    :variant :warning}]
-     [summary-card {:title "Active Subscriptions"
-                    :value (str active-count)
-                    :icon-name :check-circle
-                    :variant :success}]]))
+                    :variant (if net-positive? :income :expense)
+                    :value-class (if net-positive?
+                                   "text-green-600 dark:text-green-500"
+                                   "text-red-600 dark:text-red-500")}]
+     [summary-card {:title "Total Active"
+                    :value (str (+ expense-count income-count))
+                    :subtitle "recurring"
+                    :icon-name :refresh-cw
+                    :variant :primary}]]))
 
 (defn search-input []
   (let [query @(rf/subscribe [:recurring/search-query])]
@@ -133,24 +147,30 @@
       [icon :calendar {:width 18 :height 18 :class (if (= mode :calendar) "text-violet-600" "text-gray-500")}]]]))
 
 (defn recurring-table-row [{:keys [recurring/id recurring/amount recurring/type
-                                    recurring/category recurring/description
-                                    recurring/currency recurring/frequency
-                                    recurring/next-occurrence recurring/active?
-                                    recurring/payment-method]}]
-  (let [cat-style (get category-styles category (get category-styles :other))
-        cat-icon (:icon cat-style)]
-    [:tr {:class "group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"}
+                                   recurring/category recurring/description
+                                   recurring/currency recurring/frequency
+                                   recurring/next-occurrence recurring/active?
+                                   recurring/payment-method]}]
+  (let [is-income? (= (keyword type) :income)
+        amount-class (if is-income?
+                       "text-green-600 dark:text-green-500"
+                       "text-red-600 dark:text-red-500")
+        border-class (if is-income?
+                       "border-l-4 border-l-green-500"
+                       "border-l-4 border-l-red-500")]
+    [:tr {:class (str "group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors " border-class)}
      [:td {:class "px-6 py-4"}
       [:div {:class "flex items-center"}
-       [:div {:class (str "h-10 w-10 rounded-xl flex items-center justify-center mr-4 " (:bg cat-style) " " (:text cat-style))}
-        [icon cat-icon {:width 20 :height 20}]]
-       [:div
-        [:p {:class "font-semibold text-gray-900 dark:text-gray-50"}
-         (or description "Unnamed")]
+       [category-icon category {:size :md :variant (if is-income? :income :expense)}]
+       [:div {:class "ml-4"}
+        [:div {:class "flex items-center gap-2"}
+         [:p {:class "font-semibold text-gray-900 dark:text-gray-50"}
+          (or description "Unnamed")]
+         [type-badge type]]
         [:p {:class "text-xs text-gray-500 dark:text-gray-400"}
          (or payment-method "Payment method")]]]]
-     [:td {:class "px-6 py-4 text-right font-medium text-gray-900 dark:text-gray-50"}
-      (currency/format-currency amount (or currency :USD))]
+     [:td {:class (str "px-6 py-4 text-right font-medium " amount-class)}
+      (str (when is-income? "+") (currency/format-currency amount (or currency :USD)))]
      [:td {:class "px-6 py-4 hidden md:table-cell"}
       [frequency-badge frequency]]
      [:td {:class "px-6 py-4 hidden md:table-cell text-gray-500 dark:text-gray-400"}
@@ -186,15 +206,22 @@
     [recurring-table items]))
 
 (defn recurring-card [{:keys [item]}]
-  (let [{:recurring/keys [id amount category description frequency
+  (let [{:recurring/keys [id amount type category description frequency
                           next-occurrence currency payment-method]} item
+        is-income? (= (keyword type) :income)
         days-left (days-until next-occurrence)
-        cat-style (get category-styles category (get category-styles :other))
-        urgent? (and days-left (< days-left 3))]
-    [:div {:class "group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-all"}
-     [:div {:class (str "h-14 w-14 rounded-2xl flex items-center justify-center mb-4 "
-                        "group-hover:scale-105 transition-transform " (:bg cat-style) " " (:text cat-style))}
-      [icon (:icon cat-style) {:width 28 :height 28}]]
+        urgent? (and days-left (< days-left 3))
+        border-class (if is-income?
+                       "border-t-4 border-t-green-500"
+                       "border-t-4 border-t-red-500")
+        amount-class (if is-income?
+                       "text-green-600 dark:text-green-500"
+                       "text-red-600 dark:text-red-500")]
+    [:div {:class (str "group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-all " border-class)}
+     [:div {:class "flex items-start justify-between mb-4"}
+      [:div {:class "group-hover:scale-105 transition-transform"}
+       [category-icon category {:size :xl :variant (if is-income? :income :expense)}]]
+      [type-badge type]]
      [:div {:class "absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"}
       [:button {:class "p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"
                 :title "Edit"}
@@ -208,8 +235,8 @@
       [:p {:class "font-semibold text-gray-900 dark:text-gray-50"} (or description "Unnamed")]
       [:p {:class "text-xs text-gray-500 dark:text-gray-400"} (or payment-method "Payment method")]]
      [:div {:class "flex items-baseline gap-2 mb-4"}
-      [:span {:class "text-2xl font-bold text-gray-900 dark:text-gray-50"}
-       (currency/format-currency amount (or currency :USD))]
+      [:span {:class (str "text-2xl font-bold " amount-class)}
+       (str (when is-income? "+") (currency/format-currency amount (or currency :USD)))]
       [frequency-badge frequency]]
      [:div {:class "space-y-2"}
       [:div {:class "flex justify-between text-xs text-gray-500 dark:text-gray-400"}
@@ -217,7 +244,10 @@
        [:span (when days-left (str days-left " days left"))]]
       [:div {:class "h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"}
        [:div {:class (str "h-full rounded-full transition-all "
-                          (if urgent? "bg-red-500" "bg-violet-500"))
+                          (cond
+                            urgent? "bg-red-500"
+                            is-income? "bg-green-500"
+                            :else "bg-violet-500"))
               :style {:width (str (min 100 (max 5 (- 100 (* (or days-left 30) 3.33)))) "%")}}]]]]))
 
 (defn add-new-card []
@@ -289,9 +319,15 @@
       (.getDate date)]
      [:div {:class "space-y-1"}
       (for [[idx item] (map-indexed vector (take 2 items))]
-        (let [cat-style (get category-styles (:recurring/category item) (get category-styles :other))]
+        (let [is-income? (= (keyword (:recurring/type item)) :income)
+              bg-class (if is-income?
+                         "bg-green-100 dark:bg-green-900/30"
+                         "bg-red-100 dark:bg-red-900/30")
+              text-class (if is-income?
+                           "text-green-700 dark:text-green-400"
+                           "text-red-700 dark:text-red-400")]
           ^{:key (str (:recurring/id item) "-" idx)}
-          [:div {:class (str "px-1.5 py-0.5 rounded text-xs truncate " (:bg cat-style) " " (:text cat-style))}
+          [:div {:class (str "px-1.5 py-0.5 rounded text-xs truncate " bg-class " " text-class)}
            (:recurring/description item)]))
       (when (> (count items) 2)
         [:div {:class "text-xs text-gray-500 dark:text-gray-400 px-1.5"}
@@ -334,24 +370,31 @@
         [calendar-day-cell day-info])]]))
 
 (defn upcoming-sidebar-item [{:keys [item is-today?]}]
-  (let [{:recurring/keys [id description amount frequency category]} item
-        cat-style (get category-styles category (get category-styles :other))]
+  (let [{:recurring/keys [id description amount frequency category type]} item
+        is-income? (= (keyword type) :income)
+        amount-class (if is-income?
+                       "text-green-600 dark:text-green-500"
+                       "text-red-600 dark:text-red-500")
+        dot-class (cond
+                    is-today? "bg-violet-500"
+                    is-income? "bg-green-400"
+                    :else "bg-red-400")]
     [:div {:class "flex gap-3"}
      [:div {:class "flex flex-col items-center"}
-      [:div {:class (str "w-3 h-3 rounded-full "
-                         (if is-today? "bg-violet-500" "bg-gray-300 dark:bg-gray-600"))}]
+      [:div {:class (str "w-3 h-3 rounded-full " dot-class)}]
       [:div {:class "flex-1 w-px bg-gray-200 dark:bg-gray-700"}]]
      [:div {:class "flex-1 pb-4"}
       [:div {:class "bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"}
        [:div {:class "flex items-center gap-3 mb-3"}
-        [:div {:class (str "h-10 w-10 rounded-xl flex items-center justify-center " (:bg cat-style) " " (:text cat-style))}
-         [icon (:icon cat-style) {:width 20 :height 20}]]
+        [category-icon category {:size :md :variant (if is-income? :income :expense)}]
         [:div {:class "flex-1"}
-         [:p {:class "font-medium text-gray-900 dark:text-gray-50"} description]
+         [:div {:class "flex items-center gap-2"}
+          [:p {:class "font-medium text-gray-900 dark:text-gray-50"} description]
+          [type-badge type]]
          [:p {:class "text-xs text-gray-500 dark:text-gray-400"} (frequency-label frequency)]]]
        [:div {:class "flex items-center justify-between"}
-        [:span {:class "text-lg font-bold text-gray-900 dark:text-gray-50"}
-         (currency/format-currency amount :USD)]
+        [:span {:class (str "text-lg font-bold " amount-class)}
+         (str (when is-income? "+") (currency/format-currency amount :USD))]
         (when is-today?
           [:div {:class "flex gap-2"}
            [:button {:class "px-3 py-1.5 rounded-lg bg-violet-500 hover:bg-violet-600 text-white text-xs font-medium"
@@ -413,8 +456,8 @@
      [summary-cards-row]
      [:div {:class "flex flex-col md:flex-row md:items-center justify-between gap-4"}
       [:div
-       [:h2 {:class "text-xl font-bold text-gray-900 dark:text-gray-50"} "Active Payments"]
-       [:p {:class "text-gray-500 dark:text-gray-400 mt-1 text-sm"} "Manage your subscriptions and scheduled bills."]]
+       [:h2 {:class "text-xl font-bold text-gray-900 dark:text-gray-50"} "Recurring Transactions"]
+       [:p {:class "text-gray-500 dark:text-gray-400 mt-1 text-sm"} "Manage your recurring incomes and expenses."]]
       [:div {:class "flex items-center gap-3"}
        [search-input]
        [:button {:class (str "p-2 rounded-lg border border-gray-200 dark:border-gray-700 "

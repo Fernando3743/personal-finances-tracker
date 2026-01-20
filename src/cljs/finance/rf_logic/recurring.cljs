@@ -491,28 +491,59 @@
                      (clojure.string/lower-case (name (or (:recurring/category %) :other))) q))
                items)))))
 
+(defn- calculate-monthly-amount [amount freq]
+  (case (keyword freq)
+    :daily (* amount 30)
+    :weekly (* amount 4.33)
+    :monthly amount
+    :yearly (/ amount 12)
+    amount))
+
 (rf/reg-sub
  :recurring/total-monthly-cost
  :<- [:recurring/active-items]
  (fn [items _]
    (reduce (fn [total item]
              (let [amount (:recurring/amount item)
-                   freq (:recurring/frequency item)
-                   monthly-amount (case freq
-                                    :daily (* amount 30)
-                                    :weekly (* amount 4.33)
-                                    :monthly amount
-                                    :yearly (/ amount 12)
-                                    amount)]
-               (+ total monthly-amount)))
+                   freq (:recurring/frequency item)]
+               (+ total (calculate-monthly-amount amount freq))))
            0
-           (filter #(= :expense (:recurring/type %)) items))))
+           (filter #(= :expense (keyword (:recurring/type %))) items))))
+
+(rf/reg-sub
+ :recurring/total-monthly-income
+ :<- [:recurring/active-items]
+ (fn [items _]
+   (reduce (fn [total item]
+             (let [amount (:recurring/amount item)
+                   freq (:recurring/frequency item)]
+               (+ total (calculate-monthly-amount amount freq))))
+           0
+           (filter #(= :income (keyword (:recurring/type %))) items))))
+
+(rf/reg-sub
+ :recurring/expense-count
+ :<- [:recurring/active-items]
+ (fn [items _]
+   (count (filter #(= :expense (keyword (:recurring/type %))) items))))
+
+(rf/reg-sub
+ :recurring/income-count
+ :<- [:recurring/active-items]
+ (fn [items _]
+   (count (filter #(= :income (keyword (:recurring/type %))) items))))
 
 (rf/reg-sub
  :recurring/next-payment
  :<- [:recurring/sorted-by-next]
  (fn [items _]
-   (first (filter #(= :expense (:recurring/type %)) items))))
+   (first (filter #(= :expense (keyword (:recurring/type %))) items))))
+
+(rf/reg-sub
+ :recurring/next-income
+ :<- [:recurring/sorted-by-next]
+ (fn [items _]
+   (first (filter #(= :income (keyword (:recurring/type %))) items))))
 
 (rf/reg-sub
  :recurring/active-count
@@ -551,7 +582,7 @@
  :<- [:recurring/upcoming-this-week]
  (fn [items _]
    (reduce (fn [total item]
-             (if (= :expense (:recurring/type item))
+             (if (= :expense (keyword (:recurring/type item)))
                (+ total (:recurring/amount item))
                total))
            0

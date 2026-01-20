@@ -525,7 +525,7 @@
      [:div {:class "flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10"}
       [:div {:class "flex-1"}
        [:div {:class "inline-flex items-center px-3 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-300 mb-3"}
-        (str/upper-case month-name) " 2024"]
+        (str (str/upper-case month-name) " " (.getFullYear now))]
        [:h2 {:class "text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2"}
         (str month-name " Budget")]
        [:p {:class "text-gray-600 dark:text-gray-400 text-lg"}
