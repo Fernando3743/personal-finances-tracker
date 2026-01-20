@@ -232,7 +232,7 @@
                  :on-click #(rf/dispatch [:budgets/close-panel])}
         [icon :x {:width 24 :height 24}]]]
 
-      [:div {:class "flex-1 overflow-y-auto px-6 pb-6"}
+      [:div {:class "flex-1 overflow-y-auto px-6 pt-6 pb-6"}
        [:form {:class "space-y-4"}
         [category-grid]
         [budget-type-toggle]

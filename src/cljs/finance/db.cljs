@@ -160,6 +160,19 @@
                :date-range {:start nil :end nil}
                :selected-view :overview}
 
+   ;; Budget Analysis page state (new analytics views)
+   :budget-analysis {:view-mode :table        ; :table, :grid, :envelope
+                     :time-period :this-month ; :this-month, :last-month, :this-quarter, :this-year
+                     :comparison-period :last-month
+                     :selected-account nil    ; nil = all accounts
+                     :search-query ""
+                     :sort-by :category       ; :category, :budgeted, :spent, :difference
+                     :sort-dir :asc
+                     :page 1
+                     :page-size 6
+                     :loading? false
+                     :filters {:status :all}}
+
    ;; Wallets state
    :wallets {:accounts []
              :loading? false

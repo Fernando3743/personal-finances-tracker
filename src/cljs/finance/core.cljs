@@ -13,6 +13,7 @@
             [finance.rf-logic.recurring]
             [finance.rf-logic.budgets]
             [finance.rf-logic.analytics]
+            [finance.rf-logic.budget-analysis]
             [finance.rf-logic.wallets]))
 
 (defn ^:dev/after-load mount-root

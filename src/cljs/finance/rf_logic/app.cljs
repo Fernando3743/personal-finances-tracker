@@ -44,6 +44,7 @@
    :transactions    :transactions/init
    :add-transaction :transactions/init
    :profile         :profile/init
+   :analytics       :budget-analysis/init
    :wallets         :wallets/init})
 
 (rf/reg-event-fx
